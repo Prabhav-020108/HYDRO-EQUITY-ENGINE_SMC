@@ -462,33 +462,25 @@ function showFeat(data,typeLbl){
   document.getElementById('finfo').innerHTML=`<div class="ihdr"><div class="ityp">${typeLbl||data.type}</div><div class="iid">${data.ID||data.Zone||'Detail View'}</div></div>${rows}`;
 }
 
-// ── ALERTS
-const ALERTS={
-  baseline:[{lv:'moderate',t:'Night Flow Anomaly',b:'Elevated night flow in Zone 7 — possible unauthorized use. NFA=1.38',z:7,c:.61}],
-  leak:[
-    {lv:'high',t:'Pipe Leak Detected',b:'Sudden pressure decay + flow imbalance in eastern zone. Dispatch field team immediately.',z:5,c:.81},
-    {lv:'high',t:'Flow-Pressure Imbalance',b:'23% unaccounted flow detected near coordinates (17.682, 75.942).',z:3,c:.77},
-    {lv:'moderate',t:'Low Pressure Warning',b:'Tail-end nodes below minimum service pressure (10m head).',z:7,c:.64},
-  ],
-  valve:[
-    {lv:'high',t:'Zone Isolation Alert',b:'South zone supply cut. Pressure <5m at all downstream nodes.',z:8,c:.88},
-    {lv:'moderate',t:'Demand Redistribution',b:'Adjacent zones showing elevated demand — check cross-connections.',z:4,c:.58},
-  ],
-  surge:[
-    {lv:'high',t:'System-wide Pressure Drop',b:'Demand surge (1.5×) causing widespread low pressure. HEI falling below 0.7.',z:6,c:.79},
-    {lv:'moderate',t:'Tail-End Deficit',b:'High-elevation zones receiving <12m pressure during peak demand.',z:1,c:.65},
-  ]
-};
-function renderAlerts(){
-  const al=ALERTS[scen]||[];
-  document.getElementById('acnt').textContent=al.length;
-  document.getElementById('albody').innerHTML=al.map(a=>`
-    <div class="acard ${a.lv}">
-      <div class="atit" style="color:${a.lv==='high'?'#D32F2F':'#E65100'}">${a.lv==='high'?'🔴':'🟠'} ${a.t}</div>
-      <div class="abody">${a.b}</div>
-      <div class="ameta">Zone ${a.z} · CLPS: <span class="clpsv" style="color:${a.lv==='high'?'#D32F2F':'#E65100'}">${a.c}</span></div>
-      <div class="clpsbar" style="width:${a.c*100}%;background:${a.lv==='high'?'#D32F2F':'#E65100'}"></div>
-    </div>`).join('');
+// ── ALERTS (Connected to V5 Backend)
+async function renderAlerts(){
+  try {
+    const res = await fetch(`${BACK}/alerts?scenario=${scen}`);
+    const data = await res.json();
+    const al = data.alerts || [];
+
+    document.getElementById('acnt').textContent=al.length;
+    document.getElementById('albody').innerHTML=al.map(a=>`
+      <div class="acard ${a.level}">
+        <div class="atit" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${a.level==='high'?'🔴':'🟠'} ${a.title}</div>
+        <div class="abody">${a.body}</div>
+        <div class="ameta">${a.zone} · CLPS: <span class="clpsv" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${a.clps}</span></div>
+        <div class="clpsbar" style="width:${Math.min(100, a.clps*100)}%;background:${a.level==='high'?'#D32F2F':'#E65100'}"></div>
+      </div>`).join('');
+  } catch (e) {
+    console.error("Failed to load alerts from backend", e);
+    document.getElementById('albody').innerHTML = '<div style="padding:10px;text-align:center;color:#8A96A4">Alert engine offline</div>';
+  }
 }
 
 // ── RECOMMENDATIONS
@@ -563,19 +555,30 @@ function selTL(z,btn){
 }
 
 // ── SCENARIO
-function setScen(s,btn){
+async function setScen(s,btn){
   scen=s;
-  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
   const lbp={baseline:'Running: Baseline simulation',leak:'⚠ Scenario: Pipe Leak Event (East Zone)',valve:'🔒 Scenario: Valve Closure (South Zone)',surge:'📈 Scenario: 1.5× Demand Surge'};
   document.getElementById('sci').textContent=lbp[s];
+
   // Re-render pipeline with new pressures
   pLG.clearLayers();pipes=[];
-  fetch(BACK+'/pipeline').then(r=>r.json()).then(g=>renderPipes(g)).catch(()=>{
-    // If no backend, show message
-  });
-  compEquity();renderAlerts();renderRecs();
+  try {
+    const res = await fetch(`${BACK}/pipeline?scenario=${scen}&hour=${Math.floor(hr)}`);
+    const geo = await res.json();
+    renderPipes(geo);
+  } catch (e) {
+    console.error("Failed to load pipeline", e);
+  }
+
+  compEquity();
+  await renderAlerts(); // Now waits for the real backend V5 data
+  renderRecs();
+
   if(tlChart){tlChart.data.datasets=getTLData('all');tlChart.update();}
 }
+
 
 // ── LAYER TOGGLES
 document.getElementById('llp').addEventListener('change',e=>e.target.checked?map.addLayer(pLG):map.removeLayer(pLG));

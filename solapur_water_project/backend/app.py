@@ -691,27 +691,21 @@ def data_status():
 
 @app.route('/alerts')
 def alerts():
+    """Reads the actual V5 analytics output from outputs/v5_alerts.json."""
     scen = request.args.get('scenario', 'baseline')
-    data = {
-        'baseline': [
-            {'level': 'moderate', 'title': 'Night Flow Anomaly', 'body': 'Elevated night flow in Zone 7 — possible unauthorized use. NFA=1.38', 'zone': 'Zone 7', 'clps': 0.61, 'dominant': 'NFA'}
-        ],
-        'leak': [
-            {'level': 'high',     'title': 'Pipe Leak Detected',        'body': 'Sudden pressure decay + flow imbalance in eastern zone.',   'zone': 'Zone 5', 'clps': 0.81, 'dominant': 'PDR+FPI'},
-            {'level': 'high',     'title': 'Flow-Pressure Imbalance',   'body': '23% unaccounted flow near (17.682, 75.942).',                'zone': 'Zone 3', 'clps': 0.77, 'dominant': 'FPI'},
-            {'level': 'moderate', 'title': 'Low Pressure Warning',       'body': 'Tail-end nodes below minimum service pressure.',            'zone': 'Zone 7', 'clps': 0.64, 'dominant': 'PDR'},
-        ],
-        'valve': [
-            {'level': 'high',     'title': 'Zone Isolation Alert',       'body': 'South zone supply cut. Pressure <5m at downstream nodes.',  'zone': 'Zone 8', 'clps': 0.88, 'dominant': 'FPI'},
-            {'level': 'moderate', 'title': 'Demand Redistribution',      'body': 'Adjacent zones showing elevated demand.',                   'zone': 'Zone 4', 'clps': 0.58, 'dominant': 'DDI'},
-        ],
-        'surge': [
-            {'level': 'high',     'title': 'System-wide Pressure Drop',  'body': 'Demand surge (1.5×) causing widespread low pressure.',      'zone': 'Zone 6', 'clps': 0.79, 'dominant': 'DDI+PDR'},
-            {'level': 'moderate', 'title': 'Tail-End Deficit',           'body': 'High-elevation zones receiving <12m pressure.',             'zone': 'Zone 1', 'clps': 0.65, 'dominant': 'PDR'},
-        ]
-    }
-    al = data.get(scen, [])
-    return jsonify({'alerts': al, 'count': len(al)})
+    v5_path = op('v5_alerts.json')
+
+    if os.path.exists(v5_path):
+        with open(v5_path, 'r', encoding='utf-8') as f:
+            try:
+                all_alerts = json.load(f)
+                al = all_alerts.get(scen, [])
+                return jsonify({'alerts': al, 'count': len(al), 'data_source': 'v5_engine'})
+            except Exception as e:
+                print(f"[app] Error parsing V5 JSON: {e}")
+
+    # Fallback if V5 engine hasn't been run or file is missing
+    return jsonify({'alerts': [], 'count': 0, 'data_source': 'none', 'error': 'Run V5 first'})
 
 
 @app.route('/recommendations')
@@ -741,30 +735,21 @@ def recommendations():
 
 @app.route('/burst-risk')
 def burst_risk():
-    random.seed(42)
-    segments = []
-    for i in range(10):
-        lat = 17.655 + random.random() * 0.06
-        lon = 75.875 + random.random() * 0.08
-        mat = random.choice(['CI', 'CI', 'DI', 'PVC'])
-        age = 35 if mat == 'CI' else (15 if mat == 'DI' else 10)
-        psi_n = round(random.uniform(0.1, 0.8), 2)
-        cff_n = round(random.uniform(0.2, 0.9), 2)
-        adf   = round(min(1.0, age / (50 if mat == 'CI' else 60 if mat == 'DI' else 25)), 2)
-        pss   = round(0.40 * psi_n + 0.35 * cff_n + 0.25 * adf, 3)
-        dom   = max(zip([psi_n, cff_n, adf], ['Pressure Surge', 'Cycle Fatigue', 'Age Degradation']))[1]
-        segments.append({
-            'rank': i + 1, 'segment_id': f'P-{3000 + i * 127}',
-            'material': mat, 'assumed_age': age,
-            'lat': round(lat, 4), 'lon': round(lon, 4),
-            'psi_n': psi_n, 'cff_n': cff_n, 'adf': adf, 'pss': pss,
-            'risk_level': 'HIGH' if pss > 0.80 else 'MODERATE' if pss > 0.55 else 'LOW',
-            'dominant_factor': dom,
-            'summary': f'{mat}, ~{age}yr, PSS: {pss}'
-        })
-    segments.sort(key=lambda x: x['pss'], reverse=True)
-    for i, s in enumerate(segments): s['rank'] = i + 1
-    return jsonify({'segments': segments[:10]})
+    """Reads the actual V6 analytics output from outputs/v6_burst.json."""
+    v6_path = op('v6_burst.json')
+
+    if os.path.exists(v6_path):
+        with open(v6_path, 'r', encoding='utf-8') as f:
+            try:
+                data = json.load(f)
+                data['data_source'] = 'v6_engine'
+                return jsonify(data)
+            except Exception as e:
+                print(f"[app] Error parsing V6 JSON: {e}")
+
+    # Fallback if V6 engine hasn't been run or file is missing
+    return jsonify({'segments': [], 'data_source': 'none', 'error': 'Run V6 first'})
+
 
 
 @app.route('/zone-demand')
@@ -791,4 +776,3 @@ if __name__ == '__main__':
     print('=' * 55)
     app.run(debug=True, port=5000)
 
-    
