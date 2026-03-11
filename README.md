@@ -21,6 +21,7 @@ The simulation, anomaly analytics engines, and API bridges are fully integrated.
 
 - The full SMC pipeline GeoJSON has been parsed, cleaned, and structured into CSVs.
 - A WNTR hydraulic simulation (V3) runs on the real Zone 1 network and produces pressure/flow CSVs.
+- **V4 Equity Engine is now fully active:** Dynamically calculates the Hydraulic Equity Index (HEI) by analyzing the physical distance of nodes from ESRs and calculating exact pressure drops from the WNTR CSV outputs.
 - **NEW:** V5 (Leak Detection) and V6 (Burst Prediction) scripts mathematically compute anomaly risks based on the physical simulation data.
 - A Flask backend automatically detects these real simulation outputs and serves JSON analytics to the dashboard.
 - A single-file Leaflet dashboard dynamically renders the real pipe network, changing pipeline colours, alert panels, and map markers based on the backend's Python calculations.
@@ -131,6 +132,26 @@ solapur_network.inp
 
 ---
 
+### V4 — Equity Scoring Engine
+
+**Script:** `scripts/v4_equity_engine.py`
+
+Computes the exact Hydraulic Equity Index (HEI) for every zone by analyzing the physical network topology and real pressure data from V3.
+
+**What the script does:**
+1. Loads `pressure_baseline.csv` from V3 outputs and the network graph from the simulation
+2. Maps every node to its physical geographic zone using spatial analysis
+3. Geometrically sorts nodes by distance from ESRs to identify the 15% furthest "tail-end" nodes per zone
+4. Reads the 96-timestep physics matrix from pressure CSVs
+5. Calculates the exact HEI ratio for each timestep: (avg tail-end pressure / avg core pressure)
+6. Computes Zone Equity Score (ZES) as the mean HEI across all 96 timesteps
+7. Outputs `outputs/v4_equity.json` with zone-level HEI values and City-Wide Equity Index (CWEI)
+
+**Files produced:**
+- `outputs/v4_equity.json` — HEI scores per zone, timestep, and CWEI aggregate
+
+---
+
 ### V5 & V6 — Anomaly Analytics Engines
 
 **Scripts:** `scripts/v5_leak_detect.py` | `scripts/v6_burst_predict.py`
@@ -163,7 +184,7 @@ GET http://localhost:5000/data-status
 | `/tanks` | `storage_tank.geojson` passthrough |
 | `/sources` | `water_source.geojson` passthrough |
 | `/pressure?scenario=&hour=` | Node pressure array |
-| `/equity?scenario=&hour=` | HEI score per zone + CWEI |
+| `/equity?scenario=&hour=` | HEI score per zone + CWEI (reads from v4_equity.json) |
 | `/simulate?scenario=&zone=` | 24-hour pressure timeline for a zone |
 | `/alerts?scenario=` | CLPS-based alert list |
 | `/recommendations?scenario=` | Valve/pump action text per scenario |
@@ -271,6 +292,7 @@ solapur_water_project/
 ├── scripts/
 │   ├── v1_data_foundation.py         # Parses GeoJSON → CSVs
 │   ├── simulation_engine.py          # V3: WNTR model → pressure/flow CSVs
+│   ├── v4_equity_engine.py           # V4: HEI calculation → v4_equity.json
 │   ├── v5_leak_detect.py             # V5: CLPS logic → v5_alerts.json
 │   └── v6_burst_predict.py           # V6: PSS logic → v6_burst.json
 │
@@ -284,6 +306,7 @@ solapur_water_project/
 │   ├── pressure_baseline.csv
 │   ├── flow_baseline.csv
 │   ├── pressure_scenario_... (3 files)
+│   ├── v4_equity.json
 │   ├── v5_alerts.json
 │   └── v6_burst.json
 │
@@ -342,9 +365,10 @@ Takes 2–5 minutes. Successful output looks like:
 [V3] ✓  V3 COMPLETE
 ```
 
-### Run Analytics Engines (V5 & V6)
+### Run Analytics Engines (V4, V5 & V6)
 
 ```bash
+python scripts/v4_equity_engine.py
 python scripts/v5_leak_detect.py
 python scripts/v6_burst_predict.py
 
@@ -386,11 +410,9 @@ cd frontend && python -m http.server 8080
 
 ## Where to Continue From Here
 
-Phases 1 and 2 are almost complete. The pipeline from GIS to physics simulation to anomaly detection to the frontend is fully closed.
+Phases 1 and 2 are complete. Continue with Phase 3 now according to roadmap pdf.
 
 The next work to build on top of this:
-
-**1. V4 Equity Computation:** Right now, the backend uses formula approximations for the HEI (Hydraulic Equity Index). We need a `v4_equity_engine.py` script that reads `pressure_baseline.csv`, identifies the tail-end nodes using NetworkX, and computes exact HEI values per zone.
 
 ## Team
 

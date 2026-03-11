@@ -590,45 +590,34 @@ def pressure():
 
 @app.route('/equity')
 def equity():
-    """
-    Returns HEI scores per zone.
-    When real data is available: computes HEI from actual WNTR pressures
-    at zone center and tail-end nodes.
-    """
+    """Reads the actual V4 Equity output from outputs/v4_equity.json."""
     scen = request.args.get('scenario', 'baseline')
-    hour = int(request.args.get('hour', 8))
-    result = []
+    hour = int(request.args.get('hour', 8)) # Kept for API contract consistency
 
-    for z in ZONES:
-        # Center-of-zone pressure
-        pc = get_pressure(z['lat'], z['lon'], scen, hour)
+    v4_path = op('v4_equity.json')
 
-        # Tail-end proxy: offset lat/lon by +0.009 / +0.007 degrees
-        # (represents a node further from the ESR source)
-        pt = get_pressure(z['lat'] + 0.009, z['lon'] + 0.007, scen, hour) * 0.87
+    if os.path.exists(v4_path):
+        with open(v4_path, 'r', encoding='utf-8') as f:
+            try:
+                all_equity = json.load(f)
+                data = all_equity.get(scen, None)
+                if data:
+                    data['hour'] = hour
+                    data['data_source'] = 'v4_engine'
+                    return jsonify(data)
+            except Exception as e:
+                print(f"[app] Error parsing V4 JSON: {e}")
 
-        hei = round(min(1.55, pt / pc), 3) if pc > 0 else 0.0
-
-        result.append({
-            'id':               z['id'],
-            'name':             z['name'],
-            'lat':              z['lat'],
-            'lon':              z['lon'],
-            'pressure_avg':     round(pc, 1),
-            'pressure_tailend': round(pt, 1),
-            'hei':              hei,
-            'status':           hei_status(hei),
-            'data_source':      'wntr' if scen in _real_data else 'formula',
-        })
-
-    cwei = round(sum(r['hei'] for r in result) / len(result), 3)
+    # Fallback if V4 engine hasn't been run or file is missing
     return jsonify({
-        'zones':       result,
-        'cwei':        cwei,
-        'scenario':    scen,
-        'hour':        hour,
-        'data_source': 'wntr' if scen in _real_data else 'formula',
+        'zones': [],
+        'cwei': 0.0,
+        'scenario': scen,
+        'hour': hour,
+        'data_source': 'none',
+        'error': 'Run V4 first'
     })
+
 
 
 @app.route('/simulate')
