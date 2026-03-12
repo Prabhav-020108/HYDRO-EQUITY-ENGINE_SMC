@@ -26,6 +26,13 @@ The simulation, anomaly analytics engines, and API bridges are fully integrated.
 - A Flask backend automatically detects these real simulation outputs and serves JSON analytics to the dashboard.
 - A single-file Leaflet dashboard dynamically renders the real pipe network, changing pipeline colours, alert panels, and map markers based on the backend's Python calculations.
 
+---
+
+## Hydraulic Security Measures (Anti-Theft & Tampering)
+
+- **NFA (Night Flow Anomaly):** Detects unauthorized water extraction by monitoring flows during off-peak hours (01:00–04:00). Anomalies flagged when night flow exceeds 5% of daily average.
+- **FPI (Flow-Pressure Imbalance):** Detects pipe tampering or illegal connections by comparing inlet vs. outlet flow. Significant imbalance indicates unauthorized offtake or valve manipulation.
+- **PDR (Pressure Drop Rate):** Detects sudden blockages or ruptures by measuring rate of pressure change over time. Rapid drops indicate active leaks; gradual drops indicate structural degradation.
 
 ---
 
@@ -240,7 +247,7 @@ Pressure colour scale:
 These formulas are defined and used in the system. In Phase 1, HEI and PSS values are formula-approximated. They become real once WNTR CSVs are connected to V4/V5/V6 computation.
 
 ### Hydraulic Equity Index (HEI)
-```
+```text
 HEI(zone, t) = avg_pressure(tail-end nodes, t) / avg_pressure(all zone nodes, t)
 ZES(zone)    = mean(HEI across all 96 timesteps)
 CWEI         = mean(ZES across all zones)
@@ -254,7 +261,7 @@ CWEI         = mean(ZES across all zones)
 | > 1.30 | Over-pressurised (Purple) | Throttle upstream |
 
 ### Composite Leak Probability Score (CLPS)
-```
+```text
 CLPS = (0.35 × PDR_n) + (0.30 × FPI) + (0.20 × NFA) + (0.15 × DDI)
 
 PDR_n = |ΔP/Δt| / 2.0
@@ -268,7 +275,7 @@ CLPS > 0.75  →  HIGH alert
 ```
 
 ### Pipe Stress Score (PSS)
-```
+```text
 PSS = (0.40 × PSI_n) + (0.35 × CFF_n) + (0.25 × ADF)
 
 PSI_n = max(0, (P_max − P_design) / P_design)
@@ -410,9 +417,10 @@ cd frontend && python -m http.server 8080
 
 ## Where to Continue From Here
 
-Phases 1 and 2 are complete. Continue with Phase 3 now according to roadmap pdf.
+Phases 1 and 2 are complete. Continue with Phase 3 now according to roadmap pdf:
 
-The next work to build on top of this:
+1. **V2 Backend API Layer Full Implementation:** Now that V4, V5, and V6 produce outputs, the FastAPI server needs to be fully built out with CORS enabled. This includes setting up the simulation clock, role-based filtering, and the async scenario endpoint.
+2. **V9 Dashboard Visualization Base Map Layout:** Connect the React frontend to real data from the backend API. Ensure the base map, pipe network layer, and HEI heatmap layer are functional.
 
 ## Team
 

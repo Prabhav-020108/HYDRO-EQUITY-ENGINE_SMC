@@ -31,9 +31,7 @@ def generate_alerts():
         'baseline': [], 'leak': [], 'valve': [], 'surge': []
     }
 
-    # -- Baseline Checks (NFA - Night Flow Anomaly) --
-    # Bible: NFA = actual_night_flow / (daily_avg * 0.05). Timesteps 0-24 are 00:00 to 06:00 (15 min intervals)
-    night_flow_avg = df_f_base.iloc[4:16].abs().mean().mean() # 1AM to 4AM avg across all pipes
+    night_flow_avg = df_f_base.iloc[4:16].abs().mean().mean()
     daily_flow_avg = df_f_base.abs().mean().mean()
 
     # Avoid division by zero
@@ -42,7 +40,7 @@ def generate_alerts():
     else:
         nfa_val = 1.0
 
-    if nfa_val > 1.3: # Bible threshold
+    if nfa_val > 1.3:
         alerts_data['baseline'].append({
             'level': 'moderate', 'title': 'Night Flow Anomaly',
             'body': f'Elevated night flow detected. NFA={nfa_val:.2f} (>1.3 threshold).',
@@ -50,7 +48,6 @@ def generate_alerts():
         })
         print(f"[V5] ! Baseline NFA alert detected. NFA: {nfa_val:.2f}")
 
-    # -- Scenario A: Leak (PDR & FPI) --
     p_leak_path = os.path.join(OUT, "pressure_scenario_A_leak.csv")
     if os.path.exists(p_leak_path):
         df_p_leak = pd.read_csv(p_leak_path, index_col=0)
@@ -60,10 +57,7 @@ def generate_alerts():
         worst_node = p_drop.idxmax()
         max_drop = p_drop.max()
 
-        pdr_n = min(2.0, max_drop / 2.0) # Normalized drop
-
-        # We assume Flow-Pressure Imbalance (FPI) spikes during a leak
-        # Bible CLPS = 0.35*PDR + 0.30*FPI + 0.20*NFA + 0.15*DDI
+        pdr_n = min(2.0, max_drop / 2.0)
         fpi_simulated = 0.85
         clps_leak = (0.35 * pdr_n) + (0.30 * fpi_simulated)
 
@@ -75,10 +69,8 @@ def generate_alerts():
         })
         print(f"[V5] ✓ Leak alert: Node {worst_node}, Drop: {max_drop:.1f}m, CLPS: {clps_leak:.2f}")
 
-    # -- Scenario B: Valve Closure --
     p_valve_path = os.path.join(OUT, "pressure_scenario_B_valve_close.csv")
     if os.path.exists(p_valve_path):
-        # Valve closures cause massive downstream FPI and isolation
         alerts_data['valve'].append({
             'level': 'high', 'title': 'Zone Isolation Alert',
             'body': 'Upstream valve closure detected. Downstream nodes failing.',
@@ -86,10 +78,8 @@ def generate_alerts():
         })
         print("[V5] ✓ Valve closure alert generated.")
 
-    # -- Scenario C: Demand Surge --
     p_surge_path = os.path.join(OUT, "pressure_scenario_C_demand_surge.csv")
     if os.path.exists(p_surge_path):
-        # Surges cause DDI (Demand Deviation Index) spikes
         alerts_data['surge'].append({
             'level': 'high', 'title': 'System-wide Pressure Drop',
             'body': 'Demand surge (1.5x) detected causing widespread tail-end failure.',

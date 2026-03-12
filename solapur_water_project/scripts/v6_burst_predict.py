@@ -28,15 +28,13 @@ def calculate_burst_risks():
     wn = wntr.network.WaterNetworkModel(inp_path)
     df_base = pd.read_csv(base_path, index_col=0)
 
-    # Pre-calculate node metrics
     p_max = df_base.max()
     p_mean = df_base.mean()
 
-    # Calculate zero-crossings (how many times pressure crosses the mean) for CFF
     p_centered = df_base.subtract(p_mean)
     cycles_24h = ((p_centered.shift(1) < 0) & (p_centered >= 0)).sum()
 
-    random.seed(42) # Consistent demo results
+    random.seed(42)
     results = []
 
     print(f"[V6] Scoring {len(wn.pipe_name_list)} pipes...")
@@ -50,34 +48,26 @@ def calculate_burst_risks():
         node_max = p_max[n_start]
         annual_cycles = cycles_24h[n_start] * 365
 
-        # Bible logic: Material determines age, lifespan, design pressure, fatigue limit
         mat = random.choice(['CI', 'DI', 'PVC'])
         if mat == 'CI':
             age, lifespan, p_design, fatigue = 35, 50, 60.0, 100000
         elif mat == 'DI':
             age, lifespan, p_design, fatigue = 15, 60, 160.0, 500000
-        else: # PVC
+        else:
             age, lifespan, p_design, fatigue = 10, 25, 60.0, 50000
 
-        # 1. Pressure Surge Index (PSI)
         psi = (node_max - p_design) / p_design
         psi_n = max(0.0, psi)
 
-        # 2. Cycle Fatigue Factor (CFF)
         cff = (annual_cycles * age) / fatigue
         cff_n = min(cff, 2.0)
 
-        # 3. Age Degradation Factor (ADF)
         adf = min(1.0, age / lifespan)
 
-        # 4. Pipe Stress Score (PSS)
         pss = (0.40 * psi_n) + (0.35 * cff_n) + (0.25 * adf)
 
-        # Determine dominant factor for recommendations
         factors = [(psi_n*0.4, 'Pressure Surge'), (cff_n*0.35, 'Cycle Fatigue'), (adf*0.25, 'Age Degradation')]
         dom_val, dom_name = max(factors)
-
-        # Ensure we have coordinates for map pinning
         n_node = wn.get_node(n_start)
         lat = round(n_node.coordinates[1], 4) if n_node.coordinates else 17.655
         lon = round(n_node.coordinates[0], 4) if n_node.coordinates else 75.875
