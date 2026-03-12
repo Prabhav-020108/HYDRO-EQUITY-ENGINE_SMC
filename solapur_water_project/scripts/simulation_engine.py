@@ -33,13 +33,6 @@ for _h in range(24):
 assert len(DEMAND_PATTERN) == 96
 
 
-def _find_node_id(coord, nodes_df):
-    lon = round(coord[0], 4)
-    lat = round(coord[1], 4)
-    row = nodes_df[(nodes_df["lon"] == lon) & (nodes_df["lat"] == lat)]
-    return row.index[0] if len(row) > 0 else None
-
-
 def _load_points(geojson_path, label):
     """Load point locations from GeoJSON. Handles Point, Polygon, and MultiPolygon (centroid)."""
     if not os.path.exists(geojson_path):
@@ -72,22 +65,24 @@ def _load_points(geojson_path, label):
 def build_graph(nodes_df, pipes_df):
     """Directed graph — MUST be DiGraph, not Graph (V4 and V7 need directed paths)."""
     G = nx.DiGraph()
-    for idx, row in nodes_df.iterrows():
-        G.add_node(f"J{idx}",
+    for _, row in nodes_df.iterrows():
+        nid = int(row["node_id"])
+        G.add_node(f"J{nid}",
                    lat=float(row["lat"]),
                    lon=float(row["lon"]),
                    elevation=float(row["elevation"]),
-                   zone=str(row.get("zone", "unknown")))
-    for idx, row in pipes_df.iterrows():
-        s = f"J{int(row['start_node'])}"
-        e = f"J{int(row['end_node'])}"
+                   zone=str(row.get("zone_id", "unknown")))
+    for _, row in pipes_df.iterrows():
+        s = f"J{int(row['start_node_id'])}"
+        e = f"J{int(row['end_node_id'])}"
+        hw_c = float(row["hw_c_value"]) if "hw_c_value" in row and pd.notna(row["hw_c_value"]) else 120
         if G.has_node(s) and G.has_node(e):
             G.add_edge(s, e,
-                       segment_id=f"P{idx}",
-                       diameter=float(row["diameter"]),
-                       length=float(row["length"]),
+                       segment_id=f"P{int(row['segment_id'])}",
+                       diameter=float(row["diameter_m"]),
+                       length=float(row["length_m"]),
                        material=str(row.get("material", "Unknown")),
-                       hw_c=120)
+                       hw_c=hw_c)
     print(f"[V3] Graph: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
     comps = list(nx.weakly_connected_components(G))
     if len(comps) > 1:
@@ -100,83 +95,96 @@ def build_graph(nodes_df, pipes_df):
 
 def build_model(zone_filter=DEMO_ZONE):
     """
-    Builds a WNTR model filtered to one zone for stability.
-    zone_filter: "5" for Zone 5 only, "all" for full city.
+    Builds a WNTR model from V1 CSV outputs.
+    zone_filter: "1" for Zone 1 only, "all" for full city.
 
     Returns: (wn, nodes_df, pipes_df, connected_ids, G,
                water_sources_df, storage_tanks_df, raw_stations_df)
     """
     print(f"\n[V3] ── Building model (zone_filter='{zone_filter}') ─────────────")
 
-    with open(os.path.join(DATA, "pipeline.geojson")) as f:
-        pipeline_raw = json.load(f)
+    # ── Load V1 CSVs ──────────────────────────────────────────────
+    all_nodes_df = pd.read_csv(os.path.join(DATA, "nodes_with_elevation.csv"))
+    all_pipes_df = pd.read_csv(os.path.join(DATA, "pipe_segments.csv"))
+    print(f"[V3] Loaded V1 CSVs: {len(all_nodes_df)} nodes, {len(all_pipes_df)} pipes")
 
-    nodes_df = pd.read_csv(os.path.join(DATA, "nodes_with_elevation.csv"))
-    nodes_df["lon"] = nodes_df["lon"].round(4)
-    nodes_df["lat"] = nodes_df["lat"].round(4)
+    # Load zone_demand for per-zone base demands
+    zone_demand_path = os.path.join(DATA, "zone_demand.csv")
+    zone_demand_df = None
+    if os.path.exists(zone_demand_path):
+        zone_demand_df = pd.read_csv(zone_demand_path)
+        print(f"[V3] Loaded zone_demand.csv: {len(zone_demand_df)} zones")
 
+    # Load infrastructure GeoJSON (for reservoir placement)
     water_sources_df = _load_points(os.path.join(DATA, "water_source.geojson"), "water_source")
     storage_tanks_df = _load_points(os.path.join(DATA, "storage_tank.geojson"), "storage_tank")
     raw_stations_df  = _load_points(os.path.join(DATA, "raw_station.geojson"),  "raw_station")
 
-    if zone_filter == "all":
-        features = pipeline_raw["features"]
-        print(f"[V3] Using ALL {len(features)} pipe features")
-    else:
-        features = [
-            f for f in pipeline_raw["features"]
-            if str(f["properties"].get("Water Zone", "")).strip() == zone_filter
-        ]
-        print(f"[V3] Filtered to Zone {zone_filter}: {len(features)} pipe features")
-
-    if len(features) == 0:
-        print(f"[V3] ✗  No features found for zone '{zone_filter}'! Check zone name.")
+    # ── Zone filtering ────────────────────────────────────────────
+    # Ensure start_node_id and end_node_id exist
+    if "start_node_id" not in all_pipes_df.columns:
+        print("[V3] ✗  pipe_segments.csv missing start_node_id. Run load_data.py + add_node_ids first.")
         return None
 
-    pipes = []
-    for feat in features:
-        props  = feat["properties"]
-        coords = feat["geometry"]["coordinates"][0]
-        diam   = float(props.get("Diameter(m", props.get("Diameter(m)", 0.05)) or 0.05)
-        length = float(props.get("Length(m)",  1.0) or 1.0)
-        pipes.append({
-            "start":    coords[0],
-            "end":      coords[-1],
-            "length":   max(length, 1.0),
-            "diameter": max(diam,   0.05),
-            "material": str(props.get("Material", "Unknown")),
-            "zone":     str(props.get("Water Zone", "unknown")),
-        })
-    pipes_df = pd.DataFrame(pipes)
+    # Drop pipes with missing node IDs
+    pipes_df = all_pipes_df.dropna(subset=["start_node_id", "end_node_id"]).copy()
+    pipes_df["start_node_id"] = pipes_df["start_node_id"].astype(int)
+    pipes_df["end_node_id"]   = pipes_df["end_node_id"].astype(int)
 
-    pipes_df["start_node"] = pipes_df["start"].apply(lambda c: _find_node_id(c, nodes_df))
-    pipes_df["end_node"]   = pipes_df["end"].apply(lambda c: _find_node_id(c, nodes_df))
-    pipes_df = pipes_df.dropna(subset=["start_node", "end_node"])
-    pipes_df["start_node"] = pipes_df["start_node"].astype(int)
-    pipes_df["end_node"]   = pipes_df["end_node"].astype(int)
-    pipes_df = pipes_df[pipes_df["start_node"] != pipes_df["end_node"]]
+    if zone_filter == "all":
+        print(f"[V3] Using ALL {len(pipes_df)} pipe segments")
+    else:
+        zone_key = f"zone_{zone_filter}"
+        pipes_df = pipes_df[pipes_df["zone_id"] == zone_key]
+        print(f"[V3] Filtered to {zone_key}: {len(pipes_df)} pipe segments")
 
-    connected_ids = set(pipes_df["start_node"]) | set(pipes_df["end_node"])
+    if len(pipes_df) == 0:
+        print(f"[V3] ✗  No pipes found for zone_filter='{zone_filter}'! Check zone name.")
+        return None
+
+    # Remove self-loops
+    pipes_df = pipes_df[pipes_df["start_node_id"] != pipes_df["end_node_id"]]
+
+    # ── Largest Connected Component ───────────────────────────────
+    connected_ids = set(pipes_df["start_node_id"]) | set(pipes_df["end_node_id"])
     print(f"[V3] Valid pipes: {len(pipes_df)} | Connected nodes: {len(connected_ids)}")
 
     G_check = nx.Graph()
     for _, row in pipes_df.iterrows():
-        G_check.add_edge(int(row["start_node"]), int(row["end_node"]))
+        G_check.add_edge(int(row["start_node_id"]), int(row["end_node_id"]))
     comps        = list(nx.connected_components(G_check))
     largest_comp = max(comps, key=len)
     n_discarded  = len(comps) - 1
     print(f"[V3] Connectivity: {len(comps)} components — keeping LCC ({len(largest_comp)} nodes), discarding {n_discarded} mini-clusters")
-    pipes_df      = pipes_df[
-        pipes_df["start_node"].isin(largest_comp) &
-        pipes_df["end_node"].isin(largest_comp)
+    pipes_df = pipes_df[
+        pipes_df["start_node_id"].isin(largest_comp) &
+        pipes_df["end_node_id"].isin(largest_comp)
     ]
-    connected_ids = set(pipes_df["start_node"]) | set(pipes_df["end_node"])
+    connected_ids = set(pipes_df["start_node_id"]) | set(pipes_df["end_node_id"])
     print(f"[V3] LCC: {len(pipes_df)} pipes | {len(connected_ids)} nodes — fully connected ✓")
 
-    conn_nodes_df = nodes_df[nodes_df.index.isin(connected_ids)]
+    # Filter nodes to only those in connected set
+    conn_nodes_df = all_nodes_df[all_nodes_df["node_id"].isin(connected_ids)].copy()
 
+    # ── Build NetworkX graph from V1 data ─────────────────────────
     G = build_graph(conn_nodes_df, pipes_df)
 
+    # ── Compute per-node base demand from zone_demand.csv ─────────
+    node_demands = {}
+    if zone_demand_df is not None:
+        # Count nodes per zone to distribute base_lps evenly
+        zone_node_counts = conn_nodes_df["zone_id"].value_counts().to_dict()
+        zone_base_lps = dict(zip(zone_demand_df["zone_id"], zone_demand_df["base_lps"]))
+        for _, nrow in conn_nodes_df.iterrows():
+            nid = int(nrow["node_id"])
+            zid = str(nrow["zone_id"])
+            zone_lps = zone_base_lps.get(zid, 0.001)
+            n_in_zone = zone_node_counts.get(zid, 1)
+            # Convert L/s to m³/s and divide among nodes in zone
+            node_demands[nid] = (zone_lps / 1000.0) / max(n_in_zone, 1)
+    default_demand = 0.001 / 1000.0  # fallback: 0.001 L/s → m³/s
+
+    # ── Build WNTR model ─────────────────────────────────────────
     wn = wntr.network.WaterNetworkModel()
 
     wn.options.time.duration           = 86400
@@ -190,34 +198,38 @@ def build_model(zone_filter=DEMO_ZONE):
 
     wn.add_pattern("DailyPattern", DEMAND_PATTERN)
 
-    for idx, row in conn_nodes_df.iterrows():
+    for _, row in conn_nodes_df.iterrows():
+        nid = int(row["node_id"])
+        bd = node_demands.get(nid, default_demand)
         wn.add_junction(
-            name=f"J{idx}",
-            base_demand=0.001,
+            name=f"J{nid}",
+            base_demand=bd,
             demand_pattern="DailyPattern",
             elevation=float(row["elevation"])
         )
 
     added_pairs = set()
     pipes_added = 0
-    for idx, row in pipes_df.iterrows():
-        pair = tuple(sorted([row["start_node"], row["end_node"]]))
+    for _, row in pipes_df.iterrows():
+        pair = tuple(sorted([int(row["start_node_id"]), int(row["end_node_id"])]))
         if pair in added_pairs:
             continue
         added_pairs.add(pair)
+        hw_c = float(row["hw_c_value"]) if "hw_c_value" in row and pd.notna(row["hw_c_value"]) else 120
         wn.add_pipe(
-            name=f"P{idx}",
-            start_node_name=f"J{int(row['start_node'])}",
-            end_node_name=f"J{int(row['end_node'])}",
-            length=float(row["length"]),
-            diameter=float(row["diameter"]),
-            roughness=120,
+            name=f"P{int(row['segment_id'])}",
+            start_node_name=f"J{int(row['start_node_id'])}",
+            end_node_name=f"J{int(row['end_node_id'])}",
+            length=float(row["length_m"]),
+            diameter=float(row["diameter_m"]),
+            roughness=hw_c,
             minor_loss=0.0,
             initial_status="OPEN"
         )
         pipes_added += 1
     print(f"[V3] WNTR pipes added: {pipes_added}")
 
+    # ── Reservoirs from water sources ─────────────────────────────
     res_count = 0
 
     if not water_sources_df.empty:
@@ -225,8 +237,8 @@ def build_model(zone_filter=DEMO_ZONE):
             dists = conn_nodes_df.apply(
                 lambda r: abs(r["lon"] - src["lon"]) + abs(r["lat"] - src["lat"]), axis=1
             )
-            nidx  = dists.idxmin()
-            nelev = float(conn_nodes_df.loc[nidx, "elevation"])
+            nidx  = int(conn_nodes_df.loc[dists.idxmin(), "node_id"])
+            nelev = float(conn_nodes_df.loc[dists.idxmin(), "elevation"])
             wn.add_reservoir(f"WaterSource_{res_count}", base_head=nelev + 20)
             wn.add_pipe(
                 name=f"SourcePipe_{res_count}",
@@ -238,23 +250,25 @@ def build_model(zone_filter=DEMO_ZONE):
             res_count += 1
         print(f"[V3] Added {res_count} real water-source reservoirs")
 
-    hi_idx  = conn_nodes_df["elevation"].idxmax()
-    hi_elev = float(conn_nodes_df.loc[hi_idx, "elevation"])
+    hi_row  = conn_nodes_df.loc[conn_nodes_df["elevation"].idxmax()]
+    hi_nid  = int(hi_row["node_id"])
+    hi_elev = float(hi_row["elevation"])
     wn.add_reservoir("Source_Fallback", base_head=hi_elev + 20)
     wn.add_pipe(
         name="SourcePipe_Fallback",
         start_node_name="Source_Fallback",
-        end_node_name=f"J{hi_idx}",
+        end_node_name=f"J{hi_nid}",
         length=10, diameter=0.5, roughness=120,
         minor_loss=0.0, initial_status="OPEN"
     )
-    print(f"[V3] Fallback reservoir → J{hi_idx} (elevation={hi_elev:.1f}m, head={hi_elev+20:.1f}m)")
+    print(f"[V3] Fallback reservoir → J{hi_nid} (elevation={hi_elev:.1f}m, head={hi_elev+20:.1f}m)")
 
     total_junctions = len(wn.junction_name_list)
     total_pipes_wntr = len(wn.pipe_name_list)
     print(f"[V3] WNTR model: {total_junctions} junctions, {total_pipes_wntr} pipes, {len(wn.reservoir_name_list)} reservoirs")
 
-    return (wn, nodes_df, pipes_df, connected_ids, G,
+    # Return uses all_nodes_df (full set) as second element for backward compat
+    return (wn, all_nodes_df, pipes_df, connected_ids, G,
             water_sources_df, storage_tanks_df, raw_stations_df)
 
 
@@ -295,7 +309,7 @@ def run_simulation(wn, scenario_label="baseline", save_csv=True):
 
     except Exception as e:
         print(f"[V3] ✗ {scenario_label} FAILED: {e}")
-        print("[V3]   Tip: If 'system unbalanced', reduce base_demand in build_model() from 0.001 to 0.0001")
+        print("[V3]   Tip: If 'system unbalanced', reduce base_demand or check network connectivity")
         return None, None
 
 
@@ -397,12 +411,18 @@ def get_timestep_stats(pressure_df, flow_df, timestep=0):
 
 
 if __name__ == "__main__":
+    import sys
+    # Usage: python scripts/simulation_engine.py [zone_filter]
+    #   zone_filter: "1" (default, Zone-1 demo), "all" (full city), or any zone number
+    chosen_zone = sys.argv[1] if len(sys.argv) > 1 else DEMO_ZONE
+    prefix = "fullcity_" if chosen_zone == "all" else ""
+
     print("=" * 62)
     print("  V3 · Hydro-Equity Engine · Hydraulic Simulation Engine")
-    print(f"  Zone filter: '{DEMO_ZONE}'")
+    print(f"  Zone filter: '{chosen_zone}'")
     print("=" * 62)
 
-    result = build_model(zone_filter=DEMO_ZONE)
+    result = build_model(zone_filter=chosen_zone)
     if result is None:
         print("✗ Model build failed.")
         exit(1)
@@ -410,14 +430,24 @@ if __name__ == "__main__":
     (wn, nodes_df, pipes_df, connected_ids, G,
      water_sources_df, storage_tanks_df, raw_stations_df) = result
 
-    inp_path = os.path.join(OUT, "solapur_network.inp")
+    inp_name = f"{prefix}solapur_network.inp"
+    inp_path = os.path.join(OUT, inp_name)
     wntr.network.write_inpfile(wn, inp_path)
-    print(f"\n[V3] Saved EPANET model: outputs/solapur_network.inp")
+    print(f"\n[V3] Saved EPANET model: outputs/{inp_name}")
 
-    pressure_df, flow_df = run_simulation(wn, "baseline", save_csv=True)
+    pressure_df, flow_df = run_simulation(wn, f"{prefix}baseline", save_csv=True)
 
     if pressure_df is not None:
-        run_all_scenarios(wn)
+        # Run anomaly scenarios with same prefix
+        print("\n[V3] ── Running 3 anomaly scenarios ─────────────────────")
+        scenarios = [
+            (f"{prefix}scenario_A_leak",         "leak"),
+            (f"{prefix}scenario_B_valve_close",  "valve_close"),
+            (f"{prefix}scenario_C_demand_surge", "demand_surge"),
+        ]
+        for label, stype in scenarios:
+            wn_scenario = apply_scenario(wn, stype)
+            run_simulation(wn_scenario, label, save_csv=True)
 
         print("\n── 24-hour Pressure Summary ────────────────────────────────")
         print(f"  {'Time':>6}  {'Mult':>5}  {'Min P':>7}  {'Max P':>7}  {'Avg P':>7}")
@@ -429,15 +459,14 @@ if __name__ == "__main__":
 
         print("\n" + "=" * 62)
         print("  ✓  V3 COMPLETE — All outputs saved to outputs/")
-        print("     pressure_baseline.csv")
-        print("     flow_baseline.csv")
-        print("     pressure_scenario_A_leak.csv")
-        print("     pressure_scenario_B_valve_close.csv")
-        print("     pressure_scenario_C_demand_surge.csv")
-        print("     solapur_network.inp")
+        print(f"     {prefix}pressure_baseline.csv")
+        print(f"     {prefix}flow_baseline.csv")
+        print(f"     {prefix}pressure_scenario_A_leak.csv")
+        print(f"     {prefix}pressure_scenario_B_valve_close.csv")
+        print(f"     {prefix}pressure_scenario_C_demand_surge.csv")
+        print(f"     {inp_name}")
         print("=" * 62)
         print("\n  Next step: python backend/app.py")
     else:
         print("\n✗ Baseline simulation failed.")
-        print("  Try: change DEMO_ZONE to a different zone number (1–8)")
-        print("  Or:  reduce base_demand in build_model() from 0.001 to 0.0001")
+        print("  Try: change zone filter (1–8) or check network connectivity")

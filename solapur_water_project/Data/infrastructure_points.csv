@@ -1,7 +1,7 @@
 feature_type,lon,lat,Source Typ,Name,Landmark,Area(Sq.Km,Capacity(m,Average De,Length(Km),Diameter(m,Pump Capac,Status,Depth(m),SHAPE_Leng,SHAPE_Area,Type of St,Capacity (,Establishm,Design Per,Water Zone,Staging He,Lattitude,Longitude,Raw Water,Latitude,Remark (if
-water_source,75.91378228850688,17.733535076205513,Lake,Ekrukh Lake,Ekrukh Lake Hipparga,411.81,84950504,9.99,2.3,,0,Operational,21.45,2360.0,411.81,,,,,,,,,,,
+water_source,75.91378228850685,17.73353507620551,Lake,Ekrukh Lake,Ekrukh Lake Hipparga,411.81,84950504,9.99,2.3,,0,Operational,21.45,2360.0,411.81,,,,,,,,,,,
 water_source,75.1290488145449,18.068967581829906,Dam/Reservoir,Ujani Dam,Ujani Dam,14850.0,3313071000,9.99,2.534,,4098,Operational,56.4,2534.0,14850.0,,,,,,,,,,,
-water_source,75.79846859064789,17.39734546329187,River,Bheema Auj Bhandhara,"Bhima River, Takli",7.85,14158423,4.5,0.5,,2970,Operational,4.5,500.0,7.85,,,,,,,,,,,
+water_source,75.7984685906479,17.397345463291877,River,Bheema Auj Bhandhara,"Bhima River, Takli",7.85,14158423,4.5,0.5,,2970,Operational,4.5,500.0,7.85,,,,,,,,,,,
 storage_tank,75.93663541537433,17.636772160539934,,Shanti,Shanti,,,,,,,,,,,Elevated Storage Reservoir (ESR),200000.0,2014,20,4,9.99,17.63668,75.93652,,,
 storage_tank,75.882652,17.65448,,Salgarvasti,Salgarvasti,,,,,,,,,,,Elevated Storage Reservoir (ESR),40000.0,2015,20,6,9.99,17.65448,75.88265,,,
 storage_tank,75.887315,17.64953,,Settlement,Settlement,,,,,,,,,,,Elevated Storage Reservoir (ESR),150000.0,1998,20,6,9.99,17.64953,75.88732,,,
