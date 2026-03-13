@@ -15,15 +15,49 @@ The core insight: the problem in Solapur is not water scarcity. It is **pressure
 
 ---
 
-## Current State of the Project (Phase 1 & 2 Complete)
+## Project Scope and Phases
 
-Phase 1 (Data & Simulation) and Phase 2 (Analytics) are now implemented as dedicated Python engines.
+- **Phase 1 – Data foundation & simulation (V1, V3)** – implemented.
+- **Phase 2 – Analytics engines (V4 HEI, V5 CLPS, V6 PSS)** – implemented.
+- **Phase 3 – Backend & dashboard wiring (V2, V9)** – implemented. 
+- **Phase 4+ – V7, V8, V10, V11, V12, V13** – planned / not implemented yet. (Includes V7 recommendation engine, V8 scenario panel, V10 governance, V11 auth, V12 mobile, V13 theft intelligence).
 
-- The full SMC pipeline GeoJSON has been parsed, cleaned, and structured into verified CSVs (V1).
-- A WNTR hydraulic simulation (V3) runs from the V1 CSVs, supporting both a Zone 1 demo and full-city mode, producing physical pressure/flow matrices.
-- **V4 Equity Engine:** Dynamically calculates the Hydraulic Equity Index (HEI), ZES, CWEI, and a 7-day trend per zone based on physical simulation data.
-- **V5 (Leak Detection) and V6 (Burst Prediction):** Offline scripts mathematically compute anomaly risks (CLPS) and structural stress (PSS) based on the physical simulation data, producing JSON/CSV outputs.
-- **Backend/Frontend Integration:** The Flask backend serves base pipeline data and WNTR scenarios to the dashboard. *Note: integration of the new V4/V5/V6 JSON analytics into the backend/dashboard is partial/pending; the scripts are currently run offline.*
+---
+
+## Current Architecture
+
+- **Data:** GeoJSON → V1 → CSVs.
+- **Simulation:** V3 WNTR → `pressure_baseline.csv`, `flow_baseline.csv` (and scenario CSVs).
+- **Analytics:** V4, V5, V6 → `v4_zone_status.json`, `v5_alerts.json`, `v6_burst_top10.json`.
+- **Backend (V2 Flask/FastAPI):** Exposes endpoints including `/health`, `/zones`, `/alerts/active`, and `/burst-risk/top10`.
+- **Frontend (V9 Dashboard):** Calls these endpoints to render the interactive map and analytics panels.
+
+---
+
+## Project Structure
+
+```text
+solapur_water_project/
+├── backend/
+│   └── app.py                        # Flask API server
+├── backend_fastapi/                  # Experimental FastAPI backend
+├── Data/                             # Input GeoJSON and generated V1 CSVs
+├── docs/                             
+│   └── Hydro_Equity_Engine_Architecture_Bible_v3.pdf
+├── frontend/
+│   └── index.html                    # V9 Dashboard UI
+├── frontend_v2/                      # Next-gen interactive dashboard
+├── outputs/                          # Generated simulation/analytics CSVs and JSONs
+├── scripts/
+│   ├── load_data.py
+│   ├── simulation_engine.py          # V3 Engine
+│   ├── v1_data_foundation.py         # V1 Engine
+│   ├── v4_equity_minimal.py          # V4 Engine
+│   ├── v5_clps.py                    # V5 Engine
+│   ├── v6_pss.py                     # V6 Engine
+│   └── verify_phase3.py              # Phase 3 integration tests
+└── DATA_CONTRACT.md                  # Comprehensive schema definitions
+```
 
 ---
 
@@ -35,396 +69,141 @@ Phase 1 (Data & Simulation) and Phase 2 (Analytics) are now implemented as dedic
 
 ---
 
+## Current Feature Set
+
+### Implemented
+- Real HEI (Hydraulic Equity Index) heatmap and city equity scores via the V4 engine.
+- Real leak alerts when the V5 engine has generated data.
+- Real burst-risk layer generated from the V6 engine.
+- Simulation clock to visualize the 24-hour cycle.
+
+### Illustrative Only
+- **Recommendation cards** (from RECS) – currently illustrative, pending V7 recommendation engine.
+- **24-hour pressure timeline** – currently uses static curves for illustrative purposes.
+- **Scenario buttons** (Leak Event, Valve Close, Demand Surge) – currently act as visual scenario selectors, not a full V8 async simulation.
+
+### Future Work
+- V7 recommendation engine, V8 full async scenario panel, V10 governance, V11 auth, V12 mobile app, V13 theft intelligence.
+
+---
+
 ## What Was Built
 
 ### V1 — Data Foundation
-
 **Script:** `scripts/v1_data_foundation.py`
+Parses four GeoJSON files from SMC's public GIS portal and produces structured CSVs for simulation. Produces `pipe_segments.csv`, `nodes_with_elevation.csv`, `zone_demand.csv`, and `infrastructure_points.csv`.
 
-Parses four GeoJSON files from SMC's public GIS portal and produces all structured CSVs used by every other component.
-
-**Source data:**
-`https://smcgis.solapurcorporation.org/gis_all_layer.aspx?Pram=Water`
-
-**Files produced in `Data/`:**
-
-| File | Rows | Contents |
-|---|---|---|
-| `pipe_segments.csv` | 10,160 | Cleaned pipes (material, age, HW-C, `start_node_id`, `end_node_id`) |
-| `nodes_with_elevation.csv` | 14,085 | Junction nodes extracted via 4-decimal tolerance (`node_id`, `lat`, `lon`, `elevation`, `zone_id`, `node_type`) |
-| `zone_demand.csv` | 8 | Demand estimates per zone in L/s |
-| `infrastructure_points.csv` | 66 | ESRs, storage tanks, pumping stations |
-
-**What the script does:**
-1. Parses `pipeline.geojson`, `water_source.geojson`, `storage_tank.geojson`, `raw_station.geojson`
-2. Standardises zone IDs — `"Zone 5"`, `"5"`, `"z5"` → `"zone_5"`
-3. Standardises material names using exact + substring matching — `"CAST IRON (CI)"`, `"DUCTILE IRON (DI)"`, `"POLY VINYL CHLORIDE (PVC)"` etc. map to short codes. This was a bug in the original: GIS uses full names, not codes, so plain equality checks silently fell through to Unknown for every pipe.
-4. Assigns correct specifications per material:
-
-| Code | Material | Assumed Age | Lifespan | HW-C |
-|---|---|---|---|---|
-| CI | Cast Iron | 35 yr | 50 yr | 100 |
-| DI | Ductile Iron | 15 yr | 60 yr | 130 |
-| PVC | PVC | 10 yr | 25 yr | 150 |
-| GI | Galvanised Iron | 30 yr | 40 yr | 100 |
-| AC | Asbestos Cement | 40 yr | 50 yr | 100 |
-| MS | Mild Steel | 25 yr | 45 yr | 110 |
-| CC | Cement Concrete | 40 yr | 60 yr | 90 |
-
-5. Estimates zone demand using Census 2011 Solapur population (951,558) × growth factor (1.012^13) × 135 L/person/day (CPHEEO standard), distributed proportionally by pipe count per zone
-6. Extracts infrastructure centroids handling Point, Polygon, and MultiPolygon geometry (SMC's `water_source.geojson` is MultiPolygon, not Point — plain Point-only filters load 0 features)
-7. Flags data quality per row: `complete`, `missing_diameter`, `missing_zone`
-8. Writes `DATA_CONTRACT.md` documenting every column, unit, and assumption
-
-**Known assumption in this phase:** Elevation is simulated as uniform random 440–470m (seed=42, fully deterministic) and storage is currently CSV-based. Real DEM data and a PostgreSQL/TimescaleDB migration are planned for the future.
-
----
+*Note: Elevation is currently simulated (440–470m). Real DEM data and a PostgreSQL/TimescaleDB migration are planned.*
 
 ### V3 — Hydraulic Simulation Engine
-
 **Script:** `scripts/simulation_engine.py`
-
-Builds a NetworkX graph and WNTR hydraulic model from the V1 CSVs (not raw GeoJSON) and runs a 24-hour simulation using per-pipe `hw_c_value` and zone-based base demand.
-
-**Critical problem that was fixed and why it matters:**
-
-The raw GIS pipe data has 1,150+ disconnected mini-clusters per zone. Pipes were digitised independently with no topology enforcement — adjacent pipes at the same physical junction have slightly different endpoint coordinates. Two bugs caused the simulation to fail:
-
-- **Rounding at 6 decimals (~0.1m):** Most physically-connected pipes were treated as disconnected because their endpoints differed by a few millimetres in float representation. Fixed by rounding to **4 decimals (~11m tolerance)** — pipes at the same junction now match correctly.
-- **Running all clusters with one reservoir:** With one reservoir connected to one cluster, every other cluster has demand but no supply path. EPANET reports "system unbalanced" at every timestep. Fixed by extracting the **Largest Connected Component (LCC)** only before building the WNTR model.
-
-By default, the simulation runs on Zone 1. It also supports full-city mode (`python scripts/simulation_engine.py all`).
-
-**What the script does:**
-1. Loads `nodes_with_elevation.csv` and `pipe_segments.csv` (V1 outputs)
-2. Filters to `DEMO_ZONE = "1"` or scales to all zones
-3. Matches pipe endpoint coordinates to node IDs using 4-decimal rounding
-4. Extracts the Largest Connected Component using NetworkX — discards all isolated mini-clusters
-5. Builds a directed NetworkX DiGraph of the LCC (directed is required for V4 path calculations)
-6. Builds a WNTR `WaterNetworkModel`:
-   - 96 timesteps × 15 minutes = 24-hour simulation
-   - Pressure-Driven Demand (PDD) — correct for intermittent supply conditions
-   - Hazen-Williams headloss
-   - 24-hour demand pattern applied to all junctions
-   - Water source centroids loaded as reservoirs
-   - Fallback reservoir at highest-elevation node
-7. Runs `EpanetSimulator.run_sim()` for 4 scenarios:
-   - `baseline` — normal operating conditions
-   - `leak` — one pipe diameter reduced by 30%
-   - `valve_close` — one upstream pipe set to Closed
-   - `demand_surge` — one zone demand multiplied by 1.5×
-8. Saves scenario pressure and flow CSVs to `outputs/` (e.g., `outputs/pressure_baseline.csv` or `outputs/pressure_fullcity_baseline.csv`)
-9. Exports the generated EPANET `.inp` block
-
-**Demand pattern used (shared with leak detection logic):**
-
-```
-00:00–05:59  →  0.05×   night
-06:00–07:59  →  2.50×   morning peak
-08:00–16:59  →  1.00×   daytime
-17:00–19:59  →  2.00×   evening peak
-20:00–23:59  →  0.05×   night
-```
-
-**Files written to `outputs/` after a successful run:**
-```
-pressure_baseline.csv
-flow_baseline.csv
-pressure_scenario_A_leak.csv
-pressure_scenario_B_valve_close.csv
-pressure_scenario_C_demand_surge.csv
-solapur_network.inp
-```
-
----
+Builds a NetworkX graph and WNTR hydraulic model from the V1 CSVs, runs a 24-hour simulation, and outputs pressure and flow physical matrices to the `outputs/` directory. Handles disconnected clusters by analyzing the Largest Connected Component (LCC).
 
 ### V4 — Equity Scoring Engine
-
 **Script:** `scripts/v4_equity_minimal.py`
-
-Computes the exact Hydraulic Equity Index (HEI) for every zone by analyzing the physical network topology and real pressure data from V3.
-
-**What the script does:**
-1. Loads pressure outputs and the network graph from the simulation
-2. Identifies "tail-end" nodes per zone using ESR path distance + node elevation
-3. Calculates exact HEI per zone and timestep
-4. Computes Zone Equity Score (ZES), City-Wide Equity Index (CWEI), and a 7-day trend
-5. Generates zone statuses (equitable, moderate, severe, over-pressurised)
-
-**Files produced:**
-- `outputs/v4_equity_minimal.json` — Detailed HEI metrics, ZES, CWEI, and trend calculations
-- `outputs/v4_zone_status.json` — Simplified mapping of `zone_id`, HEI, status, and UI color
-
----
+Computes the exact Hydraulic Equity Index (HEI) for every zone by analyzing the physical network topology and real pressure data from V3. Outputs `outputs/v4_zone_status.json` and `v4_equity_minimal.json`.
 
 ### V5 & V6 — Anomaly Analytics Engines
-
 **Scripts:** `scripts/v5_clps.py` | `scripts/v6_pss.py`
-
-These act as the offline intelligence layer over the V3 physics engine.
-- **V5 Leak Detection:** Uses full-city pressure/flows, zone demand, and NetworkX graph to compute PDR_n, FPI, NFA, and DDI. It calculates the Composite Leak Probability Score (CLPS) and generates alerts in `outputs/v5_alerts.json` (with severity, dominant signal, and probable node IDs).
-- **V6 Burst Prediction:** Uses `pipe_segments.csv` (material, assumed ages, lifespans) and full-city pressures to calculate the Pipe Stress Score (PSS) via PSI_n, CFF_n, and ADF. It outputs `outputs/v6_pipe_stress_scores.csv` (per-pipe PSS) and `outputs/v6_burst_top10.json` (top-10 highest risk segments).
-
----
-
-### V2 — Backend API
-
-**Script:** `backend/app.py`
-
-Flask server on port 5000. Serves all data to the dashboard.
-
-**Smart mode detection:** On startup, checks whether real WNTR pressure CSVs exist in `outputs/`. If yes → serves real hydraulic simulation data. If no → falls back to a formula approximation. 
-
-*Note regarding Phase 2 Analytics:* While the V4, V5, and V6 scripts exist and successfully generate JSON outputs offline, they are not yet fully integrated into the backend or dashboard. If any dashboard panels (like Equity or Burst Risk) display data, they may still be using frontend JS formula approximations until wired permanently to the new Python outputs.
-
-Check which mode is active:
-```
-GET http://localhost:5000/data-status
-```
-
-**All working endpoints:**
-
-| Endpoint | What it returns |
-|---|---|
-| `/pipeline?scenario=&hour=` | Pipeline GeoJSON with `sim_pressure` and `sim_color` per pipe |
-| `/infrastructure` | ESR, tank, water source locations |
-| `/tanks` | `storage_tank.geojson` passthrough |
-| `/sources` | `water_source.geojson` passthrough |
-| `/pressure?scenario=&hour=` | Node pressure array |
-| `/equity?scenario=&hour=` | HEI score per zone + CWEI (reads from v4_equity.json) |
-| `/simulate?scenario=&zone=` | 24-hour pressure timeline for a zone |
-| `/alerts?scenario=` | CLPS-based alert list |
-| `/recommendations?scenario=` | Valve/pump action text per scenario |
-| `/burst-risk` | Top-10 pipe segments by Pipe Stress Score |
-| `/zone-demand` | Zone demand table |
-| `/data-status` | Mode + which scenario CSVs are loaded |
-
-Scenario parameter values: `baseline`, `leak`, `valve`, `surge`
-
----
-
-### V9 — Web Dashboard
-
-**File:** `frontend/index.html`
-
-Single HTML file. No build step. Open directly in browser.
-
-**What works right now in the browser:**
-
-**Pipeline map:** The real Solapur pipe network is rendered on OpenStreetMap (light government theme). Every pipe is coloured by its simulated hydraulic pressure. Clicking any pipe shows the pressure value, zone, and material in a tooltip.
-
-Pressure colour scale:
-
-| Range | Colour | Meaning |
-|---|---|---|
-| < 10m | Red | Critical |
-| 10–20m | Orange | Low |
-| 20–30m | Yellow | Below target |
-| 30–40m | Light green | Acceptable |
-| 40–60m | Dark green | Good |
-| > 60m | Blue | Over-pressurised |
-
-**Scenario switching:** Four buttons — Baseline, Leak Event, Valve Closure, Demand Surge. Each button reloads pipe colours, alerts, and recommendations from the backend. The visual difference between scenarios is visible on the map.
-
-**Alerts panel:** Active alerts for the current scenario — zone, CLPS score, alert level (HIGH / MODERATE), dominant signal type.
-
-**Recommendations panel:** Actionable text instructions per scenario with estimated HEI improvement.
-
-**Layer toggles:** Pipelines, Node Pressure overlay, ESR Markers, Water Sources, Zone Boundary Overlay, Leak Alert Markers.
-
-**24-hour pressure chart:** Chart.js line chart for any zone showing pressure over the full day. The morning and evening demand peaks are visible.
-
-**Zone equity panel:** Each zone with its HEI score, status badge, and bar indicator.
-
-**CWEI bar:** City-Wide Equity Index, worst zone, best zone, NRW estimate.
-
-**Simulation clock:** Cycles through the 24-hour day in the header.
-
----
-
-## Mathematical Models
-
-These formulas are defined and used in the system. In Phase 1, HEI and PSS values are formula-approximated. They become real once WNTR CSVs are connected to V4/V5/V6 computation.
-
-### Hydraulic Equity Index (HEI)
-```text
-HEI(zone, t) = avg_pressure(tail-end nodes, t) / avg_pressure(all zone nodes, t)
-ZES(zone)    = mean(HEI across all 96 timesteps)
-CWEI         = mean(ZES across all zones)
-```
-
-| HEI | Status | Action |
-|---|---|---|
-| ≥ 0.85 | Equitable (Green) | Monitor only |
-| 0.70–0.85 | Moderate (Orange) | Review valve settings |
-| < 0.70 | Severe (Red) | Immediate intervention |
-| > 1.30 | Over-pressurised (Purple) | Throttle upstream |
-
-### Composite Leak Probability Score (CLPS)
-```text
-CLPS = (0.35 × PDR_n) + (0.30 × FPI) + (0.20 × NFA) + (0.15 × DDI)
-
-PDR_n = |ΔP/Δt| / 2.0
-FPI   = (Q_inlet − Q_outlet) / Q_inlet   [guard: FPI=0 if Q_inlet=0]
-NFA   = Q_night / (Q_daily_avg × 0.05)   [only 01:00–04:00, else 0]
-DDI   = |Q_actual − Q_expected| / Q_expected
-
-CLPS > 0.75  →  HIGH alert
-0.50–0.75    →  MODERATE
-< 0.50       →  Normal
-```
-
-### Pipe Stress Score (PSS)
-```text
-PSS = (0.40 × PSI_n) + (0.35 × CFF_n) + (0.25 × ADF)
-
-PSI_n = max(0, (P_max − P_design) / P_design)
-CFF_n = min((annual_cycles × assumed_age) / design_fatigue, 2.0) / 2.0
-ADF   = min(assumed_age / design_lifespan, 1.0)
-```
-
----
-
-## File Structure
-
-```text
-solapur_water_project/
-│
-├── Data/
-│   ├── pipeline.geojson              # Raw SMC GIS pipeline data (10,160 features)
-│   ├── pipe_segments.csv             # Cleaned pipes with analysis columns
-│   ├── nodes_with_elevation.csv      # Junction nodes with elevation
-│   └── ... (other GIS mappings)
-│
-├── scripts/
-│   ├── v1_data_foundation.py         # Parses GeoJSON → CSVs
-│   ├── simulation_engine.py          # V3: WNTR model → pressure/flow CSVs
-│   ├── v4_equity_engine.py           # V4: HEI calculation → v4_equity.json
-│   ├── v5_leak_detect.py             # V5: CLPS logic → v5_alerts.json
-│   └── v6_burst_predict.py           # V6: PSS logic → v6_burst.json
-│
-├── backend/
-│   └── app.py                        # Flask API serving all endpoints
-│
-├── frontend/
-│   └── index.html                    # Complete single-file dashboard
-│
-├── outputs/                          # Generated automatically (not committed)
-│   ├── pressure_baseline.csv
-│   ├── flow_baseline.csv
-│   ├── pressure_scenario_... (3 files)
-│   ├── v4_equity.json
-│   ├── v5_alerts.json
-│   └── v6_burst.json
-│
-├── DATA_CONTRACT.md                  # Schema documentation
-└── requirements.txt
-
+- **V5 Leak Detection:** Uses physical simulation data to calculate Composite Leak Probability Score (CLPS) and generates `outputs/v5_alerts.json`.
+- **V6 Burst Prediction:** Uses pipe attributes and pressure data to calculate Pipe Stress Score (PSS) and generates `outputs/v6_burst_top10.json`.
 
 ---
 
 ## How to Run
 
-### Requirements
-
-- Python 3.10+, 64-bit
-- On Windows: **Microsoft C++ Build Tools** required for WNTR
-  - Download: `https://visualstudio.microsoft.com/visual-cpp-build-tools/`
-  - Select "Desktop development with C++"
-
-### Setup
+### 1. Prerequisites
+- Python 3.x (64-bit)
+- (Windows only) Microsoft C++ Build Tools (required for WNTR)
+- Git
 
 ```bash
-git clone https://github.com/your-username/solapur_water_project.git
+# Clone the repository and navigate to the project directory
+git clone https://github.com/Prabhav-020108/HYDRO-EQUITY-ENGINE_SMC.git
 cd solapur_water_project
 
+# Create and activate a virtual environment
 python -m venv .venv
-.venv\Scripts\activate        # Windows
-source .venv/bin/activate     # Mac/Linux
+# On Windows:
+.venv\Scripts\activate
+# On Mac/Linux:
+source .venv/bin/activate
 
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Run V1 (only if regenerating CSVs)
+### 2. Generate Analytics (Phase 1 & 2)
+Generate simulation and analytics data (when needed) from the repository root:
 
 ```bash
-python scripts/v1_data_foundation.py
+cd scripts
+python simulation_engine.py       # V3 – baseline + scenarios
+python v4_equity_minimal.py       # V4 – HEI / CWEI
+python v5_clps.py                 # V5 – CLPS leak alerts
+python v6_pss.py                  # V6 – burst risk
 ```
 
-All CSVs are already committed. Only run this if you change the GeoJSON source data.
+*Expected output files in `outputs/`: `pressure_baseline.csv`, `flow_baseline.csv`, scenario CSVs, `v4_zone_status.json`, `v5_alerts.json`, and `v6_burst_top10.json`.*
 
-### Run V3 (generates real pressure data)
+### 3. Start Backend
+The Flask backend runs on `http://localhost:5000` and automatically exposes endpoints like `/health`, `/zones`, `/alerts/active`, and `/burst-risk/top10`.
 
 ```bash
-python scripts/simulation_engine.py
+# From the project root, navigate to the backend
+cd backend
+python app.py
 ```
 
-Takes 2–5 minutes. Successful output looks like:
-
-```
-[V3] Loaded    3 water_source features
-[V3] Filtered to Zone 1: 2365 pipe features
-[V3] Connectivity: 372 components — keeping LCC (716 nodes), discarding 371 mini-clusters
-[V3] LCC: 820 pipes | 716 nodes — fully connected ✓
-[V3] Running simulation: baseline ...
-[V3] ✓  baseline: 96 timesteps × 716 nodes
-[V3] ✓  Saved: outputs/pressure_baseline.csv
-[V3] ✓  V3 COMPLETE
-```
-
-### Run Analytics Engines (V4, V5 & V6)
+### 4. Start Frontend
+The dashboard calls the backend endpoints and renders interactive layers, equity bars, alerts panels, and burst risk indicators.
 
 ```bash
-python scripts/simulation_engine.py all
-python scripts/v4_equity_minimal.py
-python scripts/v5_clps.py
-python scripts/v6_pss.py
+# Open a new terminal, activate virtualenv, navigate to frontend
+cd frontend
+python -m http.server 3000
 ```
-
-
-### Start the backend
-
-```bash
-python backend/app.py
-```
-
-Look for:
-```
-Data mode: ★ REAL WNTR DATA      ← if simulation_engine.py ran successfully
-Data mode: ⚠ Formula Approx      ← if outputs/ CSVs are missing (still works)
-```
-
-### Open the dashboard
-
-Open `frontend/index.html` in a browser directly, or:
-
-```bash
-cd frontend && python -m http.server 8080
-# open http://localhost:8080
-```
+Dashboard URL: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Troubleshooting
+## How to Test Integration
 
-| Problem | Fix |
-|---|---|
-| `Microsoft Visual C++ 14.0 required` | Install C++ Build Tools, then re-run `pip install wntr` |
-| `simulation did not converge` | In `simulation_engine.py` find `base_demand=0.001` → change to `base_demand=0.0001` |
-| `Loaded 0 water_source features` | You have the old version — replace with current `simulation_engine.py` which handles MultiPolygon |
-| Backend shows `Formula Approx` | Run `python scripts/simulation_engine.py` first |
-| Pipes not on map | Confirm backend is running. Check browser console — usually a CORS error means Flask isn't running |
+### Automated Verification
+A script is provided to verify the Phase-3 integration by comparing backend API responses against the generated JSON analytics outputs.
+
+```bash
+cd scripts
+python verify_phase3.py
+```
+*Expected output: `RESULT: ALL CHECKS PASS (OK)`*
+
+### Manual Engine-Off Tests
+To verify the frontend gracefully handles missing analytics data:
+1. Rename or move `outputs/v4_zone_status.json`, `outputs/v5_alerts.json`, and `outputs/v6_burst_top10.json`.
+2. Reload the dashboard.
+3. Verify that the UI reports `"Run V[X] first"` instead of showing fake data (e.g., the Burst Risk layer or Equity panel should display the fallback/error message).
 
 ---
 
-## Where to Continue From Here
+## Mathematical Models
 
-Phases 1 and 2 are complete as standalone Python analytics blocks. Next steps:
+**Hydraulic Equity Index (HEI):**
+```text
+HEI(zone, t) = avg_pressure(tail-end nodes, t) / avg_pressure(all zone nodes, t)
+```
 
-1. **Backend Integration:** Wire the newly generated `outputs/v4_*.json`, `v5_alerts.json`, and `v6_*.json` files into the `backend/app.py` standard endpoints, removing any remaining JS-side formula approximations.
-2. **Dashboard Visualization:** Ensure the dashboard components dynamically read and display the accurate offline analytics natively.
-3. **Data Base Migration:** Transition from CSV-based local storage to a robust PostgreSQL/TimescaleDB architecture.
-4. **Real Elevation DEM Data:** Replace the current synthetic 440-470m elevation assumption with real SRTM/DEM mapping for accurate tail-end analysis.
+**Composite Leak Probability Score (CLPS):**
+```text
+CLPS = (0.35 × PDR_n) + (0.30 × FPI) + (0.20 × NFA) + (0.15 × DDI)
+```
+
+**Pipe Stress Score (PSS):**
+```text
+PSS = (0.40 × PSI_n) + (0.35 × CFF_n) + (0.25 × ADF)
+```
+
+---
 
 ## Team
 
