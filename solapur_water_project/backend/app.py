@@ -273,11 +273,26 @@ HOW REAL DATA WORKS:
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import json, os, math, csv, random
+import json, os, math, csv, random, time, threading
 import pandas as pd
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}})
+
+# ── Simulation Clock ────────────────────────────────────────────
+current_timestep = 0
+
+def run_simulation_clock():
+    global current_timestep
+    while True:
+        time.sleep(60)
+        current_timestep = (current_timestep + 1) % 96
+
+threading.Thread(target=run_simulation_clock, daemon=True).start()
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"})
 
 # ── File paths ──────────────────────────────────────────────────
 BASE    = os.path.dirname(os.path.abspath(__file__))
@@ -618,6 +633,19 @@ def equity():
         'error': 'Run V4 first'
     })
 
+@app.route('/zones')
+def zones_endpoint():
+    """Reads the V4 zone status output from outputs/v4_zone_status.json."""
+    path = op('v4_zone_status.json')
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            try:
+                data = json.load(f)
+                return jsonify(data)
+            except Exception as e:
+                print(f"[app] Error parsing v4_zone_status JSON: {e}")
+    return jsonify({'error': 'Run V4 first'})
+
 
 
 @app.route('/simulate')
@@ -696,6 +724,18 @@ def alerts():
     # Fallback if V5 engine hasn't been run or file is missing
     return jsonify({'alerts': [], 'count': 0, 'data_source': 'none', 'error': 'Run V5 first'})
 
+@app.route('/alerts/active')
+def alerts_active():
+    """Reads the active V5 analytics output."""
+    v5_path = op('v5_alerts.json')
+    if os.path.exists(v5_path):
+        with open(v5_path, 'r', encoding='utf-8') as f:
+            try:
+                return jsonify(json.load(f))
+            except Exception as e:
+                print(f"[app] Error parsing V5 JSON: {e}")
+    return jsonify({'error': 'Run V5 first'})
+
 
 @app.route('/recommendations')
 def recommendations():
@@ -738,6 +778,22 @@ def burst_risk():
 
     # Fallback if V6 engine hasn't been run or file is missing
     return jsonify({'segments': [], 'data_source': 'none', 'error': 'Run V6 first'})
+
+@app.route('/burst-risk/top10')
+def burst_risk_top10():
+    """Reads the actual V6 analytics output from outputs/v6_burst_top10.json."""
+    v6_path = op('v6_burst_top10.json')
+
+    if os.path.exists(v6_path):
+        with open(v6_path, 'r', encoding='utf-8') as f:
+            try:
+                data = json.load(f)
+                return jsonify(data)
+            except Exception as e:
+                print(f"[app] Error parsing V6 JSON: {e}")
+
+    # Fallback if V6 file is missing
+    return jsonify({'error': 'Run V6 first'})
 
 
 

@@ -182,6 +182,7 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
         <div class="lrow"><div class="llabel"><div class="ldot" style="background:#1B5E20;border-radius:50%"></div>Water Sources</div><label class="tog"><input type="checkbox" id="lls" checked><span class="togsl"></span></label></div>
         <div class="lrow"><div class="llabel"><div class="ldot" style="background:rgba(13,95,168,.2);border:1px solid #1976D2"></div>Zone Overlay</div><label class="tog"><input type="checkbox" id="llz"><span class="togsl"></span></label></div>
         <div class="lrow"><div class="llabel"><div class="ldot" style="background:#B71C1C;border-radius:50%"></div>Leak Alerts</div><label class="tog"><input type="checkbox" id="lll" checked><span class="togsl"></span></label></div>
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:#6A1B9A;border-radius:2px"></div>Burst Risk</div><label class="tog"><input type="checkbox" id="llb"><span class="togsl"></span></label></div>
       </div>
     </div>
 
@@ -238,7 +239,7 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
     </div>
 
     <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
-      <div class="ptit">Recommendations</div>
+      <div class="ptit">Recommendations <span style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.7">(illustrative only)</span></div>
       <div id="recbody" style="overflow-y:auto;flex:1;padding-bottom:8px"></div>
     </div>
   </div>
@@ -248,7 +249,7 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 <div id="bot">
   <div id="tlw">
     <div id="tlhdr">
-      <span class="tlt">24h Pressure Timeline</span>
+      <span class="tlt">24h Pressure Timeline <span style="font-size:9px;text-transform:none;opacity:0.7">(illustrative only)</span></span>
       <button class="tlzbtn active" onclick="selTL('all',this)">All Zones</button>
       <button class="tlzbtn" onclick="selTL('z3',this)">Zone 3</button>
       <button class="tlzbtn" onclick="selTL('z5',this)">Zone 5</button>
@@ -270,7 +271,21 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 const BACK='http://localhost:5000';
 const MC=[17.68,75.908];
 let scen='baseline',hr=6,tlChart=null,tick=null;
-let pipes=[],pLG,nLG,lLG,zLG,eLG,sLG;
+let pipes=[],pLG,nLG,lLG,zLG,eLG,sLG,bLG;
+
+// ── API Helper
+const api = {
+  get: async (endpoint) => {
+    try {
+      const res = await fetch(`${BACK}${endpoint}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (e) {
+      console.warn(`[API] Failed to fetch ${endpoint}:`, e);
+      return null;
+    }
+  }
+};
 
 // ── ESR sources for pressure simulation
 const ESRS=[
@@ -287,21 +302,6 @@ const ZONES=[
   {id:'z7',nm:'Zone 7',lat:17.695,lon:75.958},{id:'z8',nm:'Zone 8',lat:17.655,lon:75.940},
 ];
 
-function hdist(la1,lo1,la2,lo2){const dx=(lo1-lo2)*111*Math.cos(la1*Math.PI/180),dy=(la1-la2)*111;return Math.sqrt(dx*dx+dy*dy)}
-
-function pAt(lat,lon,s=scen){
-  let md=1e9,sh=65;
-  for(const e of ESRS){const d=hdist(lat,lon,e.lat,e.lon);if(d<md){md=d;sh=e.h}}
-  const fl=md*3.8,el=(lat-17.655)*22+(lon-75.960)*15;
-  const dm=hr>=6&&hr<8?2.5:hr>=17&&hr<20?2.0:hr>=8&&hr<17?1.0:0.05;
-  const ns=((Math.abs(lat*1000)*7+Math.abs(lon*100)*13)%100)/100*6-3;
-  let p=sh-fl+el*0.4-dm*3+ns;
-  if(s==='leak'){if(lon>75.935)p*=0.52;else if(lon>75.920)p*=0.78}
-  else if(s==='valve'){if(lat<17.663)p*=0.22;else if(lat<17.672)p*=0.55}
-  else if(s==='surge')p*=(lon>75.91?0.64:0.72);
-  return Math.max(2,Math.min(82,p));
-}
-
 function pCol(p){return p<10?'#D32F2F':p<20?'#E65100':p<30?'#F9A825':p<40?'#8BC34A':p<60?'#2E7D32':'#0D5FA8'}
 function pw(d){if(!d)return 1.5;const v=parseFloat(d);return v>0.3?3.5:v>0.15?2.5:1.5}
 
@@ -315,6 +315,7 @@ lLG=L.layerGroup().addTo(map);
 zLG=L.layerGroup();
 eLG=L.layerGroup().addTo(map);
 sLG=L.layerGroup().addTo(map);
+bLG=L.layerGroup(); // Burst Risk initially hidden
 
 // ── LOAD DATA
 async function loadAll(){
@@ -324,8 +325,10 @@ async function loadAll(){
   }
   if(geo)renderPipes(geo);
   addMarkers();
-  compEquity();
-  renderAlerts();renderRecs();
+  await compEquity();
+  await renderAlerts();
+  await renderBurstRisk();
+  renderRecs();
   initTL();startClock();
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
@@ -339,19 +342,20 @@ function renderPipes(geo){
     if(!cs||cs.length<2)return;
     const mid=cs[Math.floor(cs.length/2)];
     const lat=mid[1],lon=mid[0];
-    const p=pAt(lat,lon);
-    const col=pCol(p);
-    const d=f.properties?f.properties['Diameter(m)']||f.properties.diameter_m:null;
+    const p = f.properties && f.properties.sim_pressure !== undefined ? f.properties.sim_pressure : null;
+    const col = f.properties && f.properties.sim_color ? f.properties.sim_color : (p !== null ? pCol(p) : '#8A96A4');
+    const d = f.properties ? f.properties['Diameter(m)']||f.properties.diameter_m : null;
+    const pDisplay = p !== null ? p.toFixed(1) + ' m' : 'No Data';
     const ll=cs.map(c=>[c[1],c[0]]);
     const pl=L.polyline(ll,{color:col,weight:pw(d),opacity:.82,smoothFactor:1});
     pl.bindPopup(`<div class="ptit2">Pipeline Segment</div>
-      <div class="prow"><span class="pkey">Pressure</span><span class="pval" style="color:${col}">${p.toFixed(1)} m</span></div>
+      <div class="prow"><span class="pkey">Pressure</span><span class="pval" style="color:${col}">${pDisplay}</span></div>
       <div class="prow"><span class="pkey">Diameter</span><span class="pval">${d?(parseFloat(d)*1000).toFixed(0)+'mm':'N/A'}</span></div>
       <div class="prow"><span class="pkey">Material</span><span class="pval">${f.properties&&f.properties.Material||'N/A'}</span></div>
       <div class="prow"><span class="pkey">Zone</span><span class="pval">${f.properties&&f.properties['Water Zone']||'N/A'}</span></div>`);
-    pl.on('click',()=>showFeat({type:'Pipe',Pressure:p.toFixed(1)+' m',Diameter:d?(parseFloat(d)*1000).toFixed(0)+' mm':'N/A',Material:f.properties&&f.properties.Material||'N/A',Zone:f.properties&&f.properties['Water Zone']||'N/A',Length:f.properties&&f.properties['Length(m)']?parseFloat(f.properties['Length(m)']).toFixed(0)+' m':'N/A'},'Pipe'));
+    pl.on('click',()=>showFeat({type:'Pipe',Pressure:pDisplay,Diameter:d?(parseFloat(d)*1000).toFixed(0)+' mm':'N/A',Material:f.properties&&f.properties.Material||'N/A',Zone:f.properties&&f.properties['Water Zone']||'N/A',Length:f.properties&&f.properties['Length(m)']?parseFloat(f.properties['Length(m)']).toFixed(0)+' m':'N/A'},'Pipe'));
     pLG.addLayer(pl);
-    pipes.push({lat,lon,p,zone:f.properties&&f.properties['Water Zone']});
+    if(p !== null) pipes.push({lat,lon,p,zone:f.properties&&f.properties['Water Zone']});
     nc+=cs.length;
   });
   document.getElementById('spp').textContent=geo.features.length.toLocaleString();
@@ -394,33 +398,38 @@ function renderZones(){
   });
 }
 
-// ── LEAK MARKERS
-function renderLeaks(){
-  lLG.clearLayers();
-  if(scen==='baseline')return;
-  const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[20,20],iconAnchor:[10,10]});
-  if(scen==='leak'){
-    [[17.682,75.942,'East zone — CLPS: 0.81'],[17.675,75.939,'Flow imbalance — CLPS: 0.67']].forEach(([la,lo,msg])=>{
-      L.marker([la,lo],{icon:li,zIndexOffset:200}).bindPopup(`<div class="ptit2" style="color:#D32F2F">⚠ Leak Alert</div><div class="prow">${msg}</div>`).addTo(lLG);
-    });
-  } else if(scen==='valve'){
-    L.marker([17.660,75.915],{icon:li,zIndexOffset:200}).bindPopup(`<div class="ptit2" style="color:#D32F2F">🔒 Valve Closed</div><div class="prow">South zone isolated — pressure &lt;5m</div>`).addTo(lLG);
-  } else if(scen==='surge'){
-    L.marker([17.673,75.903],{icon:li,zIndexOffset:200}).bindPopup(`<div class="ptit2" style="color:#E65100">📈 Demand Surge</div><div class="prow">System-wide pressure drop — HEI falling</div>`).addTo(lLG);
-  }
-}
-
-// ── EQUITY
+// ── EQUITY (Connected to V4 Backend)
 let zScores=[];
 function heiCol(h){return h>=0.85?'#2E7D32':h>=0.70?'#E65100':h>1.30?'#6A1B9A':'#D32F2F'}
 function heiLbl(h){return h>=0.85?['Equitable','seq']:h>=0.70?['Moderate','smo']:h>1.30?['Over-P','sov']:['Severe','ssv']}
 
-function compEquity(){
+async function compEquity(){
+  const data = await api.get('/zones');
+  if (!data || data.error || !Array.isArray(data) || data.length === 0) {
+    document.getElementById('scw').textContent='0%';
+    document.getElementById('sap').textContent='—m';
+    document.getElementById('snw').textContent='—%';
+    document.getElementById('cwsc').textContent='0%';
+    document.getElementById('cwsc').style.color='#D32F2F';
+    document.getElementById('cwlb').textContent='Run V4 first';
+    document.getElementById('wz').textContent='—';
+    document.getElementById('bz').textContent='—';
+    document.getElementById('nrw').textContent='—%';
+    document.getElementById('znl').innerHTML = '<div style="padding:20px;text-align:center;color:#D32F2F;font-weight:600;">No data. Run V4 first.</div>';
+    zScores = [];
+    zLG.clearLayers();
+    return;
+  }
+  
+  // Map fetched data to local ZONES format
   zScores=ZONES.map(z=>{
-    const pc=pAt(z.lat,z.lon);
-    const pt=pAt(z.lat+.009,z.lon+.007)*.87;
-    return{...z,pc,pt,hei:pc>0?Math.min(1.55,pt/pc):0};
+    const apiZone = data.find(x => x.zone_id === z.id || x.id === z.id || (x.zone_id && x.zone_id.replace('zone_', 'z') === z.id));
+    if (apiZone) {
+      return {...z, hei: apiZone.hei, status: apiZone.status, color: apiZone.color};
+    }
+    return {...z, hei: 0, status: 'unknown', color: '#8A96A4'};
   });
+  
   const cwei=zScores.reduce((s,z)=>s+z.hei,0)/zScores.length;
   const srt=[...zScores].sort((a,b)=>a.hei-b.hei);
   const avgP=pipes.length>0?pipes.reduce((s,p)=>s+p.p,0)/pipes.length:34;
@@ -437,18 +446,18 @@ function compEquity(){
   document.getElementById('nrw').textContent=nrw+'%';
 
   document.getElementById('znl').innerHTML=zScores.map(z=>{
-    const col=heiCol(z.hei);const[lbl,cls]=heiLbl(z.hei);
+    const col=z.color || heiCol(z.hei);
+    const[lbl,cls]=heiLbl(z.hei);
     return`<div class="zrow" onclick="flyZ(${z.lat},${z.lon})">
       <div class="zbdg" style="background:${col}"></div>
       <div class="znm">${z.nm}</div>
       <div class="zhei" style="color:${col}">${z.hei.toFixed(2)}</div>
-      <div class="zst ${cls}">${lbl}</div>
+      <div class="zst ${cls}">${z.status || lbl}</div>
       <div class="zbarw"><div class="zbar" style="width:${Math.min(100,z.hei*100)}%;background:${col}"></div></div>
     </div>`;
   }).join('');
 
   if(document.getElementById('llz').checked)renderZones();
-  renderLeaks();
 }
 
 function flyZ(la,lo){map.flyTo([la,lo],15,{duration:1})}
@@ -464,23 +473,65 @@ function showFeat(data,typeLbl){
 
 // ── ALERTS (Connected to V5 Backend)
 async function renderAlerts(){
-  try {
-    const res = await fetch(`${BACK}/alerts?scenario=${scen}`);
-    const data = await res.json();
-    const al = data.alerts || [];
-
-    document.getElementById('acnt').textContent=al.length;
-    document.getElementById('albody').innerHTML=al.map(a=>`
-      <div class="acard ${a.level}">
-        <div class="atit" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${a.level==='high'?'🔴':'🟠'} ${a.title}</div>
-        <div class="abody">${a.body}</div>
-        <div class="ameta">${a.zone} · CLPS: <span class="clpsv" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${a.clps}</span></div>
-        <div class="clpsbar" style="width:${Math.min(100, a.clps*100)}%;background:${a.level==='high'?'#D32F2F':'#E65100'}"></div>
-      </div>`).join('');
-  } catch (e) {
-    console.error("Failed to load alerts from backend", e);
-    document.getElementById('albody').innerHTML = '<div style="padding:10px;text-align:center;color:#8A96A4">Alert engine offline</div>';
+  lLG.clearLayers();
+  const data = await api.get(`/alerts/active?scenario=${scen}`);
+  if (!data || data.error) {
+    const errMsg = data && data.error ? data.error : 'Alert engine offline or no alerts (V5).';
+    document.getElementById('albody').innerHTML = `<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">${errMsg}</div>`;
+    document.getElementById('acnt').textContent = '0';
+    if(scen === 'leak' || scen === 'valve' || scen === 'surge') {
+        L.marker([MC[0], MC[1]], {
+            icon: L.divIcon({html: `<div class="mlk">!</div>`, className: '', iconSize: [20,20], iconAnchor: [10,10]}),
+            zIndexOffset: 200
+        }).bindPopup(`<div class="ptit2" style="color:#D32F2F">⚠ Alert Analytics Offline</div><div class="prow">Run V5 to view real alerts for this scenario.</div>`).addTo(lLG);
+    }
+    return;
   }
+  const al = data.alerts || [];
+
+  document.getElementById('acnt').textContent=al.length;
+  document.getElementById('albody').innerHTML=al.map(a=>`
+    <div class="acard ${a.level}" onclick="if(a.lat&&a.lon) flyZ(a.lat, a.lon)" style="cursor:pointer">
+      <div class="atit" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${a.level==='high'?'🔴':'🟠'} ${a.title || a.dominant + ' Alert'}</div>
+      <div class="abody">${a.body || a.dominant_signal || ''}</div>
+      <div class="ameta">${a.zone} · CLPS: <span class="clpsv" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${parseFloat(a.clps).toFixed(2)}</span></div>
+      <div class="clpsbar" style="width:${Math.min(100, parseFloat(a.clps)*100)}%;background:${a.level==='high'?'#D32F2F':'#E65100'}"></div>
+    </div>`).join('');
+  
+  const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[20,20],iconAnchor:[10,10]});
+  al.forEach(a => {
+      if(a.lat && a.lon) {
+          L.marker([a.lat, a.lon], {icon: li, zIndexOffset: 200})
+            .bindPopup(`<div class="ptit2" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">⚠ ${a.title || a.dominant + ' Alert'}</div><div class="prow">${a.body || a.dominant_signal || ''}</div>`)
+            .addTo(lLG);
+      }
+  });
+}
+
+// ── BURST RISK (Connected to V6 Backend)
+async function renderBurstRisk(){
+  bLG.clearLayers();
+  const data = await api.get('/burst-risk/top10');
+  if (!data || data.error) {
+    const errMsg = data && data.error ? data.error : 'Burst-risk analytics offline (V6).';
+    document.getElementById('finfo').innerHTML = `<div class="iph" style="color:#D32F2F;font-weight:500;">${errMsg}</div>`;
+    return;
+  }
+  if (!data.segments) return;
+  
+  data.segments.forEach(s => {
+    if (s.lat && s.lon) {
+      const col = s.risk_level === 'HIGH' ? '#D32F2F' : '#F9A825';
+      const c = L.circleMarker([s.lat, s.lon], {radius: 7, fillColor: col, fillOpacity: 0.9, color: 'white', weight: 1.5});
+      c.bindPopup(`<div class="ptit2" style="color:${col}">Burst Risk: ${s.risk_level}</div>
+        <div class="prow"><span class="pkey">Segment</span><span class="pval">${s.segment_id}</span></div>
+        <div class="prow"><span class="pkey">Material</span><span class="pval">${s.material}</span></div>
+        <div class="prow"><span class="pkey">Age</span><span class="pval">~${s.assumed_age}yr</span></div>
+        <div class="prow"><span class="pkey">Score (PSS)</span><span class="pval">${s.pss}</span></div>
+        <div class="prow"><span class="pkey">Factor</span><span class="pval">${s.dominant_factor}</span></div>`);
+      bLG.addLayer(c);
+    }
+  });
 }
 
 // ── RECOMMENDATIONS
@@ -572,8 +623,9 @@ async function setScen(s,btn){
     console.error("Failed to load pipeline", e);
   }
 
-  compEquity();
-  await renderAlerts(); // Now waits for the real backend V5 data
+  await compEquity();
+  await renderAlerts();
+  await renderBurstRisk(); // Now waits for V6 data
   renderRecs();
 
   if(tlChart){tlChart.data.datasets=getTLData('all');tlChart.update();}
@@ -587,6 +639,7 @@ document.getElementById('lle').addEventListener('change',e=>e.target.checked?map
 document.getElementById('lls').addEventListener('change',e=>e.target.checked?map.addLayer(sLG):map.removeLayer(sLG));
 document.getElementById('llz').addEventListener('change',e=>{if(e.target.checked){renderZones();map.addLayer(zLG);}else map.removeLayer(zLG)});
 document.getElementById('lll').addEventListener('change',e=>e.target.checked?map.addLayer(lLG):map.removeLayer(lLG));
+document.getElementById('llb').addEventListener('change',e=>e.target.checked?map.addLayer(bLG):map.removeLayer(bLG));
 
 // ── CLOCK
 function startClock(){

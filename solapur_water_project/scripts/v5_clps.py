@@ -142,7 +142,10 @@ def main():
             
             base_demand_z = zone_demand.get(z, 0.001)
 
-            for t in range(len(p_df)):
+            # Constrain loop to len(DEMAND_PATTERN) to avoid out-of-range errors
+            # and stay aligned with the 96-step pattern.
+            num_steps = min(len(p_df), len(DEMAND_PATTERN))
+            for t in range(num_steps):
                 # 1. PDR_n
                 p_b, p_s = z_p_base_mean.iloc[t], z_p_scen_mean.iloc[t]
                 pdr_n = max(0, (p_b - p_s) / p_b) if p_b > 0.1 else 0.0
