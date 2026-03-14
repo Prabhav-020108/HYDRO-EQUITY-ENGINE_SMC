@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hydro-Equity Engine · SMC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#F0F4F8;--surface:#FFFFFF;--border:#DDE3EA;--text:#1A2332;--text2:#4A5568;--text3:#8A96A4;--blue:#0D5FA8;--bluel:#EBF3FB;--blue2:#1976D2;--red:#D32F2F;--orange:#E65100;--yellow:#F9A825;--green:#2E7D32;--purple:#6A1B9A;--hh:52px;--lw:260px;--rw:300px;--bh:158px;--shad:0 2px 8px rgba(0,0,0,0.08)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+
+/* HEADER */
+#hdr{position:fixed;top:0;left:0;right:0;height:var(--hh);background:var(--blue);color:#fff;display:flex;align-items:center;padding:0 16px;z-index:1000;gap:0;border-bottom:2px solid rgba(255,255,255,0.12)}
+.logo{font-size:14px;font-weight:600;letter-spacing:.04em;white-space:nowrap;padding-right:24px;border-right:1px solid rgba(255,255,255,.25)}
+.logo span{color:#7EC8F4}
+.stats{display:flex;gap:0;flex:1;padding:0 16px}
+.sp{display:flex;flex-direction:column;align-items:center;padding:0 16px;border-right:1px solid rgba(255,255,255,.15)}
+.sp:last-child{border-right:none}
+.sp .v{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500;line-height:1}
+.sp .l{font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+#liveb{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;background:rgba(255,255,255,.12);border-radius:20px;padding:4px 12px;margin-left:auto}
+#livd{width:7px;height:7px;border-radius:50%;background:#4ADE80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#clk{font-family:'IBM Plex Mono',monospace;font-size:12px;margin-left:12px;opacity:.7}
+
+/* LAYOUT */
+#lay{position:fixed;top:var(--hh);bottom:var(--bh);left:0;right:0;display:flex}
+#mapd{flex:1;position:relative}
+#mapc{width:100%;height:100%}
+
+/* PANELS */
+.panel{width:var(--lw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shad);z-index:100}
+#rp{width:var(--rw);border-right:none;border-left:1px solid var(--border)}
+.psec{border-bottom:1px solid var(--border)}
+.ptit{padding:10px 14px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);background:#FAFBFC;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.pbody{padding:10px 14px}
+
+/* Layer toggles */
+.lrow{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
+.llabel{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text)}
+.ldot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.tog{position:relative;width:32px;height:18px}
+.tog input{opacity:0;width:0;height:0}
+.togsl{position:absolute;inset:0;background:#C8D0DA;border-radius:10px;cursor:pointer;transition:.2s}
+.togsl::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:white;border-radius:50%;transition:.2s}
+.tog input:checked+.togsl{background:var(--blue2)}
+.tog input:checked+.togsl::before{transform:translateX(14px)}
+
+/* Scenarios */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sbtn{padding:8px 6px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;text-align:center;font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;color:var(--text2);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.sbtn:hover{border-color:var(--blue2);color:var(--blue);background:var(--bluel)}
+.sbtn.active{border-color:var(--blue);color:var(--blue);background:var(--bluel);font-weight:600}
+.sbtn .ico{font-size:15px}
+#sci{font-size:11px;color:var(--blue);padding:6px 14px 0;font-style:italic}
+
+/* Legend */
+.legbar{height:12px;border-radius:4px;margin:6px 0 4px;background:linear-gradient(to right,#D32F2F,#E65100,#F9A825,#2E7D32,#0D5FA8)}
+.leglbs{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.legitems{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.legitem{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)}
+.legdot{width:8px;height:8px;border-radius:2px}
+
+/* Zone list */
+#znl{flex:1;overflow-y:auto}
+.zrow{display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;gap:6px}
+.zrow:hover{background:#F7F9FB}
+.zbdg{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.znm{flex:1;font-size:12px;color:var(--text)}
+.zhei{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500}
+.zst{font-size:10px;padding:1px 6px;border-radius:10px;white-space:nowrap}
+.seq{background:#E8F5E9;color:var(--green)}
+.smo{background:#FFF3E0;color:var(--orange)}
+.ssv{background:#FFEBEE;color:var(--red)}
+.sov{background:#F3E5F5;color:var(--purple)}
+.zbarw{width:36px;height:4px;background:var(--border);border-radius:2px}
+.zbar{height:100%;border-radius:2px}
+
+/* Feature info */
+#finfo{flex:1;overflow-y:auto}
+.iph{padding:24px 14px;text-align:center;color:var(--text3);font-size:12px}
+.irow{display:flex;justify-content:space-between;padding:6px 14px;border-bottom:1px solid var(--border)}
+.ikey{font-size:11px;color:var(--text3)}
+.ival{font-size:11px;font-weight:500;font-family:'IBM Plex Mono',monospace;color:var(--text)}
+.ihdr{padding:12px 14px 8px;background:var(--bluel);border-bottom:1px solid var(--border)}
+.ihdr .ityp{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);font-weight:600}
+.ihdr .iid{font-size:14px;font-weight:600;color:var(--text);font-family:'IBM Plex Mono',monospace}
+
+/* Alerts */
+.acard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.acard.high{border-color:var(--red)}
+.acard.moderate{border-color:var(--orange)}
+.atit{font-size:11px;font-weight:600;margin-bottom:3px}
+.abody{font-size:11px;color:var(--text2);line-height:1.5}
+.ameta{font-size:10px;color:var(--text3);margin-top:5px;font-family:'IBM Plex Mono',monospace}
+.clpsbar{height:4px;border-radius:2px;margin-top:6px}
+.clpsv{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600}
+
+/* Recs */
+.rcard{margin:8px 10px;padding:10px 12px;background:#F0F7FF;border-radius:6px;border:1px solid #BBDEFB}
+.rzone{font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;margin-bottom:3px}
+.rtxt{font-size:11px;color:var(--text);line-height:1.5}
+.rimp{font-size:10px;color:var(--green);margin-top:4px;font-weight:500}
+
+/* BOTTOM */
+#bot{position:fixed;bottom:0;left:0;right:0;height:var(--bh);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;z-index:500}
+#tlw{flex:1;padding:10px 16px 10px}
+#tlhdr{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+#tlhdr .tlt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.tlzbtn{font-size:11px;padding:2px 8px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:none;color:var(--text2);font-family:'IBM Plex Sans',sans-serif}
+.tlzbtn.active{background:var(--blue);color:white;border-color:var(--blue)}
+#tlcw{height:96px}
+#cweip{width:220px;border-left:1px solid var(--border);padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+#cweip .cwt{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600}
+#cwsc{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:600;text-align:center}
+#cwlb{font-size:11px;color:var(--text3);text-align:center}
+.mst{display:flex;justify-content:space-between;align-items:center}
+.mst .msl{font-size:11px;color:var(--text3)}
+.mst .msv{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600}
+
+/* Leaflet */
+.leaflet-container{background:#E8EFF6}
+.leaflet-popup-content-wrapper{border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.14);font-family:'IBM Plex Sans',sans-serif}
+.ptit2{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--blue)}
+.prow{display:flex;gap:8px;font-size:11px;margin-bottom:3px}
+.pkey{color:var(--text3);min-width:70px}
+.pval{font-family:'IBM Plex Mono',monospace;font-weight:500}
+
+/* Markers */
+.mesr{background:#1565C0;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.msrc{background:#1B5E20;color:white;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:9px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.mlk{background:#B71C1C;color:white;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:pr 1.5s infinite}
+@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(183,28,28,.4)}50%{box-shadow:0 0 0 8px rgba(183,28,28,0)}}
+
+/* Loading */
+#ld{position:fixed;inset:0;background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;z-index:9999;transition:opacity .5s}
+#ld.hidden{opacity:0;pointer-events:none}
+#ld .ldt{font-size:20px;font-weight:600;margin-bottom:6px}
+#ld .lds{font-size:13px;opacity:.65;margin-bottom:28px}
+#ld .ldb{width:220px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+#ld .ldf{height:100%;background:white;border-radius:2px;animation:la 2.2s ease-in-out}
+@keyframes la{from{width:0%}to{width:100%}}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div id="ld">
+  <div class="ldt">HYDRO-EQUITY ENGINE</div>
+  <div class="lds">Solapur Municipal Corporation · Initializing Hydraulic Model</div>
+  <div class="ldb"><div class="ldf"></div></div>
+</div>
+
+<div id="hdr">
+  <div class="logo">HYDRO-EQUITY <span>ENGINE</span> · SMC</div>
+  <div class="stats">
+    <div class="sp"><div class="v" id="snd">—</div><div class="l">Nodes</div></div>
+    <div class="sp"><div class="v" id="spp">—</div><div class="l">Pipes</div></div>
+    <div class="sp"><div class="v" id="sap">—m</div><div class="l">Avg Pressure</div></div>
+    <div class="sp"><div class="v" id="scw" style="color:#7EC8F4">—%</div><div class="l">City Equity</div></div>
+    <div class="sp"><div class="v" id="snw">—%</div><div class="l">NRW Est.</div></div>
+  </div>
+  <div id="liveb"><div id="livd"></div><span>LIVE</span></div>
+  <div id="clk">06:00</div>
+</div>
+
+<div id="lay">
+  <!-- LEFT PANEL -->
+  <div class="panel" id="lp">
+    <div class="psec">
+      <div class="ptit">Map Layers</div>
+      <div class="pbody">
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:#1976D2"></div>Pipelines</div><label class="tog"><input type="checkbox" id="llp" checked><span class="togsl"></span></label></div>
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:#FF6D00;border-radius:50%"></div>Node Pressure</div><label class="tog"><input type="checkbox" id="lln"><span class="togsl"></span></label></div>
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:#1565C0;border-radius:50%"></div>ESR Tanks</div><label class="tog"><input type="checkbox" id="lle" checked><span class="togsl"></span></label></div>
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:#1B5E20;border-radius:50%"></div>Water Sources</div><label class="tog"><input type="checkbox" id="lls" checked><span class="togsl"></span></label></div>
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:rgba(13,95,168,.2);border:1px solid #1976D2"></div>Zone Overlay</div><label class="tog"><input type="checkbox" id="llz"><span class="togsl"></span></label></div>
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:#B71C1C;border-radius:50%"></div>Leak Alerts</div><label class="tog"><input type="checkbox" id="lll" checked><span class="togsl"></span></label></div>
+        <div class="lrow"><div class="llabel"><div class="ldot" style="background:#6A1B9A;border-radius:2px"></div>Burst Risk</div><label class="tog"><input type="checkbox" id="llb"><span class="togsl"></span></label></div>
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="ptit">Scenario Engine</div>
+      <div class="pbody">
+        <div class="sgrid">
+          <button class="sbtn active" onclick="setScen('baseline',this)"><span class="ico">📊</span>Baseline</button>
+          <button class="sbtn" onclick="setScen('leak',this)"><span class="ico">💧</span>Leak Event</button>
+          <button class="sbtn" onclick="setScen('valve',this)"><span class="ico">🔒</span>Valve Close</button>
+          <button class="sbtn" onclick="setScen('surge',this)"><span class="ico">📈</span>Demand Surge</button>
+        </div>
+        <div id="sci">Running: Baseline simulation</div>
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="ptit">Pressure Legend (m head)</div>
+      <div class="pbody">
+        <div class="legbar"></div>
+        <div class="leglbs"><span>0</span><span>10</span><span>20</span><span>40</span><span>60</span><span>80+</span></div>
+        <div class="legitems">
+          <div class="legitem"><div class="legdot" style="background:#D32F2F"></div>&lt;10 Critical</div>
+          <div class="legitem"><div class="legdot" style="background:#E65100"></div>10-20 Low</div>
+          <div class="legitem"><div class="legdot" style="background:#F9A825"></div>20-40 Med</div>
+          <div class="legitem"><div class="legdot" style="background:#2E7D32"></div>40-60 Good</div>
+          <div class="legitem"><div class="legdot" style="background:#0D5FA8"></div>60+ High</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ptit">Zone Equity (HEI)</div>
+    <div id="znl"></div>
+  </div>
+
+  <!-- MAP -->
+  <div id="mapd"><div id="mapc"></div></div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" id="rp">
+    <div class="psec">
+      <div class="ptit">Selected Feature</div>
+      <div id="finfo">
+        <div class="iph">Click any pipe or node on the map to view hydraulic details</div>
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="ptit">
+        <span>Active Alerts</span>
+        <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
+      </div>
+      <div id="albody" style="overflow-y:auto;max-height:200px"></div>
+    </div>
+
+    <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div class="ptit">Recommendations <span style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.7">(illustrative only)</span></div>
+      <div id="recbody" style="overflow-y:auto;flex:1;padding-bottom:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM -->
+<div id="bot">
+  <div id="tlw">
+    <div id="tlhdr">
+      <span class="tlt">24h Pressure Timeline <span style="font-size:9px;text-transform:none;opacity:0.7">(illustrative only)</span></span>
+      <button class="tlzbtn active" onclick="selTL('all',this)">All Zones</button>
+      <button class="tlzbtn" onclick="selTL('z3',this)">Zone 3</button>
+      <button class="tlzbtn" onclick="selTL('z5',this)">Zone 5</button>
+      <button class="tlzbtn" onclick="selTL('z7',this)">Zone 7</button>
+    </div>
+    <div id="tlcw"><canvas id="tlch"></canvas></div>
+  </div>
+  <div id="cweip">
+    <div class="cwt">City Equity Index</div>
+    <div id="cwsc" style="color:#2E7D32">—</div>
+    <div id="cwlb">CWEI</div>
+    <div class="mst"><span class="msl">Worst Zone</span><span class="msv" id="wz">—</span></div>
+    <div class="mst"><span class="msl">Best Zone</span><span class="msv" id="bz">—</span></div>
+    <div class="mst"><span class="msl">NRW Est.</span><span class="msv" id="nrw">—</span></div>
+  </div>
+</div>
+
+<script>
+const BACK='http://localhost:5000';
+const MC=[17.68,75.908];
+let scen='baseline',hr=6,tlChart=null,tick=null;
+let pipes=[],pLG,nLG,lLG,zLG,eLG,sLG,bLG;
+
+// ── API Helper
+const api = {
+  get: async (endpoint) => {
+    try {
+      const res = await fetch(`${BACK}${endpoint}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (e) {
+      console.warn(`[API] Failed to fetch ${endpoint}:`, e);
+      return null;
+    }
+  }
+};
+
+// ── ESR sources for pressure simulation
+const ESRS=[
+  {lat:17.6935,lon:75.8810,h:72},{lat:17.7012,lon:75.9280,h:68},
+  {lat:17.6623,lon:75.9034,h:65},{lat:17.6878,lon:75.8654,h:70},
+  {lat:17.6758,lon:75.9412,h:60},{lat:17.7080,lon:75.8950,h:66},
+  {lat:17.6700,lon:75.8780,h:63},
+];
+
+const ZONES=[
+  {id:'z1',nm:'Zone 1',lat:17.710,lon:75.882},{id:'z2',nm:'Zone 2',lat:17.700,lon:75.910},
+  {id:'z3',nm:'Zone 3',lat:17.690,lon:75.935},{id:'z4',nm:'Zone 4',lat:17.675,lon:75.898},
+  {id:'z5',nm:'Zone 5',lat:17.665,lon:75.920},{id:'z6',nm:'Zone 6',lat:17.680,lon:75.870},
+  {id:'z7',nm:'Zone 7',lat:17.695,lon:75.958},{id:'z8',nm:'Zone 8',lat:17.655,lon:75.940},
+];
+
+function pCol(p){return p<10?'#D32F2F':p<20?'#E65100':p<30?'#F9A825':p<40?'#8BC34A':p<60?'#2E7D32':'#0D5FA8'}
+function pw(d){if(!d)return 1.5;const v=parseFloat(d);return v>0.3?3.5:v>0.15?2.5:1.5}
+
+// ── MAP
+const map=L.map('mapc',{center:MC,zoom:13,zoomControl:false,preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+L.control.zoom({position:'bottomright'}).addTo(map);
+pLG=L.layerGroup().addTo(map);
+nLG=L.layerGroup();
+lLG=L.layerGroup().addTo(map);
+zLG=L.layerGroup();
+eLG=L.layerGroup().addTo(map);
+sLG=L.layerGroup().addTo(map);
+bLG=L.layerGroup(); // Burst Risk initially hidden
+
+// ── LOAD DATA
+async function loadAll(){
+  let geo=null;
+  for(const u of[BACK+'/pipeline','../Data/pipeline.geojson','Data/pipeline.geojson']){
+    try{const r=await fetch(u);if(r.ok){geo=await r.json();break}}catch(e){}
+  }
+  if(geo)renderPipes(geo);
+  addMarkers();
+  await compEquity();
+  await renderAlerts();
+  await renderBurstRisk();
+  renderRecs();
+  initTL();startClock();
+  setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
+}
+
+function renderPipes(geo){
+  pLG.clearLayers();pipes=[];
+  let nc=0;
+  geo.features.forEach(f=>{
+    if(!f.geometry)return;
+    const cs=f.geometry.type==='MultiLineString'?f.geometry.coordinates[0]:f.geometry.coordinates;
+    if(!cs||cs.length<2)return;
+    const mid=cs[Math.floor(cs.length/2)];
+    const lat=mid[1],lon=mid[0];
+    const p = f.properties && f.properties.sim_pressure !== undefined ? f.properties.sim_pressure : null;
+    const col = f.properties && f.properties.sim_color ? f.properties.sim_color : (p !== null ? pCol(p) : '#8A96A4');
+    const d = f.properties ? f.properties['Diameter(m)']||f.properties.diameter_m : null;
+    const pDisplay = p !== null ? p.toFixed(1) + ' m' : 'No Data';
+    const ll=cs.map(c=>[c[1],c[0]]);
+    const pl=L.polyline(ll,{color:col,weight:pw(d),opacity:.82,smoothFactor:1});
+    pl.bindPopup(`<div class="ptit2">Pipeline Segment</div>
+      <div class="prow"><span class="pkey">Pressure</span><span class="pval" style="color:${col}">${pDisplay}</span></div>
+      <div class="prow"><span class="pkey">Diameter</span><span class="pval">${d?(parseFloat(d)*1000).toFixed(0)+'mm':'N/A'}</span></div>
+      <div class="prow"><span class="pkey">Material</span><span class="pval">${f.properties&&f.properties.Material||'N/A'}</span></div>
+      <div class="prow"><span class="pkey">Zone</span><span class="pval">${f.properties&&f.properties['Water Zone']||'N/A'}</span></div>`);
+    pl.on('click',()=>showFeat({type:'Pipe',Pressure:pDisplay,Diameter:d?(parseFloat(d)*1000).toFixed(0)+' mm':'N/A',Material:f.properties&&f.properties.Material||'N/A',Zone:f.properties&&f.properties['Water Zone']||'N/A',Length:f.properties&&f.properties['Length(m)']?parseFloat(f.properties['Length(m)']).toFixed(0)+' m':'N/A'},'Pipe'));
+    pLG.addLayer(pl);
+    if(p !== null) pipes.push({lat,lon,p,zone:f.properties&&f.properties['Water Zone']});
+    nc+=cs.length;
+  });
+  document.getElementById('spp').textContent=geo.features.length.toLocaleString();
+  document.getElementById('snd').textContent=Math.round(nc*.45).toLocaleString();
+}
+
+function addMarkers(){
+  eLG.clearLayers();sLG.clearLayers();
+  const ei=n=>L.divIcon({html:`<div class="mesr">${n}</div>`,className:'',iconSize:[24,24],iconAnchor:[12,12]});
+  const si=()=>L.divIcon({html:`<div class="msrc">W</div>`,className:'',iconSize:[20,20],iconAnchor:[10,10]});
+  ESRS.forEach((e,i)=>{
+    const m=L.marker([e.lat,e.lon],{icon:ei(i+1),zIndexOffset:100});
+    m.bindPopup(`<div class="ptit2">ESR-${i+1}</div><div class="prow"><span class="pkey">Head</span><span class="pval">${e.h}m</span></div><div class="prow"><span class="pkey">Type</span><span class="pval">Elevated Storage Reservoir</span></div>`);
+    m.on('click',()=>showFeat({type:'ESR',ID:`ESR-${i+1}`,Head:`${e.h} m`,Lat:e.lat.toFixed(4),Lon:e.lon.toFixed(4)},'ESR Tank'));
+    eLG.addLayer(m);
+  });
+  ESRS.forEach(e=>{
+    L.marker([e.lat,e.lon],{icon:si(),zIndexOffset:90}).addTo(sLG);
+  });
+}
+
+// ── NODE PRESSURE DOTS
+function renderNodes(){
+  nLG.clearLayers();
+  pipes.filter((_,i)=>i%15===0).forEach(n=>{
+    const c=L.circleMarker([n.lat,n.lon],{radius:5,fillColor:pCol(n.p),fillOpacity:.9,color:'white',weight:1});
+    c.bindTooltip(`${n.p.toFixed(1)}m`,{className:'leaflet-tooltip'});
+    nLG.addLayer(c);
+  });
+}
+
+// ── ZONE OVERLAY
+function renderZones(){
+  zLG.clearLayers();
+  zScores.forEach(z=>{
+    const col=heiCol(z.hei);
+    L.circle([z.lat,z.lon],{radius:1400,fillColor:col,fillOpacity:.13,color:col,weight:1.5,opacity:.5})
+     .bindTooltip(`<b>${z.nm}</b><br>HEI: ${z.hei.toFixed(2)}`,{sticky:true})
+     .addTo(zLG);
+  });
+}
+
+// ── EQUITY (Connected to V4 Backend)
+let zScores=[];
+function heiCol(h){return h>=0.85?'#2E7D32':h>=0.70?'#E65100':h>1.30?'#6A1B9A':'#D32F2F'}
+function heiLbl(h){return h>=0.85?['Equitable','seq']:h>=0.70?['Moderate','smo']:h>1.30?['Over-P','sov']:['Severe','ssv']}
+
+async function compEquity(){
+  const data = await api.get('/zones');
+  if (!data || data.error || !Array.isArray(data) || data.length === 0) {
+    document.getElementById('scw').textContent='0%';
+    document.getElementById('sap').textContent='—m';
+    document.getElementById('snw').textContent='—%';
+    document.getElementById('cwsc').textContent='0%';
+    document.getElementById('cwsc').style.color='#D32F2F';
+    document.getElementById('cwlb').textContent='Run V4 first';
+    document.getElementById('wz').textContent='—';
+    document.getElementById('bz').textContent='—';
+    document.getElementById('nrw').textContent='—%';
+    document.getElementById('znl').innerHTML = '<div style="padding:20px;text-align:center;color:#D32F2F;font-weight:600;">No data. Run V4 first.</div>';
+    zScores = [];
+    zLG.clearLayers();
+    return;
+  }
+  
+  // Map fetched data to local ZONES format
+  zScores=ZONES.map(z=>{
+    const apiZone = data.find(x => x.zone_id === z.id || x.id === z.id || (x.zone_id && x.zone_id.replace('zone_', 'z') === z.id));
+    if (apiZone) {
+      return {...z, hei: apiZone.hei, status: apiZone.status, color: apiZone.color};
+    }
+    return {...z, hei: 0, status: 'unknown', color: '#8A96A4'};
+  });
+  
+  const cwei=zScores.reduce((s,z)=>s+z.hei,0)/zScores.length;
+  const srt=[...zScores].sort((a,b)=>a.hei-b.hei);
+  const avgP=pipes.length>0?pipes.reduce((s,p)=>s+p.p,0)/pipes.length:34;
+  const nrw=scen==='leak'?28:scen==='surge'?22:18;
+
+  document.getElementById('scw').textContent=(cwei*100).toFixed(0)+'%';
+  document.getElementById('sap').textContent=avgP.toFixed(0)+'m';
+  document.getElementById('snw').textContent=nrw+'%';
+  document.getElementById('cwsc').textContent=(cwei*100).toFixed(0)+'%';
+  document.getElementById('cwsc').style.color=cwei>=.85?'#2E7D32':cwei>=.70?'#E65100':'#D32F2F';
+  document.getElementById('cwlb').textContent='CWEI';
+  document.getElementById('wz').textContent=srt[0]?srt[0].nm:'—';
+  document.getElementById('bz').textContent=srt[srt.length-1]?srt[srt.length-1].nm:'—';
+  document.getElementById('nrw').textContent=nrw+'%';
+
+  document.getElementById('znl').innerHTML=zScores.map(z=>{
+    const col=z.color || heiCol(z.hei);
+    const[lbl,cls]=heiLbl(z.hei);
+    return`<div class="zrow" onclick="flyZ(${z.lat},${z.lon})">
+      <div class="zbdg" style="background:${col}"></div>
+      <div class="znm">${z.nm}</div>
+      <div class="zhei" style="color:${col}">${z.hei.toFixed(2)}</div>
+      <div class="zst ${cls}">${z.status || lbl}</div>
+      <div class="zbarw"><div class="zbar" style="width:${Math.min(100,z.hei*100)}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+
+  if(document.getElementById('llz').checked)renderZones();
+}
+
+function flyZ(la,lo){map.flyTo([la,lo],15,{duration:1})}
+
+// ── FEATURE INFO
+function showFeat(data,typeLbl){
+  const rows=Object.entries(data).filter(([k])=>k!=='type').map(([k,v])=>{
+    if(!v&&v!==0)return'';
+    return`<div class="irow"><span class="ikey">${k}</span><span class="ival">${v}</span></div>`;
+  }).join('');
+  document.getElementById('finfo').innerHTML=`<div class="ihdr"><div class="ityp">${typeLbl||data.type}</div><div class="iid">${data.ID||data.Zone||'Detail View'}</div></div>${rows}`;
+}
+
+// ── ALERTS (Connected to V5 Backend)
+async function renderAlerts(){
+  lLG.clearLayers();
+  const data = await api.get(`/alerts/active?scenario=${scen}`);
+  if (!data || data.error) {
+    const errMsg = data && data.error ? data.error : 'Alert engine offline or no alerts (V5).';
+    document.getElementById('albody').innerHTML = `<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">${errMsg}</div>`;
+    document.getElementById('acnt').textContent = '0';
+    if(scen === 'leak' || scen === 'valve' || scen === 'surge') {
+        L.marker([MC[0], MC[1]], {
+            icon: L.divIcon({html: `<div class="mlk">!</div>`, className: '', iconSize: [20,20], iconAnchor: [10,10]}),
+            zIndexOffset: 200
+        }).bindPopup(`<div class="ptit2" style="color:#D32F2F">⚠ Alert Analytics Offline</div><div class="prow">Run V5 to view real alerts for this scenario.</div>`).addTo(lLG);
+    }
+    return;
+  }
+  const al = data.alerts || [];
+
+  document.getElementById('acnt').textContent=al.length;
+  document.getElementById('albody').innerHTML=al.map(a=>`
+    <div class="acard ${a.level}" onclick="if(a.lat&&a.lon) flyZ(a.lat, a.lon)" style="cursor:pointer">
+      <div class="atit" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${a.level==='high'?'🔴':'🟠'} ${a.title || a.dominant + ' Alert'}</div>
+      <div class="abody">${a.body || a.dominant_signal || ''}</div>
+      <div class="ameta">${a.zone} · CLPS: <span class="clpsv" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">${parseFloat(a.clps).toFixed(2)}</span></div>
+      <div class="clpsbar" style="width:${Math.min(100, parseFloat(a.clps)*100)}%;background:${a.level==='high'?'#D32F2F':'#E65100'}"></div>
+    </div>`).join('');
+  
+  const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[20,20],iconAnchor:[10,10]});
+  al.forEach(a => {
+      if(a.lat && a.lon) {
+          L.marker([a.lat, a.lon], {icon: li, zIndexOffset: 200})
+            .bindPopup(`<div class="ptit2" style="color:${a.level==='high'?'#D32F2F':'#E65100'}">⚠ ${a.title || a.dominant + ' Alert'}</div><div class="prow">${a.body || a.dominant_signal || ''}</div>`)
+            .addTo(lLG);
+      }
+  });
+}
+
+// ── BURST RISK (Connected to V6 Backend)
+async function renderBurstRisk(){
+  bLG.clearLayers();
+  const data = await api.get('/burst-risk/top10');
+  if (!data || data.error) {
+    const errMsg = data && data.error ? data.error : 'Burst-risk analytics offline (V6).';
+    document.getElementById('finfo').innerHTML = `<div class="iph" style="color:#D32F2F;font-weight:500;">${errMsg}</div>`;
+    return;
+  }
+  if (!data.segments) return;
+  
+  data.segments.forEach(s => {
+    if (s.lat && s.lon) {
+      const col = s.risk_level === 'HIGH' ? '#D32F2F' : '#F9A825';
+      const c = L.circleMarker([s.lat, s.lon], {radius: 7, fillColor: col, fillOpacity: 0.9, color: 'white', weight: 1.5});
+      c.bindPopup(`<div class="ptit2" style="color:${col}">Burst Risk: ${s.risk_level}</div>
+        <div class="prow"><span class="pkey">Segment</span><span class="pval">${s.segment_id}</span></div>
+        <div class="prow"><span class="pkey">Material</span><span class="pval">${s.material}</span></div>
+        <div class="prow"><span class="pkey">Age</span><span class="pval">~${s.assumed_age}yr</span></div>
+        <div class="prow"><span class="pkey">Score (PSS)</span><span class="pval">${s.pss}</span></div>
+        <div class="prow"><span class="pkey">Factor</span><span class="pval">${s.dominant_factor}</span></div>`);
+      bLG.addLayer(c);
+    }
+  });
+}
+
+// ── RECOMMENDATIONS
+const RECS={
+  baseline:[
+    {z:'Zone 7 — ROUTINE',t:'Increase ESR outlet pressure by 10–15%. HEI=0.61 indicates tail-end nodes receiving inadequate pressure.',i:'HEI improvement est: 0.61 → 0.82'},
+    {z:'Zone 3 — MAINTENANCE',t:'Pipe segment near node J-3814 at HIGH burst risk (PSS: 0.84). Cast Iron, ~35yr. Schedule urgent inspection.',i:'Prevents burst, NRW reduction 2-4%'},
+    {z:'Zone 5 — OPTIMIZATION',t:'Throttle Zone 5 inlet valve by 15% to reduce over-pressurization (HEI=1.34). Redirect flow to Zone 7.',i:'City CWEI improvement: +0.07'},
+  ],
+  leak:[
+    {z:'Zone 3 · Zone 5 — URGENT',t:'Dispatch field team to (17.682, 75.942). Isolate pipe segment east of ESR-5 to prevent further pressure loss.',i:'CLPS reduction: 0.81 → 0.28 after isolation'},
+    {z:'Zone 7 — MODERATE',t:'Night flow anomaly — inspect for unauthorized extraction 01:00–04:00.',i:'NRW reduction est. 4-6% after investigation'},
+  ],
+  valve:[
+    {z:'Zone 8 — CRITICAL',t:'Reopen south distribution valve immediately. Activate tanker supply for Ward 14 & 15 until pressure restored.',i:'HEI improvement: 0.22 → 0.85 on valve restore'},
+    {z:'All Zones — ADVISORY',t:'Redistribute demand to Zone 4 cross-connection. Inform field engineers of valve status.',i:'Stabilizes pressure within 2 supply cycles'},
+  ],
+  surge:[
+    {z:'Zone 1 · Zone 6 — HIGH',t:'Increase ESR outlet pressure by 12–15%. Throttle Zone 3 inlet by 18% to redistribute surplus pressure.',i:'HEI improvement: 0.64 → 0.82 est.'},
+    {z:'System-wide — ADVISORY',t:'Stagger supply: Zone 1–4 at 06:00, Zone 5–8 at 07:30 to reduce concurrent peak demand.',i:'Average pressure +8m, NRW est. -3%'},
+  ]
+};
+function renderRecs(){
+  const rc=RECS[scen]||[];
+  document.getElementById('recbody').innerHTML=rc.map(r=>`
+    <div class="rcard">
+      <div class="rzone">${r.z}</div>
+      <div class="rtxt">${r.t}</div>
+      <div class="rimp">📈 ${r.i}</div>
+    </div>`).join('');
+}
+
+// ── TIMELINE
+function getTLData(z){
+  const hrs=Array.from({length:24},(_,i)=>i);
+  const base={all:44,z3:37,z5:41,z7:28};
+  const b=base[z]||44;
+  if(z==='all'){return[
+    {label:'Zone 3 (tail-end)',data:hrs.map(h=>Math.max(5,b-7+(Math.sin(h*.7)*2)+applyScenTL(h,'z3',scen))),borderColor:'#E65100',backgroundColor:'rgba(230,81,0,.05)',tension:.4,borderWidth:1.5,pointRadius:0},
+    {label:'Zone 5 (mid)',data:hrs.map(h=>Math.max(5,b+5+(Math.sin(h*.9)*2)+applyScenTL(h,'z5',scen))),borderColor:'#2E7D32',backgroundColor:'rgba(46,125,50,.05)',tension:.4,borderWidth:1.5,pointRadius:0},
+    {label:'Zone 7 (high-elev)',data:hrs.map(h=>Math.max(3,b-16+(Math.sin(h*.6)*3)+applyScenTL(h,'z7',scen))),borderColor:'#D32F2F',backgroundColor:'rgba(211,47,47,.06)',tension:.4,borderWidth:1.5,pointRadius:0},
+  ]}
+  return[{label:`${z} pressure`,data:hrs.map(h=>Math.max(4,b+(Math.sin(h*.8)*2.5)+applyScenTL(h,z,scen))),borderColor:'#0D5FA8',backgroundColor:'rgba(13,95,168,.08)',tension:.4,borderWidth:2,pointRadius:0,fill:true}];
+}
+function applyScenTL(h,z,s){
+  if(s==='leak'&&(z==='z3'||z==='z7'))return(h>=8&&h<=14)?-12:0;
+  if(s==='valve'&&z==='z7')return-18;
+  if(s==='surge')return(h>=6&&h<9)?-14:(h>=17&&h<20)?-12:0;
+  return 0;
+}
+function dm(h){return h>=6&&h<8?2.5:h>=17&&h<20?2.0:h>=8&&h<17?1.0:.05}
+
+function initTL(){
+  const ctx=document.getElementById('tlch').getContext('2d');
+  const hrs=Array.from({length:24},(_,i)=>`${String(i).padStart(2,'0')}:00`);
+  tlChart=new Chart(ctx,{type:'line',data:{labels:hrs,datasets:getTLData('all')},options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:true,position:'top',labels:{font:{family:'IBM Plex Sans',size:10},boxWidth:12,padding:10}},
+      tooltip:{backgroundColor:'#1A2332',titleFont:{family:'IBM Plex Mono'},bodyFont:{family:'IBM Plex Sans',size:11}}},
+    scales:{
+      x:{grid:{color:'#EEF2F6'},ticks:{font:{family:'IBM Plex Mono',size:9},maxTicksLimit:12,color:'#8A96A4'}},
+      y:{grid:{color:'#EEF2F6'},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#8A96A4'},title:{display:true,text:'Pressure (m)',font:{family:'IBM Plex Sans',size:10},color:'#8A96A4'}}
+    }
+  }});
+}
+
+function selTL(z,btn){
+  document.querySelectorAll('.tlzbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  tlChart.data.datasets=getTLData(z);tlChart.update();
+}
+
+// ── SCENARIO
+async function setScen(s,btn){
+  scen=s;
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const lbp={baseline:'Running: Baseline simulation',leak:'⚠ Scenario: Pipe Leak Event (East Zone)',valve:'🔒 Scenario: Valve Closure (South Zone)',surge:'📈 Scenario: 1.5× Demand Surge'};
+  document.getElementById('sci').textContent=lbp[s];
+
+  // Re-render pipeline with new pressures
+  pLG.clearLayers();pipes=[];
+  try {
+    const res = await fetch(`${BACK}/pipeline?scenario=${scen}&hour=${Math.floor(hr)}`);
+    const geo = await res.json();
+    renderPipes(geo);
+  } catch (e) {
+    console.error("Failed to load pipeline", e);
+  }
+
+  await compEquity();
+  await renderAlerts();
+  await renderBurstRisk(); // Now waits for V6 data
+  renderRecs();
+
+  if(tlChart){tlChart.data.datasets=getTLData('all');tlChart.update();}
+}
+
+
+// ── LAYER TOGGLES
+document.getElementById('llp').addEventListener('change',e=>e.target.checked?map.addLayer(pLG):map.removeLayer(pLG));
+document.getElementById('lln').addEventListener('change',e=>{if(e.target.checked){renderNodes();map.addLayer(nLG);}else map.removeLayer(nLG)});
+document.getElementById('lle').addEventListener('change',e=>e.target.checked?map.addLayer(eLG):map.removeLayer(eLG));
+document.getElementById('lls').addEventListener('change',e=>e.target.checked?map.addLayer(sLG):map.removeLayer(sLG));
+document.getElementById('llz').addEventListener('change',e=>{if(e.target.checked){renderZones();map.addLayer(zLG);}else map.removeLayer(zLG)});
+document.getElementById('lll').addEventListener('change',e=>e.target.checked?map.addLayer(lLG):map.removeLayer(lLG));
+document.getElementById('llb').addEventListener('change',e=>e.target.checked?map.addLayer(bLG):map.removeLayer(bLG));
+
+// ── CLOCK
+function startClock(){
+  if(tick)clearInterval(tick);
+  tick=setInterval(()=>{
+    hr=(hr+.25)%24;
+    const h=Math.floor(hr),m=hr%1>=.5?'30':'00';
+    document.getElementById('clk').textContent=`${String(h).padStart(2,'0')}:${m}`;
+    if(hr%1<.26){
+      const ap=pipes.length>0?pipes.reduce((s,p)=>s+p.p,0)/pipes.length:34;
+      document.getElementById('sap').textContent=ap.toFixed(0)+'m';
+    }
+  },3750);
+}
+
+// ── BOOT
+window.addEventListener('load',()=>setTimeout(loadAll,400));
+</script>
+</body>
+</html>
