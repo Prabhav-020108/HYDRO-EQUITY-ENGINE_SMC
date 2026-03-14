@@ -1,0 +1,62 @@
+{
+    "type": "FeatureCollection",
+    "name": "Raw_Water_Station_5",
+    "crs": {
+        "type": "name",
+        "properties": {
+            "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+        }
+    },
+    "features": [{
+        "type": "Feature",
+        "properties": {
+            "Raw Water": "Jack Well",
+            "Name": "Takali Pump House",
+            "Landmark": "Takali Bridge",
+            "Establishm": "1968",
+            "Design Per": "50",
+            "Pump Capac": "2970",
+            "Latitude": 838578.18655999994,
+            "Longitude": 904040.53454000002,
+            "Remark (if": null
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [75.846418315441184, 17.418555741879075]
+        }
+    }, {
+        "type": "Feature",
+        "properties": {
+            "Raw Water": "Jack Well",
+            "Name": "Ekrukh Lake",
+            "Landmark": "Ekrukh Lake",
+            "Establishm": "1933",
+            "Design Per": "30",
+            "Pump Capac": "0",
+            "Latitude": 872076.04922000004,
+            "Longitude": 910431.86474999995,
+            "Remark (if": "Gravity Main Line"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [75.905094830000067, 17.721657890000081]
+        }
+    }, {
+        "type": "Feature",
+        "properties": {
+            "Raw Water": "Inspection Well",
+            "Name": "Ujani Dam Pump House",
+            "Landmark": "Ujani Back water",
+            "Establishm": "1996",
+            "Design Per": "30",
+            "Pump Capac": "4098",
+            "Latitude": 910804.20129,
+            "Longitude": 828006.77431999997,
+            "Remark (if": null
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [75.124249628246375, 18.066581287644926]
+        }
+    }]
+}
