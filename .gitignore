@@ -1,8 +1,0 @@
-outputs/
-temp.bin
-temp.inp
-temp.rpt
-__pycache__/
-*.pyc
-.venv/
-.env
