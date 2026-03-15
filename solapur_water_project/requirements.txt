@@ -1,5 +1,30 @@
-greenlet==3.3.2
-psycopg2-binary==2.9.11
-python-dotenv==1.2.2
-SQLAlchemy==2.0.48
-typing_extensions==4.15.0
+# Hydro-Equity Engine — Requirements
+# Team Devsters | SAMVED-2026 | RVCE Bengaluru
+#
+# Install all: pip install -r requirements.txt
+# Windows only: install Microsoft C++ Build Tools before installing wntr
+#   https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+# ── Web Backend ──────────────────────────────────────────────
+Flask==3.1.0
+Flask-Cors==5.0.0
+
+# ── Data & Analytics ─────────────────────────────────────────
+pandas>=2.0.0
+numpy>=1.24.0
+networkx>=3.0
+
+# ── Hydraulic Simulation ─────────────────────────────────────
+wntr>=1.2.0
+
+# ── HTTP / API ───────────────────────────────────────────────
+requests>=2.31.0
+
+# ── PostgreSQL / Database (Phase 3.5) ────────────────────────
+psycopg2-binary>=2.9.0
+SQLAlchemy>=2.0.0
+python-dotenv>=1.0.0
+
+# ── Utilities ────────────────────────────────────────────────
+setuptools>=68.0.0
+wheel>=0.41.0
