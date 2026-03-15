@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ward Dashboard — Hydro-Equity Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --bg:#F0F4F8;--surface:#FFFFFF;--border:#DDE3EA;
+  --text:#1A2332;--text2:#4A5568;--text3:#8A96A4;
+  --blue:#0D5FA8;--bluel:#EBF3FB;--blue2:#1976D2;
+  --red:#D32F2F;--orange:#E65100;--yellow:#F9A825;
+  --green:#2E7D32;--purple:#6A1B9A;
+  --hh:52px;--lw:260px;--rw:300px;
+  --shad:0 2px 8px rgba(0,0,0,0.08)
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+#hdr{position:fixed;top:0;left:0;right:0;height:var(--hh);background:var(--blue);color:#fff;display:flex;align-items:center;padding:0 16px;z-index:1000;gap:0;border-bottom:2px solid rgba(255,255,255,0.12)}
+.logo{font-size:14px;font-weight:600;letter-spacing:.04em;white-space:nowrap;padding-right:20px;border-right:1px solid rgba(255,255,255,.25)}
+.logo span{color:#7EC8F4}
+.hdr-mid{flex:1;padding:0 16px;display:flex;align-items:center;gap:14px}
+.zone-banner{font-size:11px;font-weight:500;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:3px 12px}
+.hei-banner{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600}
+.hdr-note{font-size:10px;opacity:.55}
+.hdr-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.rbadge{font-size:11px;font-weight:600;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:3px 10px;white-space:nowrap}
+.userinfo{font-size:11px;opacity:.75;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{font-size:11px;padding:4px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:#fff;cursor:pointer;font-family:'IBM Plex Sans',sans-serif}
+.logout-btn:hover{background:rgba(255,255,255,.2)}
+#lay{position:fixed;top:var(--hh);bottom:0;left:0;right:0;display:flex}
+#mapd{flex:1;position:relative}
+#mapc{width:100%;height:100%}
+.panel{width:var(--lw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shad);z-index:100}
+#rp{width:var(--rw);border-right:none;border-left:1px solid var(--border)}
+.psec{border-bottom:1px solid var(--border)}
+.ptit{padding:10px 14px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);background:#FAFBFC;display:flex;align-items:center;justify-content:space-between}
+.pbody{padding:10px 14px}
+.leaflet-container{background:#E8EFF6}
+.leaflet-popup-content-wrapper{border-radius:8px;font-family:'IBM Plex Sans',sans-serif}
+.ptit2{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--blue)}
+.prow{display:flex;gap:8px;font-size:11px;margin-bottom:3px}
+.pkey{color:var(--text3);min-width:70px}
+.pval{font-family:'IBM Plex Mono',monospace;font-weight:500}
+.mesr{background:#1565C0;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.mlk{background:#B71C1C;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:pr 1.5s infinite}
+@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(183,28,28,.4)}50%{box-shadow:0 0 0 8px rgba(183,28,28,0)}}
+.hei-big{text-align:center;padding:20px 14px}
+.hei-big .zn{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.hei-big .hv{font-family:'IBM Plex Mono',monospace;font-size:48px;font-weight:600;line-height:1}
+.hei-big .hl{font-size:12px;font-weight:600;margin-top:8px;padding:2px 12px;border-radius:10px;display:inline-block}
+.hei-big .hd{font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5}
+.acard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.acard.high{border-color:var(--red)}.acard.moderate{border-color:var(--orange)}
+.atit{font-size:11px;font-weight:600;margin-bottom:3px}
+.abody{font-size:11px;color:var(--text2);line-height:1.5}
+.ameta{font-size:10px;color:var(--text3);margin-top:5px;font-family:'IBM Plex Mono',monospace}
+.clpsbar{height:4px;border-radius:2px;margin-top:6px}
+.clpsv{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600}
+.irow{display:flex;justify-content:space-between;padding:6px 14px;border-bottom:1px solid var(--border)}
+.ikey{font-size:11px;color:var(--text3)}
+.ival{font-size:11px;font-weight:500;font-family:'IBM Plex Mono',monospace}
+.note-box{margin:10px;padding:10px 12px;background:#EBF3FB;border:1px solid #BBDEFB;border-radius:6px;font-size:11px;color:var(--blue);line-height:1.5}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+#ld{position:fixed;inset:0;background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;z-index:9999;transition:opacity .5s}
+#ld.hidden{opacity:0;pointer-events:none}
+#ld .ldt{font-size:20px;font-weight:600;margin-bottom:6px}
+#ld .lds{font-size:13px;opacity:.65;margin-bottom:28px}
+#ld .ldb{width:220px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+#ld .ldf{height:100%;background:white;border-radius:2px;animation:la 2.2s ease-in-out}
+@keyframes la{from{width:0%}to{width:100%}}
+</style>
+</head>
+<body>
+
+<div id="ld">
+  <div class="ldt">HYDRO-EQUITY ENGINE</div>
+  <div class="lds">Loading Ward View...</div>
+  <div class="ldb"><div class="ldf"></div></div>
+</div>
+
+<div id="hdr">
+  <div class="logo">HYDRO-EQUITY <span>ENGINE</span> · SMC</div>
+  <div class="hdr-mid">
+    <span class="zone-banner" id="zoneBanner">Zone: —</span>
+    <span class="hei-banner" id="heiQuick">HEI: —</span>
+    <span class="hdr-note">🔒 Zone-scoped view · Server-side enforced</span>
+  </div>
+  <div class="hdr-right">
+    <span class="rbadge">📋 WARD OFFICER</span>
+    <span class="userinfo" id="userDisplay">—</span>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<div id="lay">
+  <div class="panel" id="lp">
+
+    <div class="psec">
+      <div class="ptit">Zone Equity Status</div>
+      <div id="heiBlock"><div style="padding:16px 14px;color:var(--text3);font-size:11px">Loading...</div></div>
+    </div>
+
+    <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div class="ptit">Zone Details</div>
+      <div id="zoneDetails" style="overflow-y:auto;flex:1">
+        <div style="padding:12px 14px;color:var(--text3);font-size:11px">Loading zone data...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="mapd"><div id="mapc"></div></div>
+
+  <div class="panel" id="rp">
+    <div class="psec">
+      <div class="ptit">
+        <span>Alerts — Your Zone</span>
+        <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
+      </div>
+      <div id="albody" style="overflow-y:auto;max-height:280px"></div>
+    </div>
+    <div class="psec" style="flex:1;overflow-y:auto">
+      <div class="ptit">Zone Information</div>
+      <div class="note-box">
+        You are viewing your assigned zone only. Zone equity data, alerts, and map layers are filtered server-side to your zone.
+        To escalate issues to the engineering team, use the Acknowledge button on alerts.
+      </div>
+      <div class="note-box" style="background:#F3E5F5;border-color:#CE93D8;color:#6A1B9A;margin-top:0">
+        📌 Phase 4b: Full complaint queue, citizen feedback map, and ward-level scenario tools coming next.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────────
+const TOKEN    = sessionStorage.getItem('hydro_token');
+const FULLNAME = sessionStorage.getItem('hydro_full_name');
+const ZONE_ID  = sessionStorage.getItem('hydro_zone_id');
+if (!TOKEN) { window.location.href = 'login.html'; }
+document.getElementById('userDisplay').textContent = FULLNAME || 'Ward Officer';
+document.getElementById('zoneBanner').textContent  = 'Zone: ' + (ZONE_ID ? ZONE_ID.replace('_',' ').replace('zone','Zone') : '—');
+
+function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+
+const BACK = 'http://localhost:8000';
+const MC   = [17.68, 75.908];
+
+const ZONES = [
+  {id:'z1',apiId:'zone_1',nm:'Zone 1',lat:17.710,lon:75.882},
+  {id:'z2',apiId:'zone_2',nm:'Zone 2',lat:17.700,lon:75.910},
+  {id:'z3',apiId:'zone_3',nm:'Zone 3',lat:17.690,lon:75.935},
+  {id:'z4',apiId:'zone_4',nm:'Zone 4',lat:17.675,lon:75.898},
+  {id:'z5',apiId:'zone_5',nm:'Zone 5',lat:17.665,lon:75.920},
+  {id:'z6',apiId:'zone_6',nm:'Zone 6',lat:17.680,lon:75.870},
+  {id:'z7',apiId:'zone_7',nm:'Zone 7',lat:17.695,lon:75.958},
+  {id:'z8',apiId:'zone_8',nm:'Zone 8',lat:17.655,lon:75.940},
+];
+const ESRS = [
+  {lat:17.6935,lon:75.8810},{lat:17.7012,lon:75.9280},
+  {lat:17.6623,lon:75.9034},{lat:17.6878,lon:75.8654},
+  {lat:17.6758,lon:75.9412},{lat:17.7080,lon:75.8950},
+  {lat:17.6700,lon:75.8780},
+];
+
+const api = {
+  get: async(ep) => {
+    try {
+      const r = await fetch(BACK + ep, {headers:{'Authorization':'Bearer '+TOKEN}});
+      if (r.status===401){sessionStorage.clear();window.location.href='login.html';}
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      return await r.json();
+    } catch(e){console.warn('[API]',ep,e.message);return null;}
+  },
+  pub: async(ep) => {
+    try{const r=await fetch(BACK+ep);if(!r.ok)throw new Error();return await r.json();}
+    catch(e){return null;}
+  }
+};
+
+function heiCol(h){if(h>1.30)return'#6A1B9A';if(h>=0.85)return'#2E7D32';if(h>=0.70)return'#E65100';return'#D32F2F'}
+function heiLbl(h){
+  if(h>1.30)return{lbl:'Over-Pressurized',bg:'#F3E5F5',cls:''};
+  if(h>=0.85)return{lbl:'Equitable',bg:'#E8F5E9',cls:''};
+  if(h>=0.70)return{lbl:'Moderate',bg:'#FFF3E0',cls:''};
+  return{lbl:'Severe Inequity',bg:'#FFEBEE',cls:''};
+}
+function pCol(p){return p<10?'#D32F2F':p<20?'#E65100':p<30?'#F9A825':p<40?'#8BC34A':p<60?'#2E7D32':'#0D5FA8'}
+
+// ── Map init ──────────────────────────────────────────────────────
+const myZone = ZONES.find(z=>z.apiId===ZONE_ID) || ZONES[0];
+const map  = L.map('mapc',{center:[myZone.lat,myZone.lon],zoom:15,zoomControl:false,preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+L.control.zoom({position:'bottomright'}).addTo(map);
+const pLG=L.layerGroup().addTo(map),eLG=L.layerGroup().addTo(map),lLG=L.layerGroup().addTo(map);
+
+// Highlight ring for the ward's own zone
+L.circle([myZone.lat,myZone.lon],{radius:1800,fillColor:'#0D5FA8',fillOpacity:.08,color:'#0D5FA8',weight:2,opacity:.7,dashArray:'8 4'})
+  .bindTooltip(`Your Zone: ${myZone.nm}`,{permanent:true,direction:'top',className:'',offset:[0,-10]})
+  .addTo(map);
+
+// ── Pipeline layer — render ALL pipes in pressure color ───────────
+// Ward officer sees the full city network (same as engineer/commissioner).
+// The ward's zone is highlighted via the blue overlay circle, not by
+// filtering pipes — filtering caused the "no pipes visible" problem.
+function pCol(p){return p<10?'#D32F2F':p<20?'#E65100':p<30?'#F9A825':p<40?'#8BC34A':p<60?'#2E7D32':'#0D5FA8'}
+function pw(d){if(!d)return 1.5;const v=parseFloat(d);return v>0.3?3.5:v>0.15?2.5:1.5}
+function formulaP(lat,lon){
+  // Simple distance-based pressure estimate for colour only
+  const esrs=[{lat:17.6935,lon:75.8810,h:72},{lat:17.7012,lon:75.9280,h:68},
+    {lat:17.6623,lon:75.9034,h:65},{lat:17.6878,lon:75.8654,h:70},
+    {lat:17.6758,lon:75.9412,h:60},{lat:17.7080,lon:75.8950,h:66},{lat:17.6700,lon:75.8780,h:63}];
+  let md=1e9,sh=65;
+  for(const e of esrs){const dx=(e.lon-lon)*111*Math.cos(lat*Math.PI/180),dy=(e.lat-lat)*111,d=Math.sqrt(dx*dx+dy*dy);if(d<md){md=d;sh=e.h;}}
+  const fl=md*3.8,el=(lat-17.655)*22+(lon-75.960)*15;
+  const ns=((Math.abs(lat*1000)*7+Math.abs(lon*100)*13)%100)/100*6-3;
+  return Math.max(2,Math.min(82,sh-fl+el*0.4-3+ns));
+}
+
+async function loadPipeline(){
+  const geo = await api.pub('/pipeline');
+  if(!geo||!geo.features)return;
+  geo.features.forEach(f=>{
+    if(!f.geometry)return;
+    const cs=f.geometry.type==='MultiLineString'?f.geometry.coordinates[0]:f.geometry.coordinates;
+    if(!cs||cs.length<2)return;
+    const mid=cs[Math.floor(cs.length/2)];
+    const lat=mid[1],lon=mid[0];
+    const p=formulaP(lat,lon);
+    const col=pCol(p);
+    const d=f.properties?f.properties['Diameter(m)']||f.properties.diameter_m:null;
+    const pl=L.polyline(cs.map(c=>[c[1],c[0]]),{color:col,weight:pw(d),opacity:.82,smoothFactor:1});
+    pl.bindPopup(`<div class="ptit2">Pipeline Segment</div>
+      <div class="prow"><span class="pkey">Pressure</span><span class="pval" style="color:${col}">${p.toFixed(1)} m</span></div>
+      <div class="prow"><span class="pkey">Zone</span><span class="pval">${f.properties&&f.properties['Water Zone']||'N/A'}</span></div>
+      <div class="prow"><span class="pkey">Diameter</span><span class="pval">${d?(parseFloat(d)*1000).toFixed(0)+'mm':'N/A'}</span></div>`);
+    pLG.addLayer(pl);
+  });
+}
+
+// ESR markers
+async function loadMarkers(){
+  const infra = await api.pub('/infrastructure');
+  if(infra&&infra.markers&&infra.markers.length>0){
+    const ei=n=>L.divIcon({html:`<div class="mesr">${n}</div>`,className:'',iconSize:[24,24],iconAnchor:[12,12]});
+    let n=1;
+    infra.markers.forEach(m=>{
+      if(m.feature_type==='storage_tank'){
+        const isOwn=m.zone_id===ZONE_ID;
+        const mk=L.marker([m.lat,m.lon],{icon:ei(n++),zIndexOffset:100,opacity:isOwn?1:0.4});
+        mk.bindPopup(`<div class="ptit2">ESR — ${m.zone_id||''}</div>`);
+        eLG.addLayer(mk);
+      }
+    });
+  } else {
+    const ei=n=>L.divIcon({html:`<div class="mesr">${n}</div>`,className:'',iconSize:[24,24],iconAnchor:[12,12]});
+    ESRS.forEach((e,i)=>L.marker([e.lat,e.lon],{icon:ei(i+1),zIndexOffset:100}).addTo(eLG));
+  }
+}
+
+// ── Load zone equity ──────────────────────────────────────────────
+async function loadEquity(){
+  const data = await api.get('/zones');
+  if(!data||data.error||!Array.isArray(data)||data.length===0){
+    document.getElementById('heiBlock').innerHTML='<div style="padding:12px 14px;color:#D32F2F;font-size:11px;font-weight:500;">No equity data — run V4 first</div>';
+    return;
+  }
+  const z = data[0]; // ward_officer gets only their zone from server
+  const hei = parseFloat(z.hei||0);
+  const info = heiLbl(hei);
+  const col = heiCol(hei);
+  document.getElementById('heiQuick').textContent = `HEI: ${hei.toFixed(3)}`;
+  document.getElementById('heiQuick').style.color = '#fff';
+  document.getElementById('heiBlock').innerHTML = `
+    <div class="hei-big">
+      <div class="zn">${z.zone_id||ZONE_ID||'Your Zone'}</div>
+      <div class="hv" style="color:${col}">${hei.toFixed(3)}</div>
+      <div class="hl" style="background:${info.bg};color:${col}">${info.lbl}</div>
+      <div class="hd">${
+        hei<0.70?'Severe inequity — tail-end nodes receiving insufficient pressure. Immediate review required.':
+        hei<0.85?'Moderate imbalance — some tail-end nodes below target. Review valve settings.':
+        hei<=1.30?'Equitable distribution — pressure balance within acceptable range.':
+        'Over-pressurized — potential burst risk. Reduce upstream pressure.'
+      }</div>
+    </div>`;
+  // Zone detail rows
+  document.getElementById('zoneDetails').innerHTML = `
+    <div class="irow"><span class="ikey">Zone ID</span><span class="ival">${z.zone_id||'—'}</span></div>
+    <div class="irow"><span class="ikey">HEI Score</span><span class="ival" style="color:${col}">${hei.toFixed(3)}</span></div>
+    <div class="irow"><span class="ikey">Status</span><span class="ival">${z.status||'—'}</span></div>
+    <div class="irow"><span class="ikey">ZES Daily</span><span class="ival">${hei.toFixed(3)}</span></div>`;
+  // Zone circle on map
+  L.circle([myZone.lat,myZone.lon],{radius:1400,fillColor:col,fillOpacity:.15,color:col,weight:2,opacity:.7}).addTo(map);
+}
+
+// ── Load alerts ───────────────────────────────────────────────────
+async function loadAlerts(){
+  lLG.clearLayers();
+  const data = await api.get('/alerts/active?scenario=baseline');
+  if(!data||data.error){
+    document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">Alert data unavailable — run V5 first.</div>';
+    document.getElementById('acnt').textContent='0';return;
+  }
+  const al = data.alerts||[];
+  document.getElementById('acnt').textContent = al.length;
+  if(al.length===0){
+    document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts for your zone</div>';
+    return;
+  }
+  const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]});
+  document.getElementById('albody').innerHTML=al.map(a=>{
+    const isHigh=(a.level==='HIGH'||a.level==='high');
+    const col=isHigh?'#D32F2F':'#E65100';
+    const clps=parseFloat(a.clps||0);
+    // Add map marker for this alert
+    L.marker([myZone.lat,myZone.lon],{icon:li,zIndexOffset:200})
+      .bindPopup(`<div class="ptit2" style="color:${col}">⚠ ${a.title}</div>
+        <div class="prow"><span class="pkey">CLPS</span><span class="pval">${clps.toFixed(3)}</span></div>
+        <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal}</span></div>`)
+      .addTo(lLG);
+    return`<div class="acard ${isHigh?'high':'moderate'}">
+      <div class="atit" style="color:${col}">${isHigh?'🔴':'🟠'} ${a.title}</div>
+      <div class="abody">${a.body}</div>
+      <div class="ameta">${a.zone} · CLPS: <span class="clpsv" style="color:${col}">${clps.toFixed(3)}</span></div>
+      <div class="clpsbar" style="width:${Math.min(100,clps*100)}%;background:${col}"></div>
+    </div>`;
+  }).join('');
+}
+
+async function loadAll(){
+  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts()]);
+  setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
+}
+window.addEventListener('load',()=>setTimeout(loadAll,400));
+setInterval(()=>{loadEquity();loadAlerts();},60000);
+</script>
+</body>
+</html>

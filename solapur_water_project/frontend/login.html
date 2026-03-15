@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — Hydro-Equity Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F0F4F8;--surface:#FFFFFF;--border:#DDE3EA;
+  --text:#1A2332;--text2:#4A5568;--text3:#8A96A4;
+  --blue:#0D5FA8;--bluel:#EBF3FB;--blue2:#1976D2;
+  --red:#D32F2F;--green:#2E7D32
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* ── Top bar ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;background:var(--blue);color:#fff;
+  display:flex;align-items:center;padding:0 20px;font-size:14px;font-weight:600;letter-spacing:.04em}
+.topbar span{color:#7EC8F4}
+.topbar-sub{font-size:11px;font-weight:400;opacity:.6;margin-left:16px;letter-spacing:.02em}
+
+/* ── Card ── */
+.wrap{width:100%;max-width:400px;padding:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+
+.card-header{padding:20px 20px 14px;border-bottom:1px solid var(--border)}
+.card-header h1{font-size:16px;font-weight:600;color:var(--text)}
+.card-header p{font-size:11px;color:var(--text3);margin-top:3px}
+
+.card-body{padding:18px 20px}
+
+/* ── Alert ── */
+.alert{padding:9px 12px;border-radius:6px;font-size:12px;margin-bottom:14px;display:none}
+.alert.error{background:#FFEBEE;border:1px solid #FFCDD2;color:var(--red);display:block}
+.alert.success{background:#E8F5E9;border:1px solid #C8E6C9;color:var(--green);display:block}
+
+/* ── Form ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.field input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:5px;
+  background:var(--surface);color:var(--text);font-family:'IBM Plex Sans',sans-serif;
+  font-size:13px;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--blue2)}
+.field input::placeholder{color:var(--text3);font-size:12px}
+
+/* ── Submit ── */
+.btn{width:100%;padding:9px;background:var(--blue);border:none;border-radius:5px;
+  color:#fff;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;
+  justify-content:center;gap:8px;transition:background .15s;margin-top:2px}
+.btn:hover:not(:disabled){background:#0a4d8a}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Demo credentials ── */
+.card-footer{padding:14px 20px;background:#FAFBFC;border-top:1px solid var(--border)}
+.footer-label{font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--text3);margin-bottom:8px}
+table.demo{width:100%;border-collapse:collapse}
+table.demo th{font-size:10px;color:var(--text3);font-weight:500;text-align:left;
+  padding:0 8px 5px 0;border-bottom:1px solid var(--border)}
+table.demo td{font-size:11px;padding:4px 8px 4px 0;color:var(--text2);
+  border-bottom:1px solid var(--border)}
+table.demo tr:last-child td{border-bottom:none}
+table.demo td:first-child{font-family:'IBM Plex Mono',monospace;color:var(--blue);font-size:11px}
+table.demo td:nth-child(2){font-family:'IBM Plex Mono',monospace;color:var(--text3);
+  letter-spacing:.12em;font-size:13px}
+.role-chip{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;
+  font-weight:500;background:var(--bluel);color:var(--blue)}
+</style>
+</head>
+<body>
+
+<div class="topbar">HYDRO-EQUITY <span>ENGINE</span> · SMC
+  <span class="topbar-sub">Solapur Municipal Corporation · SAMVED-2026</span>
+</div>
+
+<div class="wrap" style="margin-top:52px">
+  <div class="card">
+
+    <div class="card-header">
+      <h1>Sign In to Dashboard</h1>
+      <p>Hydro-Equity Engine · Role-Based Access · Phase 4a</p>
+    </div>
+
+    <div class="card-body">
+      <div id="msg" class="alert"></div>
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Enter username" autocomplete="username"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter password" autocomplete="current-password"/>
+      </div>
+
+      <button class="btn" id="loginBtn" onclick="doLogin()">
+        <span class="spinner" id="spinner"></span>
+        Sign In
+      </button>
+    </div>
+
+    <div class="card-footer">
+      <div class="footer-label">Demo Accounts</div>
+      <table class="demo">
+        <thead>
+          <tr><th>Username</th><th>Password</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>engineer1</td>
+            <td>••••••••••</td>
+            <td><span class="role-chip">engineer</span></td>
+          </tr>
+          <tr>
+            <td>ward_z1</td>
+            <td>••••••••••</td>
+            <td><span class="role-chip">ward_officer</span></td>
+          </tr>
+          <tr>
+            <td>commissioner1</td>
+            <td>••••••••••</td>
+            <td><span class="role-chip">commissioner</span></td>
+          </tr>
+          <tr>
+            <td>field_op1</td>
+            <td>••••••••••</td>
+            <td><span class="role-chip">field_operator</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:10px;color:var(--text3);margin-top:8px">
+        All demo accounts use the same password. Contact system administrator for credentials.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:8000';
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// If already logged in, redirect
+const existingToken = sessionStorage.getItem('hydro_token');
+if (existingToken) {
+  const role = sessionStorage.getItem('hydro_role');
+  redirectByRole(role);
+}
+
+async function doLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const btn      = document.getElementById('loginBtn');
+  const spinner  = document.getElementById('spinner');
+  const msg      = document.getElementById('msg');
+
+  if (!username || !password) { showMsg('error', 'Please enter both username and password.'); return; }
+
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  msg.className = 'alert'; msg.style.display = 'none';
+
+  try {
+    const resp = await fetch(`${API_BASE}/auth/login`, {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify({username, password})
+    });
+    const data = await resp.json();
+
+    if (!resp.ok) { showMsg('error', data.detail || 'Invalid credentials.'); return; }
+
+    sessionStorage.setItem('hydro_token',     data.access_token);
+    sessionStorage.setItem('hydro_role',      data.role);
+    sessionStorage.setItem('hydro_username',  data.username);
+    sessionStorage.setItem('hydro_full_name', data.full_name || data.username);
+    sessionStorage.setItem('hydro_zone_id',   data.zone_id   || '');
+
+    showMsg('success', `Welcome, ${data.full_name || data.username}. Redirecting...`);
+    setTimeout(() => redirectByRole(data.role), 700);
+
+  } catch(e) {
+    showMsg('error', 'Cannot reach server. Ensure the API is running on port 8000.');
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+  }
+}
+
+function redirectByRole(role) {
+  if (!role) return;
+  if      (role === 'engineer')       window.location.href = 'engineer_dashboard.html';
+  else if (role === 'ward_officer')   window.location.href = 'ward_dashboard.html';
+  else if (role === 'commissioner')   window.location.href = 'commissioner_dashboard.html';
+  else if (role === 'field_operator') window.location.href = 'field_operator_dashboard.html';
+  else                                window.location.href = 'engineer_dashboard.html';
+}
+
+function showMsg(type, text) {
+  const el = document.getElementById('msg');
+  el.className = `alert ${type}`;
+  el.textContent = text;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
