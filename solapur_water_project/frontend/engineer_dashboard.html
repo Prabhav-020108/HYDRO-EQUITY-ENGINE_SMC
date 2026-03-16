@@ -643,7 +643,7 @@ async function setScen(s,btn){
     valve:'🔒 Scenario: Valve Closure (South Zone)',surge:'📈 Scenario: 1.5× Demand Surge'};
   document.getElementById('sci').textContent=lbp[s];
   if(_pipelineCache)recolorCachedPipes();
-  await Promise.all([compEquity(),renderAlerts()]);
+  await Promise.all([compEquity(),renderAlerts(),renderRecommendations()]);
   if(document.getElementById('llb').checked)await renderBurstRisk();
   if(tlChart){tlChart.data.datasets=getTLData('all');tlChart.update();}
 }
@@ -658,6 +658,23 @@ function startClock(){
   },3750);
 }
 
+async function renderRecommendations(){
+  const data = await api.get('/recommendations/engineer');
+  const recbody = document.getElementById('recbody');
+  if(!recbody) return;
+  if(!data || data.error || !Array.isArray(data) || data.length === 0){
+    recbody.innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No recommendations available</div>';
+    return;
+  }
+  recbody.innerHTML = data.map(r => `
+    <div class="rcard" style="margin:8px 10px;padding:10px 12px;background:#F0F7FF;border-radius:6px;border:1px solid #BBDEFB">
+      <div class="rzone" style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;margin-bottom:3px">${r.zone_id || 'System'} — ${r.urgency || 'Normal'}</div>
+      <div class="rtxt" style="font-size:11px;color:var(--text);line-height:1.5">${r.message || ''}</div>
+      ${r.pipe_id ? `<div class="rimp" style="font-size:10px;color:var(--green);margin-top:4px;font-weight:500;">🔧 Pipe: ${r.pipe_id}</div>` : ''}
+    </div>
+  `).join('');
+}
+
 // ── Initial load ──────────────────────────────────────────────────
 async function loadAll(){
   try{
@@ -665,7 +682,7 @@ async function loadAll(){
     if(geo&&geo.features){_pipelineCache=geo;renderPipes(geo);}
   }catch(e){console.warn('[loadAll] pipeline failed:',e.message);}
   await addMarkers();
-  await Promise.all([compEquity(),renderAlerts(),renderBurstRisk()]);
+  await Promise.all([compEquity(),renderAlerts(),renderBurstRisk(),renderRecommendations()]);
   initTL();startClock();
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }

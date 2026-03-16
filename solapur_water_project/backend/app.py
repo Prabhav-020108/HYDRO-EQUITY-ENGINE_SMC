@@ -28,7 +28,7 @@ from datetime import datetime
 
 from backend.database import engine
 from backend.auth import get_current_user
-from backend.routers import auth_router, zones, alerts, burst, pipeline, infrastructure
+from backend.routers import auth_router, zones, alerts, burst, pipeline, infrastructure, recommendations
 
 app = FastAPI(
     title="Hydro-Equity Engine API",
@@ -59,6 +59,7 @@ app.include_router(alerts.router)          # /alerts/active
 app.include_router(burst.router)           # /burst-risk/top10
 app.include_router(pipeline.router)        # /pipeline        (public)
 app.include_router(infrastructure.router)  # /infrastructure  (public)
+app.include_router(recommendations.router) # /recommendations (V7)
 
 
 # ── Alert lifecycle endpoints ──────────────────────────────────────

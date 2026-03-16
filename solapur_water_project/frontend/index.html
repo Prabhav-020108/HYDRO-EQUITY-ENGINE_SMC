@@ -239,7 +239,7 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 </div>
 
 <script>
-const BACK='http://localhost:5000';
+const BACK='http://localhost:8000';
 const MC=[17.68,75.908];
 let scen='baseline',hr=6,tlChart=null,tick=null;
 let pipes=[],pLG,nLG,lLG,zLG,eLG,sLG,bLG;
@@ -610,9 +610,8 @@ async function setScen(s,btn){
     valve:'🔒 Scenario: Valve Closure (South Zone)',surge:'📈 Scenario: 1.5× Demand Surge'};
   document.getElementById('sci').textContent=lbp[s];
   if(_pipelineCache)recolorCachedPipes();
-  await Promise.all([compEquity(),renderAlerts()]);
-  if(document.getElementById('llb').checked)await renderBurstRisk();
-  renderRecs();
+  // Protected endpoints disabled for citizen view
+  await renderRecommendations();
   if(tlChart){tlChart.data.datasets=getTLData('all');tlChart.update();}
 }
 
@@ -636,6 +635,23 @@ function startClock(){
   },3750);
 }
 
+async function renderRecommendations(){
+  const data = await api.get('/recommendations/citizen');
+  const recbody = document.getElementById('recbody');
+  if(!recbody) return;
+  if(!data || data.error || !Array.isArray(data) || data.length === 0){
+    recbody.innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No advisories available</div>';
+    return;
+  }
+  recbody.innerHTML = data.map(r => `
+    <div class="rcard">
+      <div class="rzone">Status: ${r.supply_status || 'Normal'}</div>
+      <div class="rtxt">${r.advisory_text || ''}</div>
+      ${r.estimated_restoration && r.estimated_restoration !== 'N/A' ? `<div class="rimp">⏱ Restoration: ${r.estimated_restoration}</div>` : ''}
+    </div>
+  `).join('');
+}
+
 // Initial load: pipeline fetched once and cached
 async function loadAll(){
   try{
@@ -643,8 +659,8 @@ async function loadAll(){
     if(geo&&geo.features){_pipelineCache=geo;renderPipes(geo);}
   }catch(e){console.warn('[loadAll] pipeline failed:',e.message);}
   addMarkers();
-  await Promise.all([compEquity(),renderAlerts(),renderBurstRisk()]);
-  renderRecs();initTL();startClock();
+  await renderRecommendations();
+  initTL();startClock();
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
 

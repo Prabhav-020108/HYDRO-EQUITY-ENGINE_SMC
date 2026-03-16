@@ -32,46 +32,48 @@ def login(request: LoginRequest):
     Authenticate user credentials against the database.
     Returns JWT with: access_token, token_type, role, zone_id, full_name, username.
     """
-    # ── 1. Fetch user record from PostgreSQL ──────────────────────
-    with engine.connect() as conn:
-        row = conn.execute(
-            text("""
-                SELECT
-                    user_id::text  AS user_id,
-                    username,
-                    hashed_password,
-                    role,
-                    zone_id,
-                    full_name,
-                    is_active
-                FROM users
-                WHERE username = :username
-            """),
-            {"username": request.username}
-        ).fetchone()
+    # ── 1. Fetch user record (Dev bypass support) ──────────────────
+    import os
+    user = None
 
-    # ── 2. User not found ─────────────────────────────────────────
-    if row is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password."
-        )
+    if os.getenv("AUTH_DEV_MODE") == "1":
+        # Dev Mode: In-memory authentication to bypass missing PostgreSQL
+        DEMO_USERS = {
+            "engineer1":     {"user_id": "dev_eng_1",  "username": "engineer1",     "role": "engineer",       "zone_id": None,     "full_name": "Demo Engineer",     "is_active": True},
+            "field_op1":     {"user_id": "dev_fop_1",  "username": "field_op1",     "role": "field_operator", "zone_id": None,     "full_name": "Demo Field Operator", "is_active": True},
+            "ward_z1":       {"user_id": "dev_ward_1", "username": "ward_z1",       "role": "ward_officer",   "zone_id": "zone_1", "full_name": "Demo Ward Officer", "is_active": True},
+            "commissioner1": {"user_id": "dev_comm_1", "username": "commissioner1", "role": "commissioner",   "zone_id": None,     "full_name": "Demo Commissioner", "is_active": True},
+        }
+        
+        if request.username in DEMO_USERS:
+            if request.password == "demo123":
+                user = DEMO_USERS[request.username]
+            else:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
+        else:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
+    else:
+        # Standard Database Flow
+        with engine.connect() as conn:
+            row = conn.execute(
+                text("""
+                    SELECT user_id::text AS user_id, username, hashed_password, role, zone_id, full_name, is_active
+                    FROM users WHERE username = :username
+                """),
+                {"username": request.username}
+            ).fetchone()
 
-    user = dict(row._mapping)
+        if row is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
 
-    # ── 3. Account disabled ───────────────────────────────────────
-    if not user.get("is_active", True):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="This account has been disabled. Contact your administrator."
-        )
+        user = dict(row._mapping)
 
-    # ── 4. Wrong password ─────────────────────────────────────────
-    if not verify_password(request.password, user["hashed_password"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password."
-        )
+        if not user.get("is_active", True):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account disabled.")
+
+        if not verify_password(request.password, user["hashed_password"]):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
+
 
     # ── 5. Build JWT payload ──────────────────────────────────────
     token_payload = {

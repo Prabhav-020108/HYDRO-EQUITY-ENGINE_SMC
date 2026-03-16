@@ -124,6 +124,10 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
       </div>
       <div id="albody" style="overflow-y:auto;max-height:280px"></div>
     </div>
+    <div class="psec" style="max-height: 250px; overflow-y: auto;">
+      <div class="ptit">Recommendations / Ward Actions</div>
+      <div id="recbody"></div>
+    </div>
     <div class="psec" style="flex:1;overflow-y:auto">
       <div class="ptit">Zone Information</div>
       <div class="note-box">
@@ -231,9 +235,10 @@ async function loadPipeline(){
     if(!cs||cs.length<2)return;
     const mid=cs[Math.floor(cs.length/2)];
     const lat=mid[1],lon=mid[0];
-    const p=formulaP(lat,lon);
-    const col=pCol(p);
     const d=f.properties?f.properties['Diameter(m)']||f.properties.diameter_m:null;
+    let p=(f.properties&&f.properties.sim_pressure!=null)?f.properties.sim_pressure:formulaP(lat,lon);
+    p=parseFloat(p)||0;
+    const col=(f.properties&&f.properties.sim_color)?f.properties.sim_color:pCol(p);
     const pl=L.polyline(cs.map(c=>[c[1],c[0]]),{color:col,weight:pw(d),opacity:.82,smoothFactor:1});
     pl.bindPopup(`<div class="ptit2">Pipeline Segment</div>
       <div class="prow"><span class="pkey">Pressure</span><span class="pval" style="color:${col}">${p.toFixed(1)} m</span></div>
@@ -332,8 +337,24 @@ async function loadAlerts(){
   }).join('');
 }
 
+async function renderRecommendations(){
+  const data = await api.get('/recommendations/ward');
+  const recbody = document.getElementById('recbody');
+  if(!recbody) return;
+  if(!data || data.error || !Array.isArray(data) || data.length === 0){
+    recbody.innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No ward actions available</div>';
+    return;
+  }
+  recbody.innerHTML = data.map(r => `
+    <div class="rcard" style="margin:8px 10px;padding:10px 12px;background:#E8F5E9;border-radius:6px;border:1px solid #A5D6A7">
+      <div class="rzone" style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;margin-bottom:3px">${r.zone_id || 'System'} ${r.escalation_flag ? '⚠️ Escalated' : ''}</div>
+      <div class="rtxt" style="font-size:11px;color:var(--text);line-height:1.5">${r.action_text || ''}</div>
+    </div>
+  `).join('');
+}
+
 async function loadAll(){
-  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts()]);
+  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),renderRecommendations()]);
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
 window.addEventListener('load',()=>setTimeout(loadAll,400));

@@ -141,11 +141,8 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
       <div id="albody" style="overflow-y:auto;flex:1;max-height:300px"></div>
     </div>
     <div style="flex:1;overflow-y:auto">
-      <div class="ptit">Governance Notes</div>
-      <div style="padding:10px 12px;margin:8px;background:#EBF3FB;border:1px solid #BBDEFB;border-radius:6px;font-size:11px;color:var(--blue);line-height:1.6">
-        Full commissioner governance features (weekly PDF report, NRW trend, V7 strategic recommendations) are coming in Phase 4b.<br><br>
-        Current data is live from V4 (HEI), V5 (CLPS), V6 (PSS) analytics.
-      </div>
+      <div class="ptit">Strategic Recommendations</div>
+      <div id="recbody" style="overflow-y:auto;flex:1"></div>
     </div>
   </div>
 </div>
@@ -349,8 +346,25 @@ async function loadAlerts(){
   }).join('');
 }
 
+async function renderRecommendations(){
+  const data = await api.get('/recommendations/commissioner');
+  const recbody = document.getElementById('recbody');
+  if(!recbody) return;
+  if(!data || data.error || !Array.isArray(data) || data.length === 0){
+    recbody.innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No strategic recommendations available</div>';
+    return;
+  }
+  recbody.innerHTML = data.map(r => `
+    <div class="rcard" style="margin:8px 10px;padding:10px 12px;background:#FFF3E0;border-radius:6px;border:1px solid #FFE0B2">
+      <div class="rzone" style="font-size:10px;font-weight:600;color:var(--orange);text-transform:uppercase;margin-bottom:3px">${r.city_summary || 'Summary'}</div>
+      ${r.worst_zones && r.worst_zones.length > 0 ? `<div class="rtxt" style="font-size:11px;color:var(--text);line-height:1.5">Worst Zones: ${r.worst_zones.join(', ')}</div>` : ''}
+      ${r.budget_flag ? `<div class="rimp" style="font-size:10px;color:var(--red);margin-top:4px;font-weight:500;">⚠️ Budget/Capex Flag</div>` : ''}
+    </div>
+  `).join('');
+}
+
 async function loadAll(){
-  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts()]);
+  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),renderRecommendations()]);
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
 window.addEventListener('load',()=>setTimeout(loadAll,400));
