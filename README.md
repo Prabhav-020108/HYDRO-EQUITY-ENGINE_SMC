@@ -20,17 +20,19 @@ The core insight: the problem in Solapur is not water scarcity. It is **pressure
 - **Phase 1 – Data foundation & simulation (V1, V3)** – implemented.
 - **Phase 2 – Analytics engines (V4 HEI, V5 CLPS, V6 PSS)** – implemented.
 - **Phase 3 – Backend & dashboard wiring (V2, V9)** – implemented. 
-- **Phase 4+ – V7, V8, V10, V11, V12, V13** – planned / not implemented yet. (Includes V7 recommendation engine, V8 scenario panel, V10 governance, V11 auth, V12 mobile, V13 theft intelligence).
+- **Phase 4a/b – Recommendations & Dev Auth (V7, V11)** – implemented.
+- **Upcoming Phases** – planned/upcoming as per Architecture Bible v5 (Scenario Panel V8, Governance V10, Production Auth, etc.).
 
 ---
 
 ## Current Architecture
 
 - **Data:** GeoJSON → V1 → CSVs.
-- **Simulation:** V3 WNTR → `pressure_baseline.csv`, `flow_baseline.csv` (and scenario CSVs).
-- **Analytics:** V4, V5, V6 → `v4_zone_status.json`, `v5_alerts.json`, `v6_burst_top10.json`.
-- **Backend (V2 Flask/FastAPI):** Exposes endpoints including `/health`, `/zones`, `/alerts/active`, and `/burst-risk/top10`.
-- **Frontend (V9 Dashboard):** Calls these endpoints to render the interactive map and analytics panels.
+- **Simulation:** V3 WNTR → `outputs/pressure_baseline.csv`, `flow_baseline.csv` (Postgres-free for 4b).
+- **Analytics:** V4, V5, V6 → `Outputs` layer file formats (`v4_zone_status.json`, etc.).
+- **Recommendations (V7):** Trigger Engine evaluates limits dynamically into `v7_recommendations.json`.
+- **FastAPI Backend:** Orchestrates JWT-scoped role endpoints strictly on Mode: Postgres-free Bypass (Port 8000).
+- **Frontend:** Modular dashboards strictly partitioned per-user identity payload rules.
 
 ---
 
@@ -39,7 +41,7 @@ The core insight: the problem in Solapur is not water scarcity. It is **pressure
 ```text
 solapur_water_project/
 ├── backend/
-│   └── app.py                        # Flask API server
+│   └── app.py                        # FastAPI API server
 ├── backend_fastapi/                  # Experimental FastAPI backend
 ├── Data/                             # Input GeoJSON and generated V1 CSVs
 ├── docs/                             
@@ -72,18 +74,15 @@ solapur_water_project/
 ## Current Feature Set
 
 ### Implemented
-- Real HEI (Hydraulic Equity Index) heatmap and city equity scores via the V4 engine.
-- Real leak alerts when the V5 engine has generated data.
-- Real burst-risk layer generated from the V6 engine.
-- Simulation clock to visualize the 24-hour cycle.
+- **Analytics (V4-V6)**: Real HEI heatmaps, edge triggers on dynamic physical Simulation data routines.
+- **V7 Recommendations**: Role-Partitioned advisories trigger mapped outcomes fully written off structure.
+- **Dev Auth Guard (V11)**: Environment bypassed login utilizing isolated stationary memory dict structures.
+- Simulation clock visualizer to render standard operations.
 
-### Illustrative Only
-- **Recommendation cards** (from RECS) – currently illustrative, pending V7 recommendation engine.
-- **24-hour pressure timeline** – currently uses static curves for illustrative purposes.
-- **Scenario buttons** (Leak Event, Valve Close, Demand Surge) – currently act as visual scenario selectors, not a full V8 async simulation.
-
-### Future Work
-- V7 recommendation engine, V8 full async scenario panel, V10 governance, V11 auth, V12 mobile app, V13 theft intelligence.
+### Future Work / Illustrative
+- **24-hour pressure timeline** – utilizes reference setups.
+- **Scenario Buttons** (Leak, Valve Close, Surge) – actions act as visual scenario templates pending V8 full async simulation.
+- **PostgreSQL Governance Implementation** – scheduled for future governance phases.
 
 ---
 
@@ -110,7 +109,9 @@ Computes the exact Hydraulic Equity Index (HEI) for every zone by analyzing the 
 
 ---
 
-## How to Run
+## Quickstart (Phase 4b Dev Mode)
+
+Follow these steps to spin up the analytics, backend, and frontend in **Postgres-free Dev Mode**.
 
 ### 1. Prerequisites
 - Python 3.x (64-bit)
@@ -118,13 +119,13 @@ Computes the exact Hydraulic Equity Index (HEI) for every zone by analyzing the 
 - Git
 
 ```bash
-# Clone the repository and navigate to the project directory
+# Clone the repository
 git clone https://github.com/Prabhav-020108/HYDRO-EQUITY-ENGINE_SMC.git
 cd solapur_water_project
 
 # Create and activate a virtual environment
 python -m venv .venv
-# On Windows:
+# On Windows PowerShell:
 .venv\Scripts\activate
 # On Mac/Linux:
 source .venv/bin/activate
@@ -133,56 +134,59 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Generate Analytics (Phase 1 & 2)
-Generate simulation and analytics data (when needed) from the repository root:
+### 2. Generate Data & Analytics
+Run the analytics pipeline in the following order. Outputs will be written to `solapur_water_project/outputs/` (no PostgreSQL required).
 
 ```bash
 cd scripts
-python simulation_engine.py       # V3 – baseline + scenarios
-python v4_equity_minimal.py       # V4 – HEI / CWEI
-python v5_clps.py                 # V5 – CLPS leak alerts
-python v6_pss.py                  # V6 – burst risk
+python load_data.py
+python simulation_engine.py all
+python v4_equity_minimal.py
+python v5_clps.py
+python v6_pss.py
 ```
 
-*Expected output files in `outputs/`: `pressure_baseline.csv`, `flow_baseline.csv`, scenario CSVs, `v4_zone_status.json`, `v5_alerts.json`, and `v6_burst_top10.json`.*
+### 3. Start Backend in Dev-Auth Mode
+Set the `AUTH_DEV_MODE=1` environment variable to bypass PostgreSQL for local testing. This enables full dashboard operations using purely isolation-mode file-based structures.
 
-### 3. Start Backend
-The Flask backend runs on `http://localhost:5000` and automatically exposes endpoints like `/health`, `/zones`, `/alerts/active`, and `/burst-risk/top10`.
-
-```bash
-# From the project root, navigate to the backend
-cd backend
-python app.py
+```powershell
+# Windows PowerShell
+cd solapur_water_project
+$env:AUTH_DEV_MODE = '1'
+python -m uvicorn backend.app:app --port 8000 --reload
 ```
+
+*Verify setup*: `http://localhost:8000/health` or `/recommendations/citizen` should return `200`.
 
 ### 4. Start Frontend
-The dashboard calls the backend endpoints and renders interactive layers, equity bars, alerts panels, and burst risk indicators.
+With the backend running on `8000`, boot up the local file router on port `3000`.
 
 ```bash
-# Open a new terminal, activate virtualenv, navigate to frontend
-cd frontend
+cd solapur_water_project/frontend
 python -m http.server 3000
 ```
-Dashboard URL: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## How to Test Integration
+## Authentication & Demo Users
 
-### Automated Verification
-A script is provided to verify the Phase-3 integration by comparing backend API responses against the generated JSON analytics outputs.
+When running in **Dev Auth Mode** (`AUTH_DEV_MODE=1`), use the following hardcoded profiles to access isolation dashboard layers securely:
 
-```bash
-cd scripts
-python verify_phase3.py
-```
-*Expected output: `RESULT: ALL CHECKS PASS (OK)`*
+| Role | Username | Password | Notes |
+| :--- | :--- | :--- | :--- |
+| **Engineer** | `engineer1` | `demo123` | Full strategic advisory |
+| **Field Operator** | `field_op1` | `demo123` | Shares engineer stream |
+| **Ward Officer** | `ward_z1` | `demo123` | Zone 1-scoped restricted views |
+| **Commissioner** | `commissioner1` | `demo123` | High-level city index visibility |
 
-### Manual Engine-Off Tests
-To verify the frontend gracefully handles missing analytics data:
-1. Rename or move `outputs/v4_zone_status.json`, `outputs/v5_alerts.json`, and `outputs/v6_burst_top10.json`.
-2. Reload the dashboard.
-3. Verify that the UI reports `"Run V[X] first"` instead of showing fake data (e.g., the Burst Risk layer or Equity panel should display the fallback/error message).
+### Frontend URLs
+- **Login**: [http://localhost:3000/login.html](http://localhost:3000/login.html)
+- **Engineer**: [http://localhost:3000/engineer_dashboard.html](http://localhost:3000/engineer_dashboard.html)
+- **Ward**: [http://localhost:3000/ward_dashboard.html](http://localhost:3000/ward_dashboard.html)
+- **Commissioner**: [http://localhost:3000/commissioner_dashboard.html](http://localhost:3000/commissioner_dashboard.html)
+- **Citizen (Public)**: [http://localhost:3000/index.html](http://localhost:3000/index.html)
+
+*Note: Postgres is omitted for the current Phase 4b dev mode run cycle, but introduced on later scenarios addressing governance compliance scripts.*
 
 ---
 
