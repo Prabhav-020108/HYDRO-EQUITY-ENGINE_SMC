@@ -66,6 +66,13 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 .ival{font-size:11px;font-weight:500;font-family:'IBM Plex Mono',monospace}
 .note-box{margin:10px;padding:10px 12px;background:#EBF3FB;border:1px solid #BBDEFB;border-radius:6px;font-size:11px;color:var(--blue);line-height:1.5}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* ── V7 Ward rec cards ── */
+.rcard{margin:8px 10px;padding:10px 12px;background:#F0F7FF;border-radius:6px;border:1px solid #BBDEFB;border-left:3px solid var(--blue)}
+.rcard.esc-true{background:#FFF8F8;border-color:#FFCDD2;border-left-color:var(--red)}
+.rzone{font-size:10px;font-weight:600;text-transform:uppercase;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;color:var(--blue)}
+.rtxt{font-size:11px;color:var(--text);line-height:1.6}
+.rimp{font-size:10px;color:var(--text3);margin-top:4px}
+.escbadge{font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:#FFEBEE;color:var(--red)}
 #ld{position:fixed;inset:0;background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;z-index:9999;transition:opacity .5s}
 #ld.hidden{opacity:0;pointer-events:none}
 #ld .ldt{font-size:20px;font-weight:600;margin-bottom:6px}
@@ -124,19 +131,9 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
       </div>
       <div id="albody" style="overflow-y:auto;max-height:280px"></div>
     </div>
-    <div class="psec" style="max-height: 250px; overflow-y: auto;">
-      <div class="ptit">Recommendations / Ward Actions</div>
-      <div id="recbody"></div>
-    </div>
-    <div class="psec" style="flex:1;overflow-y:auto">
-      <div class="ptit">Zone Information</div>
-      <div class="note-box">
-        You are viewing your assigned zone only. Zone equity data, alerts, and map layers are filtered server-side to your zone.
-        To escalate issues to the engineering team, use the Acknowledge button on alerts.
-      </div>
-      <div class="note-box" style="background:#F3E5F5;border-color:#CE93D8;color:#6A1B9A;margin-top:0">
-        📌 Phase 4b: Full complaint queue, citizen feedback map, and ward-level scenario tools coming next.
-      </div>
+    <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div class="ptit">V7 Recommendations — Your Zone <span id="recstamp" style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.5;font-family:'IBM Plex Mono',monospace">Loading...</span></div>
+      <div id="recbody" style="overflow-y:auto;flex:1;padding-bottom:8px"></div>
     </div>
   </div>
 </div>
@@ -235,10 +232,9 @@ async function loadPipeline(){
     if(!cs||cs.length<2)return;
     const mid=cs[Math.floor(cs.length/2)];
     const lat=mid[1],lon=mid[0];
+    const p=formulaP(lat,lon);
+    const col=pCol(p);
     const d=f.properties?f.properties['Diameter(m)']||f.properties.diameter_m:null;
-    let p=(f.properties&&f.properties.sim_pressure!=null)?f.properties.sim_pressure:formulaP(lat,lon);
-    p=parseFloat(p)||0;
-    const col=(f.properties&&f.properties.sim_color)?f.properties.sim_color:pCol(p);
     const pl=L.polyline(cs.map(c=>[c[1],c[0]]),{color:col,weight:pw(d),opacity:.82,smoothFactor:1});
     pl.bindPopup(`<div class="ptit2">Pipeline Segment</div>
       <div class="prow"><span class="pkey">Pressure</span><span class="pval" style="color:${col}">${p.toFixed(1)} m</span></div>
@@ -337,28 +333,52 @@ async function loadAlerts(){
   }).join('');
 }
 
-async function renderRecommendations(){
+async function loadRecs(){
   const data = await api.get('/recommendations/ward');
-  const recbody = document.getElementById('recbody');
-  if(!recbody) return;
-  if(!data || data.error || !Array.isArray(data) || data.length === 0){
-    recbody.innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No ward actions available</div>';
+  const el   = document.getElementById('recbody');
+  if (!data || data.error) {
+    el.innerHTML = `<div class="note-box" style="background:#FFF8F8;border-color:#FFCDD2;color:var(--red)">${data&&data.error?data.error:'V7 offline — run: python scripts/v7_recommendations.py'}</div>`;
+    document.getElementById('recstamp').textContent = 'Error';
     return;
   }
-  recbody.innerHTML = data.map(r => `
-    <div class="rcard" style="margin:8px 10px;padding:10px 12px;background:#E8F5E9;border-radius:6px;border:1px solid #A5D6A7">
-      <div class="rzone" style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;margin-bottom:3px">${r.zone_id || 'System'} ${r.escalation_flag ? '⚠️ Escalated' : ''}</div>
-      <div class="rtxt" style="font-size:11px;color:var(--text);line-height:1.5">${r.action_text || ''}</div>
-    </div>
-  `).join('');
+  const recs   = data.recs || [];
+  const source = data.source || 'live';
+  document.getElementById('recstamp').textContent = recs.length > 0
+    ? `${recs.length} rec(s) · ${source}` : 'No recs';
+
+  if (recs.length === 0) {
+    const znm = (ZONE_ID||'').replace('_',' ').replace('zone','Zone').trim() || 'Your zone';
+    el.innerHTML = `<div class="note-box" style="background:#E8F5E9;border-color:#C8E6C9;color:var(--green)">
+      <strong>✅ ${znm} — No Active Issues</strong><br>
+      <span style="color:var(--text2);font-weight:normal">Your zone is operating within acceptable equity and pressure ranges. No immediate actions required. V7 engine monitors continuously and will alert when issues are detected.</span>
+    </div>`;
+    return;
+  }
+
+  const trigLbl = {'A_equity':'⚖️ Equity','B_leak':'💧 Leak','C_burst':'💥 Burst'};
+  el.innerHTML = recs.map(r => {
+    const isEsc = r.escalation_flag;
+    const cc    = r.complaint_count > 0
+      ? ` · ${r.complaint_count} open complaint${r.complaint_count>1?'s':''}` : '';
+    const trig  = trigLbl[r.trigger_type] || '📋 Advisory';
+    const znm   = (r.zone_id||'').replace('_',' ').replace('zone','Zone').trim() || 'City-wide';
+    return `<div class="rcard ${isEsc ? 'esc-true' : ''}">
+      <div class="rzone">
+        <span>${trig} · ${znm}</span>
+        ${isEsc ? '<span class="escbadge">⚠ ESCALATE</span>' : ''}
+      </div>
+      <div class="rtxt">${r.action_text||''}</div>
+      <div class="rimp">${r.service_reliability_note||''}${cc}</div>
+    </div>`;
+  }).join('');
 }
 
 async function loadAll(){
-  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),renderRecommendations()]);
+  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),loadRecs()]);
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
 window.addEventListener('load',()=>setTimeout(loadAll,400));
-setInterval(()=>{loadEquity();loadAlerts();},60000);
+setInterval(()=>{loadEquity();loadAlerts();loadRecs();},60000);
 </script>
 </body>
 </html>

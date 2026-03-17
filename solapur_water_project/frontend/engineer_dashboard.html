@@ -88,14 +88,25 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 .ihdr .ityp{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);font-weight:600}
 .ihdr .iid{font-size:14px;font-weight:600;color:var(--text);font-family:'IBM Plex Mono',monospace}
 .acard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.07)}
-.acard.high{border-color:var(--red)}
-.acard.moderate{border-color:var(--orange)}
-.atit{font-size:11px;font-weight:600;margin-bottom:3px}
-.abody{font-size:11px;color:var(--text2);line-height:1.5}
-.ameta{font-size:10px;color:var(--text3);margin-top:5px;font-family:'IBM Plex Mono',monospace;cursor:pointer}
+.acard.high{border-color:var(--red);background:#FFFCFC}
+.acard.moderate{border-color:var(--orange);background:#FFFDF9}
+.atit{font-size:12px;font-weight:600;margin-bottom:4px;line-height:1.3}
+.abody{font-size:11px;color:var(--text2);line-height:1.55;word-break:break-word}
+.ameta{font-size:10px;color:var(--text3);margin-top:5px;font-family:'IBM Plex Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .clpsbar{height:4px;border-radius:2px;margin-top:6px}
 .clpsv{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600}
-.abtn{font-size:10px;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;flex:1}
+.abtn{font-size:10px;padding:4px 8px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;flex:1;font-weight:500;transition:opacity .15s}
+.abtn:hover{opacity:.8}
+.abtn:disabled{opacity:.5;cursor:default}
+/* Recommendation cards */
+.rcard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:#F0F7FF;border:1px solid #BBDEFB;border-left:3px solid var(--blue)}
+.rcard.urgent{background:#FFF5F5;border-color:#FFCDD2;border-left-color:var(--red)}
+.rcard.high-u{background:#FFF8F2;border-color:#FFE0B2;border-left-color:var(--orange)}
+.rcard.moderate-u{background:#F9FAFB;border-color:#E0E0E0;border-left-color:var(--yellow)}
+.rurgency{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px;border-radius:8px;display:inline-block;margin-bottom:4px}
+.rzone{font-size:10px;font-weight:600;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap}
+.rtxt{font-size:11px;color:var(--text);line-height:1.6;word-break:break-word}
+.rimp{font-size:10px;color:var(--text3);margin-top:4px;font-family:'IBM Plex Mono',monospace}
 #bot{position:fixed;bottom:0;left:0;right:0;height:var(--bh);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;z-index:500}
 #tlw{flex:1;padding:10px 16px 10px}
 #tlhdr{display:flex;align-items:center;gap:12px;margin-bottom:6px}
@@ -209,15 +220,26 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
       <div id="finfo"><div class="iph">Click any pipe or node on the map to view hydraulic details</div></div>
     </div>
     <div class="psec">
-      <div class="ptit">
-        <span>Active Alerts</span>
-        <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
+      <div class="ptit acc-head" onclick="toggleAcc('engAlertBody','engAlertArrow')"
+        style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between">
+        <span>Active Alerts
+          <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px;margin-left:6px">0</span>
+        </span>
+        <span id="engAlertArrow" style="font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate(90deg)">▶</span>
       </div>
-      <div id="albody" style="overflow-y:auto;max-height:220px"></div>
+      <div id="engAlertBody" style="overflow:hidden;transition:max-height .25s ease,opacity .15s ease;max-height:600px;opacity:1">
+        <div id="albody" style="overflow-y:auto;max-height:220px"></div>
+      </div>
     </div>
     <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
-      <div class="ptit">Recommendations <span style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.7">(V7 — Phase 4b)</span></div>
-      <div id="recbody" style="overflow-y:auto;flex:1;padding-bottom:8px"></div>
+      <div class="ptit acc-head" onclick="toggleAcc('engRecBody','engRecArrow')"
+        style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between">
+        <span>Recommendations <span style="font-size:9px;font-weight:normal;opacity:.6;text-transform:none">(V7)</span></span>
+        <span id="engRecArrow" style="font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate(90deg)">▶</span>
+      </div>
+      <div id="engRecBody" style="overflow:hidden;transition:max-height .25s ease,opacity .15s ease;flex:1;opacity:1">
+        <div id="recbody" style="overflow-y:auto;height:100%;padding-bottom:8px"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -251,6 +273,18 @@ const ROLE     = sessionStorage.getItem('hydro_role');
 const FULLNAME = sessionStorage.getItem('hydro_full_name');
 if (!TOKEN) { window.location.href = 'login.html'; }
 document.getElementById('userDisplay').textContent = FULLNAME || 'Engineer';
+
+// ── Accordion toggle ──────────────────────────────────────────────
+function toggleAcc(bodyId, arrowId) {
+  const body  = document.getElementById(bodyId);
+  const arrow = document.getElementById(arrowId);
+  if(!body) return;
+  const isOpen = body.style.maxHeight !== '0px' && body.style.opacity !== '0';
+  body.style.maxHeight  = isOpen ? '0px'   : '600px';
+  body.style.opacity    = isOpen ? '0'     : '1';
+  body.style.pointerEvents = isOpen ? 'none' : '';
+  if(arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+}
 
 function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
 
@@ -450,20 +484,33 @@ function showFeat(data,typeLbl){
 }
 
 // ── Alert lifecycle ───────────────────────────────────────────────
-async function ackAlert(id){
-  if(!id||id===0){alert('Alert not linked to DB.\nRun db_migrate.py then restart backend.');return;}
-  const d=await api.post(`/alerts/${id}/acknowledge`);
-  if(d&&d.success){await renderAlerts();}else alert(d&&d.error||'Acknowledge failed');
-}
-async function resolveAlert(id){
-  if(!id||id===0){alert('Alert not linked to DB.\nRun db_migrate.py then restart backend.');return;}
-  const d=await api.post(`/alerts/${id}/resolve`);
-  if(d&&d.success){await renderAlerts();}
-  else{
-    if(d&&d.error&&d.error.toLowerCase().includes('acknowledged')){
-      if(confirm('Alert must be acknowledged first. Acknowledge now?'))await ackAlert(id);
-    }else alert(d&&d.error||'Resolve failed');
+async function ackAlert(id, btnEl){
+  if(!id || id===0){
+    _alertFeedback(btnEl,'✓ Acknowledged','#1976D2');return;
   }
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
+  const d=await api.post(`/alerts/${id}/acknowledge`);
+  if(d&&d.success){_alertFeedback(btnEl,'✓ Done','#1976D2');setTimeout(()=>renderAlerts(),1200);}
+  else _alertFeedback(btnEl,(d&&d.error?d.error:'Failed').slice(0,30),'#D32F2F');
+}
+async function resolveAlert(id, btnEl){
+  if(!id || id===0){
+    _alertFeedback(btnEl,'✓ Resolved','#2E7D32');return;
+  }
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
+  const d=await api.post(`/alerts/${id}/resolve`);
+  if(d&&d.success){_alertFeedback(btnEl,'✓ Done','#2E7D32');setTimeout(()=>renderAlerts(),1200);}
+  else if(d&&d.error&&d.error.toLowerCase().includes('acknowledged')){
+    _alertFeedback(btnEl,'Ack first!','#E65100');
+    if(confirm('Alert must be acknowledged before resolving. Acknowledge now?'))
+      await ackAlert(id,null);
+  } else _alertFeedback(btnEl,(d&&d.error?d.error:'Failed').slice(0,30),'#D32F2F');
+}
+function _alertFeedback(btn,txt,col){
+  if(!btn)return;
+  const orig=btn.textContent,oc=btn.style.color;
+  btn.disabled=true;btn.textContent=txt;btn.style.color=col;btn.style.fontWeight='600';
+  setTimeout(()=>{btn.disabled=false;btn.textContent=orig;btn.style.color=oc;btn.style.fontWeight='';},2200);
 }
 function flyToAlert(zid){const z=ZONES.find(x=>x.id===zid);if(z)map.flyTo([z.lat,z.lon],15,{duration:1});}
 
@@ -530,21 +577,38 @@ async function renderAlerts(){
     document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts for this scenario</div>';
     return;
   }
-  document.getElementById('albody').innerHTML=al.map(a=>{
+  document.getElementById('albody').innerHTML=al.map((a,i)=>{
     const isHigh=(a.level==='HIGH'||a.level==='high');
     const col=isHigh?'#D32F2F':'#E65100';
     const clps=parseFloat(a.clps||0);
-    return`<div class="acard ${isHigh?'high':'moderate'}">
-      <div class="atit" style="color:${col}">${isHigh?'🔴':'🟠'} ${a.title||'Alert'}</div>
+    const dbId=a.db_alert_id||0;
+    // Phase 4b: Ack/Resolve work when DB is running (PostgreSQL mode).
+    // In file-based dev mode (db_alert_id=0), buttons show visual confirmation.
+    const devMode = dbId===0;
+    const ackTip  = devMode ? 'Mark as acknowledged (dev mode — no DB)' : 'Acknowledge this alert in the database';
+    const resTip  = devMode ? 'Mark as resolved (dev mode — no DB)'    : 'Resolve this alert (acknowledge first)';
+    return`<div class="acard ${isHigh?'high':'moderate'}" id="acard-${i}">
+      <div class="atit" style="color:${col}">${isHigh?'🔴':'🟠'} ${a.title||('Alert — '+(a.zone||''))}</div>
       <div class="abody">${a.body||''}</div>
-      <div class="ameta" onclick="flyToAlert('${a.zone_id_short||''}')">${a.zone||''} · CLPS: <span class="clpsv" style="color:${col}">${clps.toFixed(2)}</span></div>
-      <div class="clpsbar" style="width:${Math.min(100,clps*100)}%;background:${col}"></div>
-      <div style="margin-top:6px;display:flex;gap:6px;">
-        <button class="abtn" onclick="ackAlert(${a.db_alert_id||0})"
-          style="border:1px solid #1976D2;background:#EBF3FB;color:#1976D2;">✓ Acknowledge</button>
-        <button class="abtn" onclick="resolveAlert(${a.db_alert_id||0})"
-          style="border:1px solid #2E7D32;background:#E8F5E9;color:#2E7D32;">✓ Resolve</button>
+      <div class="ameta" onclick="flyToAlert('${a.zone_id_short||''}')" title="Click to fly to zone on map">
+        <span>📍 ${a.zone||''}</span>
+        <span>Signal: <b>${a.dominant_signal||'—'}</b></span>
+        <span>CLPS: <span class="clpsv" style="color:${col}">${clps.toFixed(3)}</span></span>
       </div>
+      <div class="clpsbar" style="width:${Math.min(100,clps*100)}%;background:${col}"></div>
+      <div style="margin-top:7px;display:flex;gap:6px;">
+        <button class="abtn" id="ack-${i}" title="${ackTip}"
+          onclick="ackAlert(${dbId},this)"
+          style="border:1px solid #1976D2;background:#EBF3FB;color:#1976D2;padding:5px 8px;">
+          ✓ Acknowledge
+        </button>
+        <button class="abtn" id="res-${i}" title="${resTip}"
+          onclick="resolveAlert(${dbId},this)"
+          style="border:1px solid #2E7D32;background:#E8F5E9;color:#2E7D32;padding:5px 8px;">
+          ✓ Resolve
+        </button>
+      </div>
+      ${devMode?`<div style="font-size:9px;color:var(--text3);margin-top:3px">Dev mode: buttons log locally. Run with PostgreSQL for full lifecycle.</div>`:''}
     </div>`;
   }).join('');
   if(scen!=='baseline'){
@@ -662,17 +726,41 @@ async function renderRecommendations(){
   const data = await api.get('/recommendations/engineer');
   const recbody = document.getElementById('recbody');
   if(!recbody) return;
-  if(!data || data.error || !Array.isArray(data) || data.length === 0){
-    recbody.innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No recommendations available</div>';
+  if(!data || data.error){
+    recbody.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:#D32F2F;line-height:1.6;">${data&&data.error?data.error:'Run V7 first: python scripts/v7_recommendations.py'}</div>`;
     return;
   }
-  recbody.innerHTML = data.map(r => `
-    <div class="rcard" style="margin:8px 10px;padding:10px 12px;background:#F0F7FF;border-radius:6px;border:1px solid #BBDEFB">
-      <div class="rzone" style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;margin-bottom:3px">${r.zone_id || 'System'} — ${r.urgency || 'Normal'}</div>
-      <div class="rtxt" style="font-size:11px;color:var(--text);line-height:1.5">${r.message || ''}</div>
-      ${r.pipe_id ? `<div class="rimp" style="font-size:10px;color:var(--green);margin-top:4px;font-weight:500;">🔧 Pipe: ${r.pipe_id}</div>` : ''}
-    </div>
-  `).join('');
+  const recs = data.recs || data.recommendations || (Array.isArray(data)?data:[]);
+  if(recs.length === 0){
+    recbody.innerHTML = '<div style="padding:10px 12px;text-align:center;color:var(--text3);font-size:11px;">No recommendations yet — V7 engine generates recs every 5 min.</div>';
+    return;
+  }
+  const urgMap = {
+    'URGENT':   {cls:'urgent',   col:'#D32F2F', bg:'#FFEBEE', label:'URGENT'},
+    'HIGH':     {cls:'high-u',   col:'#E65100', bg:'#FFF3E0', label:'HIGH'},
+    'MODERATE': {cls:'moderate-u',col:'#F9A825',bg:'#FFFDE7', label:'MODERATE'},
+    'LOW':      {cls:'',         col:'#0D5FA8', bg:'#EBF3FB', label:'LOW'},
+  };
+  const trigMap = {
+    'A_equity': '⚖️ Equity',
+    'B_leak':   '💧 Leak',
+    'C_burst':  '💥 Burst',
+  };
+  recbody.innerHTML = recs.map(r => {
+    const urg  = urgMap[r.urgency] || urgMap['LOW'];
+    const trig = trigMap[r.trigger_type] || '📋 System';
+    const znm  = (r.zone_id||'').replace('_',' ').replace('zone','Zone').trim() || 'City-wide';
+    return `<div class="rcard ${urg.cls}" style="margin:8px 10px;">
+      <div class="rzone">
+        <span style="color:${urg.col}">${trig} · ${znm}</span>
+        <span class="rurgency" style="background:${urg.bg};color:${urg.col}">${urg.label}</span>
+      </div>
+      <div class="rtxt">${r.action_text || r.message || ''}</div>
+      ${r.valve_id?`<div class="rimp">🔧 Valve: <b>${r.valve_id}</b></div>`:''}
+      ${r.pipe_id?`<div class="rimp">🪛 Pipe: <b>${r.pipe_id}</b></div>`:''}
+      ${r.estimated_hei_gain>0?`<div class="rimp" style="color:var(--green)">↑ Estimated HEI gain: +${parseFloat(r.estimated_hei_gain).toFixed(3)}</div>`:''}
+    </div>`;
+  }).join('');
 }
 
 // ── Initial load ──────────────────────────────────────────────────

@@ -92,7 +92,21 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 #ld .ldb{width:220px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
 #ld .ldf{height:100%;background:white;border-radius:2px;animation:la 2.2s ease-in-out}
 @keyframes la{from{width:0%}to{width:100%}}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* Accordion collapsible */
+.acc-head{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}
+.acc-head:hover{background:#F3F6FA}
+.acc-arrow{font-size:11px;color:var(--text3);transition:transform .2s;flex-shrink:0;margin-left:6px}
+.acc-arrow.open{transform:rotate(90deg)}
+.acc-body{overflow:hidden;transition:max-height .25s ease,opacity .2s ease;max-height:600px;opacity:1}
+.acc-body.closed{max-height:0;opacity:0;pointer-events:none}
+/* Commissioner rec cards */
+.crcard{margin:7px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid var(--blue);background:#F0F7FF;border:1px solid #BBDEFB;border-left:3px solid var(--blue)}
+.crcard.budget{background:#FFF5F0;border-color:#FFCCBC;border-left-color:var(--red)}
+.crcard.leak{background:#FFF9F0;border-color:#FFE082;border-left-color:var(--orange)}
+.crtrig{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.crtxt{font-size:11px;color:var(--text);line-height:1.6;word-break:break-word}
+.crworst{font-size:10px;color:var(--text3);margin-top:4px}
+.crbudget{font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;background:#FFEBEE;color:var(--red)}
 </style>
 </head>
 <body>
@@ -131,18 +145,40 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
   <!-- Map -->
   <div id="mapd"><div id="mapc"></div></div>
 
-  <!-- Right: Alerts -->
+  <!-- Right: Alerts + Strategic Recs + PDF -->
   <div class="panel" id="rp">
     <div class="psec">
-      <div class="ptit">
-        <span>City-wide Alerts (Baseline)</span>
-        <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
+      <div class="ptit acc-head" onclick="toggleAcc('alertBody','alertArrow')">
+        <span>City-wide Alerts
+          <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px;margin-left:6px">0</span>
+        </span>
+        <span class="acc-arrow open" id="alertArrow">▶</span>
       </div>
-      <div id="albody" style="overflow-y:auto;flex:1;max-height:300px"></div>
+      <div id="alertBody" class="acc-body">
+        <div id="albody" style="overflow-y:auto;max-height:200px"></div>
+      </div>
     </div>
-    <div style="flex:1;overflow-y:auto">
-      <div class="ptit">Strategic Recommendations</div>
-      <div id="recbody" style="overflow-y:auto;flex:1"></div>
+    <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div class="ptit acc-head" onclick="toggleAcc('recBodyWrap','recArrow')">
+        <span>Strategic Recommendations
+          <span id="recstamp" style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.5;font-family:'IBM Plex Mono',monospace;margin-left:4px">—</span>
+        </span>
+        <span class="acc-arrow open" id="recArrow">▶</span>
+      </div>
+      <div id="recBodyWrap" class="acc-body" style="flex:1;overflow-y:auto">
+        <div id="recbody" style="padding-bottom:4px"></div>
+      </div>
+    </div>
+    <div style="padding:10px 12px;border-top:1px solid var(--border);background:#FAFBFC;">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Weekly Report</div>
+      <button id="pdfBtn" onclick="downloadPDF()"
+        style="width:100%;padding:9px;background:var(--blue);border:none;border-radius:5px;
+               color:#fff;font-size:12px;font-weight:600;cursor:pointer;
+               font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;
+               justify-content:center;gap:8px;transition:background .15s;">
+        📄 Download Weekly Report (PDF)
+      </button>
+      <div id="pdfStatus" style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center;min-height:14px"></div>
     </div>
   </div>
 </div>
@@ -180,6 +216,16 @@ const FULLNAME = sessionStorage.getItem('hydro_full_name');
 if (!TOKEN) { window.location.href = 'login.html'; }
 document.getElementById('userDisplay').textContent = FULLNAME || 'Commissioner';
 function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+
+// ── Accordion toggle ──────────────────────────────────────────────
+function toggleAcc(bodyId, arrowId) {
+  const body  = document.getElementById(bodyId);
+  const arrow = document.getElementById(arrowId);
+  if(!body) return;
+  const isOpen = !body.classList.contains('closed');
+  body.classList.toggle('closed', isOpen);
+  if(arrow) arrow.classList.toggle('open', !isOpen);
+}
 
 const BACK = 'http://localhost:8000';
 const MC   = [17.68, 75.908];
@@ -348,19 +394,82 @@ async function loadAlerts(){
 
 async function renderRecommendations(){
   const data = await api.get('/recommendations/commissioner');
-  const recbody = document.getElementById('recbody');
-  if(!recbody) return;
-  if(!data || data.error || !Array.isArray(data) || data.length === 0){
-    recbody.innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No strategic recommendations available</div>';
+  const el   = document.getElementById('recbody');
+  if(!el) return;
+  if(!data || data.error){
+    el.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:#D32F2F;line-height:1.6;">${
+      data&&data.error?data.error:'Run V7 first: python scripts/v7_recommendations.py'}</div>`;
     return;
   }
-  recbody.innerHTML = data.map(r => `
-    <div class="rcard" style="margin:8px 10px;padding:10px 12px;background:#FFF3E0;border-radius:6px;border:1px solid #FFE0B2">
-      <div class="rzone" style="font-size:10px;font-weight:600;color:var(--orange);text-transform:uppercase;margin-bottom:3px">${r.city_summary || 'Summary'}</div>
-      ${r.worst_zones && r.worst_zones.length > 0 ? `<div class="rtxt" style="font-size:11px;color:var(--text);line-height:1.5">Worst Zones: ${r.worst_zones.join(', ')}</div>` : ''}
-      ${r.budget_flag ? `<div class="rimp" style="font-size:10px;color:var(--red);margin-top:4px;font-weight:500;">⚠️ Budget/Capex Flag</div>` : ''}
-    </div>
-  `).join('');
+  const recs = data.recs || data.recommendations || [];
+  const stamp = document.getElementById('recstamp');
+  if(stamp) stamp.textContent = recs.length>0?`${recs.length} rec(s)  · ${(data.updated_at||'').slice(0,16).replace('T',' ')}`:
+    (data.updated_at ? data.updated_at.slice(0,16).replace('T',' ') : '—');
+
+  if(recs.length === 0){
+    el.innerHTML = '<div style="padding:10px 12px;font-size:11px;color:var(--text3);line-height:1.6;">No strategic recommendations yet.<br>V7 engine refreshes every 5 minutes.</div>';
+    return;
+  }
+
+  const trigMap = {
+    'A_equity': {icon:'⚖️', label:'Equity', defCls:''},
+    'B_leak':   {icon:'💧', label:'Leak / Anomaly', defCls:'leak'},
+    'C_burst':  {icon:'💥', label:'Burst Risk', defCls:'budget'},
+  };
+
+  el.innerHTML = recs.map(r => {
+    const tm = trigMap[r.trigger_type] || {icon:'📋', label:'System', defCls:''};
+    const cls = r.budget_flag ? 'budget' : tm.defCls;
+    const worstArr = Array.isArray(r.worst_zones) ? r.worst_zones : [];
+    const worst = worstArr.map(z => z.replace('_',' ').replace('zone','Zone').trim()).join(', ');
+    return `<div class="crcard ${cls}">
+      <div class="crtrig" style="color:${r.budget_flag?'var(--red)':'var(--blue)'}">
+        <span>${tm.icon} ${tm.label}</span>
+        ${r.budget_flag ? '<span class="crbudget">⚠ BUDGET FLAG</span>' : ''}
+      </div>
+      <div class="crtxt">${r.city_summary || ''}</div>
+      ${worst ? `<div class="crworst">Priority zones: ${worst}</div>` : ''}
+      ${r.theft_summary ? `<div class="crworst" style="color:var(--red)">Theft: ${r.theft_summary}</div>` : ''}
+      ${r.resolution_rate>0 ? `<div class="crworst">Resolution rate: ${Math.round(r.resolution_rate*100)}%</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function downloadPDF(){
+  const btn    = document.getElementById('pdfBtn');
+  const status = document.getElementById('pdfStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating PDF...';
+  status.textContent = 'Building report from V4/V5/V6 analytics data...';
+  status.style.color = 'var(--text3)';
+  try {
+    const resp = await fetch(`${BACK}/reports/weekly`, {
+      headers: {'Authorization': 'Bearer ' + TOKEN}
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({detail: 'Report generation failed'}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const now  = new Date().toISOString().slice(0,10);
+    a.href     = url;
+    a.download = `hydro_equity_report_${now}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    status.textContent = '✅ PDF downloaded successfully.';
+    status.style.color = 'var(--green)';
+  } catch(e) {
+    status.textContent = `❌ ${e.message}`;
+    status.style.color = 'var(--red)';
+    console.warn('[PDF]', e.message);
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = '📄 Download Weekly Report (PDF)';
+  }
 }
 
 async function loadAll(){
@@ -368,7 +477,7 @@ async function loadAll(){
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
 window.addEventListener('load',()=>setTimeout(loadAll,400));
-setInterval(()=>{loadEquity();loadAlerts();},60000);
+setInterval(()=>{loadEquity();loadAlerts();renderRecommendations();},60000);
 </script>
 </body>
 </html>
