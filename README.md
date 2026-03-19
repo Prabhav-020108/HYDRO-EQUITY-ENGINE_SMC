@@ -1,243 +1,111 @@
-# Hydro-Equity Engine
+# Dhara / Hydro-Equity Engine
 ### Smart Water Pressure Management for Equitable Water Supply — Solapur Municipal Corporation
 
-**Team Devsters · SAMVED-2026 · RV College of Engineering, Bengaluru**
+---
+
+## 1. Project Overview
+The **Dhara (Hydro-Equity Engine)** converts the real Solapur Municipal Corporation (SMC) pipe network into a hydraulically simulated, equity-scored, anomaly-detecting, role-partitioned governance platform. 
+
+**The Problem:** Solapur supplies water to 10+ lakh citizens through an intermittent supply network. Despite having adequate bulk water, the city faces severe pressure imbalance—low-elevation zones receive excess pressure while tail-end zones receive little or none. 
+
+**The Solution:** Rather than adding more water, Dhara focuses on **pressure governance and distribution intelligence**. It uses WNTR hydraulic simulations and custom analytics to detect leaks, predict burst risks, and measure supply equity, routing actionable insights to the right personnel.
 
 ---
 
-## What This Project Is
+## 2. System Architecture
+**Data Flow:**
+SMC GeoJSON Files → `V1` → `V3` → `V4` / `V5` / `V6` → `V7` → `API` → `Frontend`
 
-Solapur Municipal Corporation (SMC) supplies water to 10+ lakh citizens through a network of Elevated Storage Reservoirs and ward-level pipelines under intermittent supply conditions. Despite having adequate bulk water, the city faces persistent pressure imbalance — low-elevation zones receive excess pressure while tail-end and high-elevation zones receive little or none.
+**Role-Based Access (5 Roles):**
+1. **engineer**: Full system view, alert lifecycle management, hydraulic metrics.
+2. **ward_officer**: Zone-scoped view, service reliability notes.
+3. **commissioner**: High-level city overview, CWEI equity gauge, PDF reports.
+4. **field_operator**: Mobile-friendly view for on-ground tasks and resolving alerts.
+5. **citizen**: Public portal for supply status and submitting complaints.
 
-The **Hydro-Equity Engine** converts the real SMC pipe network into a hydraulically simulated, equity-scored, anomaly-detecting, role-partitioned governance platform for municipal engineers, ward officers, commissioners, and citizens.
+**Backend Stack:** 
+FastAPI, PostgreSQL, APScheduler (for V7 rules), JWT + Bcrypt authentication.
 
-The core insight: the problem in Solapur is not water scarcity. It is **pressure governance and distribution intelligence**.
-
----
-
-## Project Scope and Phases
-
-| Phase | Status | What Was Done |
-|---|---|---|
-| **Phase 1** — Data foundation & simulation (V1, V3) | ✅ Complete | GeoJSON ETL, WNTR hydraulic model, baseline + 3 anomaly scenarios |
-| **Phase 2** — Analytics engines (V4, V5, V6) | ✅ Complete | HEI equity scoring, CLPS leak detection, PSS burst prediction |
-| **Phase 3** — Backend & dashboard wiring (V2, V9) | ✅ Complete | FastAPI endpoints, real V4/V5/V6 data, no synthetic fallbacks |
-| **Phase 3.5** — PostgreSQL migration + resolution workflow | ✅ Complete | Alert lifecycle, DB schema, elevation enrichment |
-| **Phase 4a** — Authentication & role management (V11) | ✅ Complete | JWT login, bcrypt, role-based routing to 4 dashboards |
-| **Phase 4b** — V7 Role-Partitioned Engine + all dashboards | ✅ **COMPLETE** | See below |
-| **Phase 4c** — Mobile app (V12), Theft detection (V13), Scenario panel (V8) | ⏳ Upcoming | |
-| **Phase 5** — Final integration & demo polish | ⏳ Upcoming | |
-
----
-
-## Phase 4b — What Was Built ✅
-
-### V7 Role-Partitioned Recommendation Engine
-
-The V7 engine reads live analytics from V4 (HEI equity), V5 (CLPS leak alerts), and V6 (PSS burst risk) and generates role-specific recommendations simultaneously into four channels:
-
-| Channel | Table | Audience | Contains |
-|---|---|---|---|
-| Engineer | `engineer_recs` | Engineer, Field Operator | Valve IDs, pipe IDs, urgency levels, HEI gain estimates |
-| Ward | `ward_recs` | Ward Officer (zone-filtered) | Plain-language escalation notes, service reliability notes |
-| Commissioner | `commissioner_recs` | Commissioner | City summary, worst zones, budget flags |
-| Citizen | `citizen_recs` | Public (no auth) | Supply status, plain advisories — zero infra data |
-
-**Five V7 triggers:**
-- **Trigger A (Equity)** → all four channels (HEI < 0.70 severe, < 0.85 moderate, > 1.30 over-pressure)
-- **Trigger B (Leak)** → engineer + ward (CLPS-driven, signal-specific dispatch instructions)
-- **Trigger C (Burst)** → engineer + commissioner (PSS-driven, pipe IDs, age, material)
-- **Trigger D (Citizen)** → citizen only (plain language, distinct per-zone advisory)
-- **Trigger E (Theft)** → stub for Phase 4c V13
-
-**Fallback chain:** PostgreSQL → `v7_recommendations.json` → live generation from V4/V5/V6 (always works in dev mode)
-
-### Four Role Dashboards (Phase 4b)
-
-| Dashboard | URL | Features |
-|---|---|---|
-| **Engineer** | `engineer_dashboard.html` | Full map, HEI heatmap, collapsible alerts + recs, Ack/Resolve buttons, 4 scenarios, 24h timeline |
-| **Ward Officer** | `ward_dashboard.html` | Zone-scoped map, zone equity status, zone-filtered alerts + V7 ward recs |
-| **Commissioner** | `commissioner_dashboard.html` | CWEI gauge, city zone rankings, collapsible strategic recs, PDF report download |
-| **Citizen** | `citizen_panel.html` | Public portal (no auth), 8-zone supply status, distinct advisories, complaint form |
-
-### Alert Lifecycle (Phase 4b)
-
-Acknowledge/Resolve buttons are live in `engineer_dashboard.html`:
-- **With PostgreSQL:** calls `/alerts/{id}/acknowledge` and `/alerts/{id}/resolve` — full DB lifecycle
-- **Dev mode (file-based):** provides visual feedback on the button itself — no popup errors
-
-### Citizen Portal (Public)
-
-- No authentication required — open in browser directly
-- Always shows exactly 8 zones with distinct per-zone advisories
-- Important Advisories capped at 3 unique zones
-- Complaint form submits to `POST /citizen/complaint` — returns reference ID
-
-### Weekly PDF Report
-
-Commissioner dashboard has a **Download Weekly Report (PDF)** button that calls `GET /reports/weekly` and streams a real PDF (requires `pip install reportlab`). Contains: CWEI summary, zone HEI table, alert summary, burst risk segments.
+**Frontend 5 HTML Pages:**
+- `engineer_dashboard.html`: Full map, HEI heatmap, collapsible alerts, Ack/Resolve workflow.
+- `ward_dashboard.html`: Zone-scoped map, zone-filtered alerts and recommendations.
+- `commissioner_dashboard.html`: CWEI gauge, city zone rankings, PDF report download.
+- `field_operator_app.html`: Mobile-first SPA for field workers to start and resolve tasks.
+- `index.html`: Public Citizen Portal for 8-zone supply status and complaint submission.
+*(Note: `login.html` provides the JWT authentication gateway for non-citizen roles).*
 
 ---
 
-## Current Architecture
-
-```
-SMC GeoJSON Files (GIS Portal)
-        ↓
-V1 Data Foundation → pipe_segments.csv · nodes_with_elevation.csv · zone_demand.csv
-        ↓
-V3 WNTR Hydraulic Simulation → fullcity_pressure_*.csv · fullcity_flow_*.csv
-        ↓               ↓              ↓
-V4 HEI           V5 CLPS         V6 PSS
-v4_zone_status.json  v5_alerts.json  v6_burst_top10.json
-        ↓               ↓              ↓
-        └───────── V7 Rule Engine ─────────┘
-                         ↓ (4 channels simultaneously)
-        engineer_recs  ward_recs  commissioner_recs  citizen_recs
-                         ↓
-              FastAPI Backend (Port 8000)
-              JWT Auth · Role-gated endpoints · APScheduler
-                         ↓
-        ┌────────────────┬───────────────────┬─────────────────┐
-  Engineer          Ward Officer        Commissioner     Citizen Portal
-  Dashboard          Dashboard           Dashboard        (Public)
-```
+## 3. Prerequisites
+Ensure the following exact versions and tools are installed:
+- **Python:** 3.11 (64-bit)
+- **PostgreSQL:** 18
+- **Git Bash:** Required for Windows environments (to run integration tests).
+- **Required pip packages:** (from `requirements.txt`)
+  `fastapi`, `uvicorn`, `sqlalchemy`, `psycopg2-binary`, `passlib`, `bcrypt`, `pyjwt`, `pandas`, `wntr`, `reportlab`
 
 ---
 
-## Project Structure
+## 4. Setup — One Time Only
 
-```text
-solapur_water_project/
-├── backend/
-│   ├── app.py                        # FastAPI server (V7 auto-schedules every 5 min)
-│   ├── auth.py                       # JWT + bcrypt authentication
-│   ├── database.py                   # SQLAlchemy engine
-│   └── routers/
-│       ├── auth_router.py            # POST /auth/login, GET /auth/me
-│       ├── zones.py                  # GET /zones → V4 HEI scores
-│       ├── alerts.py                 # GET /alerts/active
-│       ├── burst.py                  # GET /burst-risk/top10
-│       ├── pipeline.py               # GET /pipeline (public GeoJSON)
-│       ├── infrastructure.py         # GET /infrastructure (public markers)
-│       ├── recommendations.py        # GET /recommendations/* (V7, all roles)
-│       ├── citizen.py                # POST /citizen/complaint, GET /citizen/zones
-│       └── reports.py                # GET /reports/weekly (PDF)
-│
-├── Data/                             # Input GeoJSON and generated V1 CSVs
-│
-├── docs/
-│   └── Hydro_Equity_Engine_Architecture_Bible_v5.pdf
-│
-├── frontend/
-│   ├── login.html                    # JWT login page (all roles)
-│   ├── engineer_dashboard.html       # Phase 4b engineer workspace
-│   ├── ward_dashboard.html           # Phase 4b ward officer view
-│   ├── commissioner_dashboard.html   # Phase 4b commissioner view
-│   ├── citizen_panel.html            # Phase 4b public citizen portal
-│   └── field_operator_dashboard.html # Field operator (Phase 4c mobile upgrade)
-│
-├── outputs/                          # Generated simulation/analytics outputs
-│   ├── v4_zone_status.json           # HEI per zone
-│   ├── v4_equity_minimal.json        # CWEI + zone trends
-│   ├── v5_alerts.json                # CLPS alerts by scenario
-│   ├── v6_burst_top10.json           # Top 10 burst risk segments
-│   ├── v7_recommendations.json       # V7 cached recommendations (all 4 channels)
-│   └── fullcity_*.csv                # Full-city pressure/flow simulation results
-│
-├── scripts/
-│   ├── load_data.py                  # Step 0: load GeoJSON data
-│   ├── simulation_engine.py          # V3: WNTR hydraulic simulation
-│   ├── v1_data_foundation.py         # V1: GeoJSON → CSV ETL
-│   ├── v4_equity_minimal.py          # V4: HEI equity scoring
-│   ├── v5_clps.py                    # V5: CLPS leak detection
-│   ├── v6_pss.py                     # V6: PSS burst prediction
-│   ├── v7_recommendations.py         # V7: role-partitioned rec engine (DB mode)
-│   ├── db_setup_phase4b.py           # Creates V7 DB tables
-│   ├── seed_users.py                 # Seeds demo users into PostgreSQL
-│   └── rebuild.py                    # Manually trigger V7 rebuild
-│
-├── DATA_CONTRACT.md                  # Schema definitions for all data files
-├── requirements.txt
-└── README.md                         # This file
-```
-
----
-
-## Hydraulic Security Measures (Anti-Theft & Tampering)
-
-- **NFA (Night Flow Anomaly):** Detects unauthorized water extraction by monitoring flows during off-peak hours (01:00–04:00). Anomalies flagged when night flow exceeds 5% of daily average.
-- **FPI (Flow-Pressure Imbalance):** Detects pipe tampering or illegal connections by comparing inlet vs. outlet flow. Significant imbalance indicates unauthorized offtake or valve manipulation.
-- **PDR (Pressure Drop Rate):** Detects sudden blockages or ruptures by measuring rate of pressure change over time. Rapid drops indicate active leaks; gradual drops indicate structural degradation.
-
-V13 Water Theft Intelligence (WTRS per zone, tanker extraction pattern) is planned for Phase 4c.
-
----
-
-## Quickstart (Phase 4b Dev Mode — Postgres-Free)
-
-Follow these steps to run the full platform locally without PostgreSQL.
-
-### 1. Prerequisites
-- Python 3.10+ (64-bit)
-- (Windows only) Microsoft C++ Build Tools (required for WNTR)
-- Git
-
+**1. Database Initialization Pipeline:**
+From the `solapur_water_project` directory, run the setup scripts in order:
 ```bash
-# Clone the repository
-git clone https://github.com/Prabhav-020108/HYDRO-EQUITY-ENGINE_SMC.git
-cd solapur_water_project
-
-# Create and activate virtual environment
-python -m venv .venv
-# Windows PowerShell:
-.venv\Scripts\activate
-# Mac/Linux:
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# For PDF report generation (optional but recommended):
-pip install reportlab
+python scripts/db_setup.py
+python scripts/db_setup_phase4b.py
+python scripts/db_setup_alerts.py
+python scripts/seed_users.py
 ```
 
-### 2. Generate Data & Analytics Pipeline
-Run scripts in order — outputs go to `solapur_water_project/outputs/`:
+**2. Environment Variables:**
+Create a `.env` file in the `solapur_water_project` directory with the following format:
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=hydro_equity
+DB_USER=postgres
+DB_PASSWORD=admin1234
+SECRET_KEY=09d25e094faa6RS24f6f0f4caa6cf63b88e8d
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_HOURS=24
+```
+
+---
+
+## 5. Data Generation — One Time or When Source Data Changes
+Run the analytics engine pipeline to generate simulation data and insights. Outputs are saved to the `outputs/` folder (outputs already exist in the repo, but re-run if source data changes).
+
+**Note:** `simulation_engine.py` requires `wntr`.
 
 ```bash
 cd scripts
+python v1_data_foundation.py
 python load_data.py
 python simulation_engine.py all
 python v4_equity_minimal.py
 python v5_clps.py
 python v6_pss.py
-# V7 generates automatically on backend startup — or run manually:
-# python v7_recommendations.py
+python v7_recommendations.py
+cd ..
 ```
 
-### 3. Start Backend (Dev Auth Mode — No PostgreSQL)
+---
 
-```powershell
-# Windows PowerShell
-cd solapur_water_project
-$env:AUTH_DEV_MODE = '1'
-python -m uvicorn backend.app:app --port 8000 --reload
-```
+## 6. Every Session Startup
 
+**1. Start Backend:**
 ```bash
-# Mac/Linux
 cd solapur_water_project
-AUTH_DEV_MODE=1 python -m uvicorn backend.app:app --port 8000 --reload
+uvicorn backend.app:app --reload --port 8000
 ```
 
-V7 recommendation engine **auto-runs on startup** and every 5 minutes via APScheduler.
+**2. Run Database Migrations:**
+**Note:** Do NOT run `db_migrate.py` before the integration test.
+```bash
+python scripts/db_migrate.py
+```
 
-Verify: `http://localhost:8000/health` → `{"status":"ok","phase":"4b"}`
-
-### 4. Start Frontend
-
+**3. Start Frontend:**
 ```bash
 cd solapur_water_project/frontend
 python -m http.server 3000
@@ -245,120 +113,73 @@ python -m http.server 3000
 
 ---
 
-## Authentication & Demo Users
+## 7. Demo Credentials
+All registered roles use the password: `demo123`
 
-When running in **Dev Auth Mode** (`AUTH_DEV_MODE=1`), all passwords are `demo@1234`:
-
-| Role | Username | Password | Dashboard URL |
-|---|---|---|---|
-| **Engineer** | `engineer1` | `demo@1234` | `engineer_dashboard.html` |
-| **Ward Officer** | `ward_z1` | `demo@1234` | `ward_dashboard.html` (Zone 1 scoped) |
-| **Commissioner** | `commissioner1` | `demo@1234` | `commissioner_dashboard.html` |
-| **Field Operator** | `field_op1` | `demo@1234` | `field_operator_dashboard.html` |
-| **Citizen** | *(no login)* | — | `citizen_panel.html` (open directly) |
-
-### Frontend URLs (Frontend server on port 3000)
-
-| Page | URL |
-|---|---|
-| Login | `http://localhost:3000/login.html` |
-| Engineer Dashboard | `http://localhost:3000/engineer_dashboard.html` |
-| Ward Dashboard | `http://localhost:3000/ward_dashboard.html` |
-| Commissioner Dashboard | `http://localhost:3000/commissioner_dashboard.html` |
-| Citizen Portal (Public) | `http://localhost:3000/citizen_panel.html` |
+| Role | Username | Password |
+|---|---|---|
+| **Engineer** | `engineer1` | `demo123` |
+| **Ward Officer** | `ward_z1` | `demo123` |
+| **Commissioner** | `commissioner1` | `demo123` |
+| **Field Operator** | `field_op_z1` | `demo123` |
+| **Citizen** | *(no login)* | — |
 
 ---
 
-## API Endpoints
+## 8. Frontend Pages
+Access via `http://localhost:3000/` once the frontend server is running.
+- **`login.html`**: Gateway for auth.
+- **`engineer_dashboard.html`** (Engineer): Verify the HEI heatmap, alert markers, and the Acknowledge/Resolve alert workflow visually.
+- **`ward_dashboard.html`** (Ward Officer): Verify zone-scoped metrics and filtered alerts for a specific zone (e.g., Zone 1).
+- **`commissioner_dashboard.html`** (Commissioner): Verify the CWEI gauge, zone rankings, and ensure the "Download Alert Log (CSV)" and "Download Weekly Report (PDF)" buttons generate files.
+- **`field_operator_app.html`** (Field Operator): Verify the mobile layout, HEI badge, and alert cards with "Start Work" and "Mark Resolved" buttons visually.
+- **`index.html`** (Citizen): Verify the 8-zone public supply status, distinct zone advisories, and the complaint submission form visually.
 
-### Public (no auth)
+---
+
+## 9. Integration Test
+Tests the full alert lifecycle across roles (Engineer & Field Operator). 
+**Note:** The script has a requirement to reset Alert 65's ID status in the database prior to executing the test sequence.
+
+Run from Git Bash:
+```bash
+bash scripts/integration_test.sh
+```
+**Expected Output:** `10/10 PASS` (Total 10 passed, 0 failed).
+
+---
+
+## 10. API Endpoints
+
+### Public (No Auth Required)
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/` | Health check |
 | GET | `/health` | Health check JSON |
 | GET | `/pipeline` | Pipeline GeoJSON (Solapur network) |
 | GET | `/infrastructure` | ESR / tank / source markers |
 | GET | `/recommendations/citizen` | V7 citizen supply advisories |
-| POST | `/citizen/complaint` | Submit water supply complaint |
+| POST| `/citizen/complaint` | Submit water supply complaint |
 | GET | `/citizen/zones` | Zone supply status summary |
 
-### Protected (Bearer JWT required)
+### Protected (Bearer JWT Required)
 | Method | Endpoint | Role | Description |
 |---|---|---|---|
-| POST | `/auth/login` | All | Returns JWT + role |
+| POST| `/auth/login` | All | Returns JWT + role |
 | GET | `/auth/me` | All | Current user info |
-| GET | `/zones` | All | V4 HEI scores (ward: zone-filtered) |
-| GET | `/alerts/active?scenario=` | All | V5 CLPS alerts |
-| POST | `/alerts/{id}/acknowledge` | Engineer | Alert lifecycle |
-| POST | `/alerts/{id}/resolve` | Engineer | Alert lifecycle |
+| GET | `/zones` | All | V4 HEI scores |
+| GET | `/alerts/active` | All | V5 CLPS active alerts |
+| POST| `/alerts/{id}/acknowledge` | Engineer | Alert lifecycle |
+| POST| `/alerts/{id}/resolve` | Engineer | Alert lifecycle directly |
+| POST| `/alerts/{id}/accept-resolution` | Engineer | Accept a field operator resolve request |
 | GET | `/burst-risk/top10` | All | V6 PSS burst risk |
 | GET | `/recommendations/engineer` | Engineer, Field Operator | V7 engineer channel |
 | GET | `/recommendations/ward` | Ward Officer | V7 ward channel (zone-filtered) |
 | GET | `/recommendations/commissioner` | Commissioner | V7 commissioner channel |
-| GET | `/recommendations/updated-at` | All | Last V7 run timestamp |
-| POST | `/recommendations/rebuild` | Engineer, Commissioner | Trigger V7 re-run |
-| GET | `/reports/weekly` | Engineer, Commissioner | Download weekly PDF report |
+| GET | `/reports/weekly` | Engineer, Commissioner | Download PDF report |
 
----
-
-## Mathematical Models
-
-**Hydraulic Equity Index (HEI):**
-```
-HEI(zone, t) = avg_pressure(tail-end nodes, t) / avg_pressure(all zone nodes, t)
-
-HEI ≥ 0.85        → Equitable     (Green)
-0.70 ≤ HEI < 0.85 → Moderate      (Orange)
-HEI < 0.70         → Severe        (Red)
-HEI > 1.30         → Over-pressure (Purple)
-```
-
-**City-Wide Equity Index (CWEI):**
-```
-CWEI = mean(HEI across all zones)
-```
-
-**Composite Leak Probability Score (CLPS):**
-```
-CLPS = (0.35 × PDR_n) + (0.30 × FPI) + (0.20 × NFA) + (0.15 × DDI)
-
-PDR_n  = Pressure Drop Rate (normalized)
-FPI    = Flow-Pressure Imbalance
-NFA    = Night Flow Anomaly (01:00–04:00 only)
-DDI    = Demand Deviation Index
-```
-
-**Pipe Stress Score (PSS):**
-```
-PSS = (0.40 × PSI_n) + (0.35 × CFF_n) + (0.25 × ADF)
-
-PSI_n = Pressure Surge Index
-CFF_n = Cycle Fatigue Factor
-ADF   = Age Degradation Factor
-```
-
----
-
-## What's Next — Phase 4c
-
-- **V12 Mobile App (React Native/Expo):** FieldOperatorApp (QR valve verification, GPS proximity, alert reception) + CitizenApp (complaint submission, supply status)
-- **V13 Water Theft Intelligence:** WTRS per zone, tanker extraction pattern (TEP), routes HIGH alerts to engineer + commissioner via V7 Trigger E
-- **V8 Scenario Panel:** WNTR parameter sliders embedded in EngineerDashboard — before/after HEI comparison
-
----
-
-## Team
-
-| Name | Program | Email |
-|---|---|---|
-| Prabhav Tiwari (Lead) | B.E. CSE (AIML) | prabhavatiwari.ci25@rvce.edu.in |
-| Yashraj Pala | B.E. CSE | yashrajpala.cs25@rvce.edu.in |
-| Shashwat Utkarsh | B.E. Mechanical | shashwatutkarsh.me25@rvce.edu.in |
-| Tejash Pathak | B.E. CSE | tejashmanojp.cs25@rvce.edu.in |
-| Shaurya Khanna | B.E. CSE (CY) | shauryakhanna.cy25@rvce.edu.in |
-
-**Mentor:** Dr. Sham Aan MP · shamaan.mp@rvce.edu.in · RVCE Bengaluru
-
----
-
-*Hydro-Equity Engine · Team Devsters · SAMVED-2026 · Phase 4b Complete*
+### Mobile Specific (Bearer JWT Required)
+| Method | Endpoint | Role | Description |
+|---|---|---|---|
+| GET | `/mobile/alerts/assigned` | Field Operator | Fetch tasks assigned to the operator's zone |
+| POST| `/mobile/alerts/{id}/start` | Field Operator | Mark a task as IN_PROGRESS |
+| POST| `/mobile/alerts/{id}/resolve`| Field Operator | Submit resolution report for Engineer approval |
