@@ -1,485 +1,1164 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commissioner Dashboard — Hydro-Equity Engine</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-:root{
-  --bg:#F0F4F8;--surface:#FFFFFF;--border:#DDE3EA;
-  --text:#1A2332;--text2:#4A5568;--text3:#8A96A4;
-  --blue:#0D5FA8;--bluel:#EBF3FB;--blue2:#1976D2;
-  --red:#D32F2F;--orange:#E65100;--yellow:#F9A825;
-  --green:#2E7D32;--purple:#6A1B9A;
-  --hh:52px;--lw:280px;--rw:320px;--bh:168px;
-  --shad:0 2px 8px rgba(0,0,0,0.08)
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
-#hdr{position:fixed;top:0;left:0;right:0;height:var(--hh);background:var(--blue);color:#fff;display:flex;align-items:center;padding:0 16px;z-index:1000;gap:0;border-bottom:2px solid rgba(255,255,255,0.12)}
-.logo{font-size:14px;font-weight:600;letter-spacing:.04em;white-space:nowrap;padding-right:20px;border-right:1px solid rgba(255,255,255,.25)}
-.logo span{color:#7EC8F4}
-.stats{display:flex;gap:0;flex:1;padding:0 14px}
-.sp{display:flex;flex-direction:column;align-items:center;padding:0 13px;border-right:1px solid rgba(255,255,255,.15)}
-.sp:last-child{border-right:none}
-.sp .v{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500;line-height:1}
-.sp .l{font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
-.hdr-right{display:flex;align-items:center;gap:10px;margin-left:auto}
-.rbadge{font-size:11px;font-weight:600;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:3px 10px}
-.userinfo{font-size:11px;opacity:.75;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.logout-btn{font-size:11px;padding:4px 10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:#fff;cursor:pointer;font-family:'IBM Plex Sans',sans-serif}
-.logout-btn:hover{background:rgba(255,255,255,.2)}
-#lay{position:fixed;top:var(--hh);bottom:var(--bh);left:0;right:0;display:flex}
-#mapd{flex:1;position:relative}
-#mapc{width:100%;height:100%}
-.panel{width:var(--lw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shad);z-index:100}
-#rp{width:var(--rw);border-right:none;border-left:1px solid var(--border)}
-.psec{border-bottom:1px solid var(--border)}
-.ptit{padding:10px 14px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);background:#FAFBFC;display:flex;align-items:center;justify-content:space-between}
-.pbody{padding:10px 14px}
-.leaflet-container{background:#E8EFF6}
-.leaflet-popup-content-wrapper{border-radius:8px;font-family:'IBM Plex Sans',sans-serif}
-.ptit2{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--blue)}
-.prow{display:flex;gap:8px;font-size:11px;margin-bottom:3px}
-.pkey{color:var(--text3);min-width:70px}
-.pval{font-family:'IBM Plex Mono',monospace;font-weight:500}
-.mesr{background:#1565C0;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)}
-.zrow{display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;gap:6px}
-.zrow:hover{background:#F7F9FB}
-.zbdg{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.znm{flex:1;font-size:12px;color:var(--text)}
-.zhei{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500}
-.zst{font-size:10px;padding:1px 6px;border-radius:10px;white-space:nowrap}
-.seq{background:#E8F5E9;color:var(--green)}.smo{background:#FFF3E0;color:var(--orange)}
-.ssv{background:#FFEBEE;color:var(--red)}.sov{background:#F3E5F5;color:var(--purple)}
-.zbarw{width:36px;height:4px;background:var(--border);border-radius:2px}
-.zbar{height:100%;border-radius:2px}
-.acard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.07)}
-.acard.high{border-color:var(--red)}.acard.moderate{border-color:var(--orange)}
-.atit{font-size:11px;font-weight:600;margin-bottom:3px}
-.abody{font-size:11px;color:var(--text2);line-height:1.5}
-.ameta{font-size:10px;color:var(--text3);margin-top:5px;font-family:'IBM Plex Mono',monospace}
-.clpsbar{height:4px;border-radius:2px;margin-top:6px}
-.clpsv{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600}
-/* Bottom bar */
-#bot{position:fixed;bottom:0;left:0;right:0;height:var(--bh);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;z-index:500}
-#cww{width:200px;border-right:1px solid var(--border);padding:14px 16px;display:flex;flex-direction:column;align-items:center;gap:3px}
-#cww .cwt{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;margin-bottom:2px}
-#cwsc{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;text-align:center;line-height:1.1}
-#cwdesc{font-size:10px;font-weight:600;padding:2px 10px;border-radius:10px;display:inline-block;margin-top:2px}
-.mst{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:2px}
-.msl{font-size:11px;color:var(--text3)}
-.msv{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600}
-#statw{flex:1;padding:12px 16px}
-#stathdr{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px}
-.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.statbox{border:1px solid var(--border);border-radius:6px;padding:10px 12px;background:var(--surface)}
-.statbox .sv{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1}
-.statbox .sl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
-#tlcw{height:100px}
-#tlw2{width:280px;border-left:1px solid var(--border);padding:10px 16px}
-#tlhdr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-#tlhdr .tlt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
-#ld{position:fixed;inset:0;background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;z-index:9999;transition:opacity .5s}
-#ld.hidden{opacity:0;pointer-events:none}
-#ld .ldt{font-size:20px;font-weight:600;margin-bottom:6px}
-#ld .lds{font-size:13px;opacity:.65;margin-bottom:28px}
-#ld .ldb{width:220px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
-#ld .ldf{height:100%;background:white;border-radius:2px;animation:la 2.2s ease-in-out}
-@keyframes la{from{width:0%}to{width:100%}}
-/* Accordion collapsible */
-.acc-head{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}
-.acc-head:hover{background:#F3F6FA}
-.acc-arrow{font-size:11px;color:var(--text3);transition:transform .2s;flex-shrink:0;margin-left:6px}
-.acc-arrow.open{transform:rotate(90deg)}
-.acc-body{overflow:hidden;transition:max-height .25s ease,opacity .2s ease;max-height:600px;opacity:1}
-.acc-body.closed{max-height:0;opacity:0;pointer-events:none}
-/* Commissioner rec cards */
-.crcard{margin:7px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid var(--blue);background:#F0F7FF;border:1px solid #BBDEFB;border-left:3px solid var(--blue)}
-.crcard.budget{background:#FFF5F0;border-color:#FFCCBC;border-left-color:var(--red)}
-.crcard.leak{background:#FFF9F0;border-color:#FFE082;border-left-color:var(--orange)}
-.crtrig{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
-.crtxt{font-size:11px;color:var(--text);line-height:1.6;word-break:break-word}
-.crworst{font-size:10px;color:var(--text3);margin-top:4px}
-.crbudget{font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;background:#FFEBEE;color:var(--red)}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commissioner Dashboard — Hydro-Equity Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #F0F4F8;
+      --surface: #FFFFFF;
+      --border: #DDE3EA;
+      --text: #1A2332;
+      --text2: #4A5568;
+      --text3: #8A96A4;
+      --blue: #0D5FA8;
+      --bluel: #EBF3FB;
+      --blue2: #1976D2;
+      --red: #D32F2F;
+      --orange: #E65100;
+      --yellow: #F9A825;
+      --green: #2E7D32;
+      --purple: #6A1B9A;
+      --hh: 52px;
+      --lw: 280px;
+      --rw: 320px;
+      --bh: 168px;
+      --shad: 0 2px 8px rgba(0, 0, 0, 0.08)
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px
+    }
+
+    #hdr {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--hh);
+      background: var(--blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      z-index: 1000;
+      gap: 0;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.12)
+    }
+
+    .logo {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      white-space: nowrap;
+      padding-right: 20px;
+      border-right: 1px solid rgba(255, 255, 255, .25)
+    }
+
+    .logo span {
+      color: #7EC8F4
+    }
+
+    .stats {
+      display: flex;
+      gap: 0;
+      flex: 1;
+      padding: 0 14px
+    }
+
+    .sp {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 13px;
+      border-right: 1px solid rgba(255, 255, 255, .15)
+    }
+
+    .sp:last-child {
+      border-right: none
+    }
+
+    .sp .v {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1
+    }
+
+    .sp .l {
+      font-size: 10px;
+      opacity: .65;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: 2px
+    }
+
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto
+    }
+
+    .rbadge {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, .15);
+      border: 1px solid rgba(255, 255, 255, .25);
+      border-radius: 12px;
+      padding: 3px 10px
+    }
+
+    .userinfo {
+      font-size: 11px;
+      opacity: .75;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .logout-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, .1);
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      font-family: 'IBM Plex Sans', sans-serif
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, .2)
+    }
+
+    #lay {
+      position: fixed;
+      top: var(--hh);
+      bottom: var(--bh);
+      left: 0;
+      right: 0;
+      display: flex
+    }
+
+    #mapd {
+      flex: 1;
+      position: relative
+    }
+
+    #mapc {
+      width: 100%;
+      height: 100%
+    }
+
+    .panel {
+      width: var(--lw);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shad);
+      z-index: 100
+    }
+
+    #rp {
+      width: var(--rw);
+      border-right: none;
+      border-left: 1px solid var(--border)
+    }
+
+    .psec {
+      border-bottom: 1px solid var(--border)
+    }
+
+    .ptit {
+      padding: 10px 14px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text3);
+      background: #FAFBFC;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .pbody {
+      padding: 10px 14px
+    }
+
+    .leaflet-container {
+      background: #E8EFF6
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      font-family: 'IBM Plex Sans', sans-serif
+    }
+
+    .ptit2 {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--blue)
+    }
+
+    .prow {
+      display: flex;
+      gap: 8px;
+      font-size: 11px;
+      margin-bottom: 3px
+    }
+
+    .pkey {
+      color: var(--text3);
+      min-width: 70px
+    }
+
+    .pval {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500
+    }
+
+    .mesr {
+      background: #1565C0;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .3)
+    }
+
+    .zrow {
+      display: flex;
+      align-items: center;
+      padding: 7px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .1s;
+      gap: 6px
+    }
+
+    .zrow:hover {
+      background: #F7F9FB
+    }
+
+    .zbdg {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .znm {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text)
+    }
+
+    .zhei {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500
+    }
+
+    .zst {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      white-space: nowrap
+    }
+
+    .seq {
+      background: #E8F5E9;
+      color: var(--green)
+    }
+
+    .smo {
+      background: #FFF3E0;
+      color: var(--orange)
+    }
+
+    .ssv {
+      background: #FFEBEE;
+      color: var(--red)
+    }
+
+    .sov {
+      background: #F3E5F5;
+      color: var(--purple)
+    }
+
+    .zbarw {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px
+    }
+
+    .zbar {
+      height: 100%;
+      border-radius: 2px
+    }
+
+    .acard {
+      margin: 8px 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border-left: 3px solid;
+      background: var(--surface);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .07)
+    }
+
+    .acard.high {
+      border-color: var(--red)
+    }
+
+    .acard.moderate {
+      border-color: var(--orange)
+    }
+
+    .atit {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 3px
+    }
+
+    .abody {
+      font-size: 11px;
+      color: var(--text2);
+      line-height: 1.5
+    }
+
+    .ameta {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 5px;
+      font-family: 'IBM Plex Mono', monospace
+    }
+
+    .clpsbar {
+      height: 4px;
+      border-radius: 2px;
+      margin-top: 6px
+    }
+
+    .clpsv {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600
+    }
+
+    /* Bottom bar */
+    #bot {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--bh);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: stretch;
+      z-index: 500
+    }
+
+    #cww {
+      width: 200px;
+      border-right: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px
+    }
+
+    #cww .cwt {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text3);
+      font-weight: 600;
+      margin-bottom: 2px
+    }
+
+    #cwsc {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 30px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.1
+    }
+
+    #cwdesc {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-top: 2px
+    }
+
+    .mst {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-top: 2px
+    }
+
+    .msl {
+      font-size: 11px;
+      color: var(--text3)
+    }
+
+    .msv {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 600
+    }
+
+    #statw {
+      flex: 1;
+      padding: 12px 16px
+    }
+
+    #stathdr {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text3);
+      margin-bottom: 8px
+    }
+
+    .statgrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px
+    }
+
+    .statbox {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: var(--surface)
+    }
+
+    .statbox .sv {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1
+    }
+
+    .statbox .sl {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: 3px
+    }
+
+    #tlcw {
+      height: 100px
+    }
+
+    #tlw2 {
+      width: 280px;
+      border-left: 1px solid var(--border);
+      padding: 10px 16px
+    }
+
+    #tlhdr {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px
+    }
+
+    #tlhdr .tlt {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text3)
+    }
+
+    #ld {
+      position: fixed;
+      inset: 0;
+      background: var(--blue);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      z-index: 9999;
+      transition: opacity .5s
+    }
+
+    #ld.hidden {
+      opacity: 0;
+      pointer-events: none
+    }
+
+    #ld .ldt {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 6px
+    }
+
+    #ld .lds {
+      font-size: 13px;
+      opacity: .65;
+      margin-bottom: 28px
+    }
+
+    #ld .ldb {
+      width: 220px;
+      height: 3px;
+      background: rgba(255, 255, 255, .2);
+      border-radius: 2px;
+      overflow: hidden
+    }
+
+    #ld .ldf {
+      height: 100%;
+      background: white;
+      border-radius: 2px;
+      animation: la 2.2s ease-in-out
+    }
+
+    @keyframes la {
+      from {
+        width: 0%
+      }
+
+      to {
+        width: 100%
+      }
+    }
+
+    /* Accordion collapsible */
+    .acc-head {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .acc-head:hover {
+      background: #F3F6FA
+    }
+
+    .acc-arrow {
+      font-size: 11px;
+      color: var(--text3);
+      transition: transform .2s;
+      flex-shrink: 0;
+      margin-left: 6px
+    }
+
+    .acc-arrow.open {
+      transform: rotate(90deg)
+    }
+
+    .acc-body {
+      overflow: hidden;
+      transition: max-height .25s ease, opacity .2s ease;
+      max-height: 600px;
+      opacity: 1
+    }
+
+    .acc-body.closed {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none
+    }
+
+    /* Commissioner rec cards */
+    .crcard {
+      margin: 7px 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border-left: 3px solid var(--blue);
+      background: #F0F7FF;
+      border: 1px solid #BBDEFB;
+      border-left: 3px solid var(--blue)
+    }
+
+    .crcard.budget {
+      background: #FFF5F0;
+      border-color: #FFCCBC;
+      border-left-color: var(--red)
+    }
+
+    .crcard.leak {
+      background: #FFF9F0;
+      border-color: #FFE082;
+      border-left-color: var(--orange)
+    }
+
+    .crtrig {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .crtxt {
+      font-size: 11px;
+      color: var(--text);
+      line-height: 1.6;
+      word-break: break-word
+    }
+
+    .crworst {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 4px
+    }
+
+    .crbudget {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 8px;
+      background: #FFEBEE;
+      color: var(--red)
+    }
+
+    /* M2: Alert count breakdown bar */
+    .alert-count-bar {
+      display: flex;
+      gap: 10px;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border)
+    }
+
+    .alert-count-box {
+      flex: 1;
+      text-align: center;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border)
+    }
+
+    .alert-count-box .acb-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1
+    }
+
+    .alert-count-box .acb-lbl {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text3);
+      margin-top: 2px
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="ld">
-  <div class="ldt">HYDRO-EQUITY ENGINE</div>
-  <div class="lds">Loading Commissioner View · Solapur Municipal Corporation</div>
-  <div class="ldb"><div class="ldf"></div></div>
-</div>
-
-<div id="hdr">
-  <div class="logo">HYDRO-EQUITY <span>ENGINE</span> · SMC</div>
-  <div class="stats">
-    <div class="sp"><div class="v" id="spp">—</div><div class="l">Pipes</div></div>
-    <div class="sp"><div class="v" id="scw" style="color:#fff">—%</div><div class="l">City Equity</div></div>
-    <div class="sp"><div class="v" id="sSv" style="color:#FF8080">—</div><div class="l">Severe Zones</div></div>
-    <div class="sp"><div class="v" id="sAl" style="color:#FF8080">—</div><div class="l">Active Alerts</div></div>
-    <div class="sp"><div class="v" id="sNrw">—%</div><div class="l">NRW Est.</div></div>
-  </div>
-  <div class="hdr-right">
-    <span class="rbadge">🏛️ COMMISSIONER</span>
-    <span class="userinfo" id="userDisplay">—</span>
-    <button class="logout-btn" onclick="logout()">Sign Out</button>
-  </div>
-</div>
-
-<div id="lay">
-  <!-- Left: Zone equity list -->
-  <div class="panel" id="lp">
-    <div class="ptit">Zone Equity Rankings (HEI)</div>
-    <div id="znl" style="flex:1;overflow-y:auto">
-      <div style="padding:16px 14px;color:var(--text3);font-size:11px">Loading...</div>
+  <div id="ld">
+    <div class="ldt">HYDRO-EQUITY ENGINE</div>
+    <div class="lds">Loading Commissioner View · Solapur Municipal Corporation</div>
+    <div class="ldb">
+      <div class="ldf"></div>
     </div>
   </div>
 
-  <!-- Map -->
-  <div id="mapd"><div id="mapc"></div></div>
+  <div id="hdr">
+    <div class="logo">HYDRO-EQUITY <span>ENGINE</span> · SMC</div>
+    <div class="stats">
+      <div class="sp">
+        <div class="v" id="spp">—</div>
+        <div class="l">Pipes</div>
+      </div>
+      <div class="sp">
+        <div class="v" id="scw" style="color:#fff">—%</div>
+        <div class="l">City Equity</div>
+      </div>
+      <div class="sp">
+        <div class="v" id="sSv" style="color:#FF8080">—</div>
+        <div class="l">Severe Zones</div>
+      </div>
+      <div class="sp">
+        <div class="v" id="sAl" style="color:#FF8080">—</div>
+        <div class="l">Active Alerts</div>
+      </div>
+      <div class="sp">
+        <div class="v" id="sNrw">—%</div>
+        <div class="l">NRW Est.</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="rbadge">🏛️ COMMISSIONER</span>
+      <span class="userinfo" id="userDisplay">—</span>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
 
-  <!-- Right: Alerts + Strategic Recs + PDF -->
-  <div class="panel" id="rp">
-    <div class="psec">
-      <div class="ptit acc-head" onclick="toggleAcc('alertBody','alertArrow')">
-        <span>City-wide Alerts
-          <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px;margin-left:6px">0</span>
-        </span>
-        <span class="acc-arrow open" id="alertArrow">▶</span>
-      </div>
-      <div id="alertBody" class="acc-body">
-        <div id="albody" style="overflow-y:auto;max-height:200px"></div>
+  <!-- M2: Alert count breakdown bar — read only, no actions -->
+  <div class="alert-count-bar" id="alertCountBar">
+    <div class="alert-count-box" style="background:#F8F9FA">
+      <div class="acb-num" id="cnt-new" style="color:#8A96A4">—</div>
+      <div class="acb-lbl">New</div>
+    </div>
+    <div class="alert-count-box" style="background:#EBF3FB">
+      <div class="acb-num" id="cnt-ack" style="color:#1976D2">—</div>
+      <div class="acb-lbl">Acknowledged</div>
+    </div>
+    <div class="alert-count-box" style="background:#FFF3E0">
+      <div class="acb-num" id="cnt-pend" style="color:#E65100">—</div>
+      <div class="acb-lbl">Pending Resolution</div>
+    </div>
+    <div class="alert-count-box" style="background:#E8F5E9">
+      <div class="acb-num" id="cnt-res" style="color:#2E7D32">—</div>
+      <div class="acb-lbl">Resolved</div>
+    </div>
+  </div>
+
+  <div id="lay">
+    <!-- Left: Zone equity list -->
+    <div class="panel" id="lp">
+      <div class="ptit">Zone Equity Rankings (HEI)</div>
+      <div id="znl" style="flex:1;overflow-y:auto">
+        <div style="padding:16px 14px;color:var(--text3);font-size:11px">Loading...</div>
       </div>
     </div>
-    <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
-      <div class="ptit acc-head" onclick="toggleAcc('recBodyWrap','recArrow')">
-        <span>Strategic Recommendations
-          <span id="recstamp" style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.5;font-family:'IBM Plex Mono',monospace;margin-left:4px">—</span>
-        </span>
-        <span class="acc-arrow open" id="recArrow">▶</span>
-      </div>
-      <div id="recBodyWrap" class="acc-body" style="flex:1;overflow-y:auto">
-        <div id="recbody" style="padding-bottom:4px"></div>
-      </div>
+
+    <!-- Map -->
+    <div id="mapd">
+      <div id="mapc"></div>
     </div>
-    <div style="padding:10px 12px;border-top:1px solid var(--border);background:#FAFBFC;">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Weekly Report</div>
-      <button id="pdfBtn" onclick="downloadPDF()"
-        style="width:100%;padding:9px;background:var(--blue);border:none;border-radius:5px;
+
+    <!-- Right: Alerts + Strategic Recs + PDF -->
+    <div class="panel" id="rp">
+      <div class="psec">
+        <div class="ptit acc-head" onclick="toggleAcc('alertBody','alertArrow')">
+          <span>City-wide Alerts
+            <span id="acnt"
+              style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px;margin-left:6px">0</span>
+          </span>
+          <span class="acc-arrow open" id="alertArrow">▶</span>
+        </div>
+        <div id="alertBody" class="acc-body">
+          <div id="albody" style="overflow-y:auto;max-height:200px"></div>
+        </div>
+      </div>
+      <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+        <div class="ptit acc-head" onclick="toggleAcc('recBodyWrap','recArrow')">
+          <span>Strategic Recommendations
+            <span id="recstamp"
+              style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.5;font-family:'IBM Plex Mono',monospace;margin-left:4px">—</span>
+          </span>
+          <span class="acc-arrow open" id="recArrow">▶</span>
+        </div>
+        <div id="recBodyWrap" class="acc-body" style="flex:1;overflow-y:auto">
+          <div id="recbody" style="padding-bottom:4px"></div>
+        </div>
+      </div>
+      <div style="padding:10px 12px;border-top:1px solid var(--border);background:#FAFBFC;">
+        <div
+          style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">
+          Weekly Report</div>
+        <button id="pdfBtn" onclick="downloadPDF()" style="width:100%;padding:9px;background:var(--blue);border:none;border-radius:5px;
                color:#fff;font-size:12px;font-weight:600;cursor:pointer;
                font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;
                justify-content:center;gap:8px;transition:background .15s;">
-        📄 Download Weekly Report (PDF)
-      </button>
-      <div id="pdfStatus" style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center;min-height:14px"></div>
+          📄 Download Weekly Report (PDF)
+        </button>
+        <div id="pdfStatus" style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center;min-height:14px">
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Bottom bar -->
-<div id="bot">
-  <div id="cww">
-    <div class="cwt">City Equity Index</div>
-    <div id="cwsc">—</div>
-    <div id="cwlb" style="font-size:10px;color:var(--text3)">CWEI</div>
-    <div id="cwdesc">—</div>
-    <div class="mst" style="margin-top:6px"><span class="msl">Worst</span><span class="msv" id="wz">—</span></div>
-    <div class="mst"><span class="msl">Best</span><span class="msv" id="bz">—</span></div>
-    <div class="mst"><span class="msl">NRW Est.</span><span class="msv" id="nrw">—%</span></div>
-  </div>
-  <div id="statw">
-    <div id="stathdr">City Summary</div>
-    <div class="statgrid">
-      <div class="statbox"><div class="sv" id="st1" style="color:var(--blue)">—</div><div class="sl">Total Zones</div></div>
-      <div class="statbox"><div class="sv" id="st2" style="color:var(--green)">—</div><div class="sl">Equitable</div></div>
-      <div class="statbox"><div class="sv" id="st3" style="color:var(--orange)">—</div><div class="sl">Moderate</div></div>
-      <div class="statbox"><div class="sv" id="st4" style="color:var(--red)">—</div><div class="sl">Severe</div></div>
+  <!-- Bottom bar -->
+  <div id="bot">
+    <div id="cww">
+      <div class="cwt">City Equity Index</div>
+      <div id="cwsc">—</div>
+      <div id="cwlb" style="font-size:10px;color:var(--text3)">CWEI</div>
+      <div id="cwdesc">—</div>
+      <div class="mst" style="margin-top:6px"><span class="msl">Worst</span><span class="msv" id="wz">—</span></div>
+      <div class="mst"><span class="msl">Best</span><span class="msv" id="bz">—</span></div>
+      <div class="mst"><span class="msl">NRW Est.</span><span class="msv" id="nrw">—%</span></div>
+    </div>
+    <div id="statw">
+      <div id="stathdr">City Summary</div>
+      <div class="statgrid">
+        <div class="statbox">
+          <div class="sv" id="st1" style="color:var(--blue)">—</div>
+          <div class="sl">Total Zones</div>
+        </div>
+        <div class="statbox">
+          <div class="sv" id="st2" style="color:var(--green)">—</div>
+          <div class="sl">Equitable</div>
+        </div>
+        <div class="statbox">
+          <div class="sv" id="st3" style="color:var(--orange)">—</div>
+          <div class="sl">Moderate</div>
+        </div>
+        <div class="statbox">
+          <div class="sv" id="st4" style="color:var(--red)">—</div>
+          <div class="sl">Severe</div>
+        </div>
+      </div>
+    </div>
+    <div id="tlw2">
+      <div id="tlhdr"><span class="tlt">HEI Distribution</span></div>
+      <div style="height:100px"><canvas id="tlch"></canvas></div>
     </div>
   </div>
-  <div id="tlw2">
-    <div id="tlhdr"><span class="tlt">HEI Distribution</span></div>
-    <div style="height:100px"><canvas id="tlch"></canvas></div>
-  </div>
-</div>
 
-<script>
-// ── Auth ──────────────────────────────────────────────────────────
-const TOKEN    = sessionStorage.getItem('hydro_token');
-const FULLNAME = sessionStorage.getItem('hydro_full_name');
-if (!TOKEN) { window.location.href = 'login.html'; }
-document.getElementById('userDisplay').textContent = FULLNAME || 'Commissioner';
-function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+  <script>
+    // ── Auth ──────────────────────────────────────────────────────────
+    const TOKEN = sessionStorage.getItem('hydro_token');
+    const FULLNAME = sessionStorage.getItem('hydro_full_name');
+    if (!TOKEN) { window.location.href = 'login.html'; }
+    document.getElementById('userDisplay').textContent = FULLNAME || 'Commissioner';
+    function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
 
-// ── Accordion toggle ──────────────────────────────────────────────
-function toggleAcc(bodyId, arrowId) {
-  const body  = document.getElementById(bodyId);
-  const arrow = document.getElementById(arrowId);
-  if(!body) return;
-  const isOpen = !body.classList.contains('closed');
-  body.classList.toggle('closed', isOpen);
-  if(arrow) arrow.classList.toggle('open', !isOpen);
-}
+    // ── Accordion toggle ──────────────────────────────────────────────
+    function toggleAcc(bodyId, arrowId) {
+      const body = document.getElementById(bodyId);
+      const arrow = document.getElementById(arrowId);
+      if (!body) return;
+      const isOpen = !body.classList.contains('closed');
+      body.classList.toggle('closed', isOpen);
+      if (arrow) arrow.classList.toggle('open', !isOpen);
+    }
 
-const BACK = 'http://localhost:8000';
-const MC   = [17.68, 75.908];
+    const BACK = 'http://localhost:8000';
+    const MC = [17.68, 75.908];
 
-// Zone grid: 3-row x 3-col minus NW corner = 8 zones
-// Covers full Solapur pipeline network  radius=1800m, mathematically zero-gap
-// N:17.720 S:17.618 W:75.853 E:75.960 -- exact boundary fit
-const ZONES = [
-  {id:'z1',apiId:'zone_1',nm:'Zone 1',lat:17.7038,lon:75.9065},
-  {id:'z2',apiId:'zone_2',nm:'Zone 2',lat:17.7038,lon:75.9430},
-  {id:'z3',apiId:'zone_3',nm:'Zone 3',lat:17.6690,lon:75.8700},
-  {id:'z4',apiId:'zone_4',nm:'Zone 4',lat:17.6690,lon:75.9065},
-  {id:'z5',apiId:'zone_5',nm:'Zone 5',lat:17.6690,lon:75.9430},
-  {id:'z6',apiId:'zone_6',nm:'Zone 6',lat:17.6342,lon:75.8700},
-  {id:'z7',apiId:'zone_7',nm:'Zone 7',lat:17.6342,lon:75.9065},
-  {id:'z8',apiId:'zone_8',nm:'Zone 8',lat:17.6342,lon:75.9430},
-];
-const ESRS=[{lat:17.7038,lon:75.9065},{lat:17.7038,lon:75.9430},{lat:17.6690,lon:75.8700},{lat:17.6690,lon:75.9065},{lat:17.6690,lon:75.9430},{lat:17.6342,lon:75.8700},{lat:17.6342,lon:75.9065},{lat:17.6342,lon:75.9430}];
+    // Zone grid: 3-row x 3-col minus NW corner = 8 zones
+    // Covers full Solapur pipeline network  radius=1800m, mathematically zero-gap
+    // N:17.720 S:17.618 W:75.853 E:75.960 -- exact boundary fit
+    const ZONES = [
+      { id: 'z1', apiId: 'zone_1', nm: 'Zone 1', lat: 17.7038, lon: 75.9065 },
+      { id: 'z2', apiId: 'zone_2', nm: 'Zone 2', lat: 17.7038, lon: 75.9430 },
+      { id: 'z3', apiId: 'zone_3', nm: 'Zone 3', lat: 17.6690, lon: 75.8700 },
+      { id: 'z4', apiId: 'zone_4', nm: 'Zone 4', lat: 17.6690, lon: 75.9065 },
+      { id: 'z5', apiId: 'zone_5', nm: 'Zone 5', lat: 17.6690, lon: 75.9430 },
+      { id: 'z6', apiId: 'zone_6', nm: 'Zone 6', lat: 17.6342, lon: 75.8700 },
+      { id: 'z7', apiId: 'zone_7', nm: 'Zone 7', lat: 17.6342, lon: 75.9065 },
+      { id: 'z8', apiId: 'zone_8', nm: 'Zone 8', lat: 17.6342, lon: 75.9430 },
+    ];
+    const ESRS = [{ lat: 17.7038, lon: 75.9065 }, { lat: 17.7038, lon: 75.9430 }, { lat: 17.6690, lon: 75.8700 }, { lat: 17.6690, lon: 75.9065 }, { lat: 17.6690, lon: 75.9430 }, { lat: 17.6342, lon: 75.8700 }, { lat: 17.6342, lon: 75.9065 }, { lat: 17.6342, lon: 75.9430 }];
 
-const api = {
-  get: async(ep) => {
-    try{const r=await fetch(BACK+ep,{headers:{'Authorization':'Bearer '+TOKEN}});
-      if(r.status===401){sessionStorage.clear();window.location.href='login.html';}
-      if(!r.ok)throw new Error();return await r.json();}
-    catch(e){console.warn('[API]',ep,e.message);return null;}
-  },
-  pub: async(ep) => {
-    try{const r=await fetch(BACK+ep);if(!r.ok)throw new Error();return await r.json();}
-    catch(e){return null;}
-  }
-};
+    const api = {
+      get: async (ep) => {
+        try {
+          const r = await fetch(BACK + ep, { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+          if (r.status === 401) { sessionStorage.clear(); window.location.href = 'login.html'; }
+          if (!r.ok) throw new Error(); return await r.json();
+        }
+        catch (e) { console.warn('[API]', ep, e.message); return null; }
+      },
+      pub: async (ep) => {
+        try { const r = await fetch(BACK + ep); if (!r.ok) throw new Error(); return await r.json(); }
+        catch (e) { return null; }
+      }
+    };
 
-function heiCol(h){if(h>1.30)return'#6A1B9A';if(h>=0.85)return'#2E7D32';if(h>=0.70)return'#E65100';return'#D32F2F'}
-function heiLbl(h){if(h>1.30)return['Over-P','sov'];if(h>=0.85)return['Equitable','seq'];if(h>=0.70)return['Moderate','smo'];return['Severe','ssv']}
+    function heiCol(h) { if (h > 1.30) return '#6A1B9A'; if (h >= 0.85) return '#2E7D32'; if (h >= 0.70) return '#E65100'; return '#D32F2F' }
+    function heiLbl(h) { if (h > 1.30) return ['Over-P', 'sov']; if (h >= 0.85) return ['Equitable', 'seq']; if (h >= 0.70) return ['Moderate', 'smo']; return ['Severe', 'ssv'] }
 
-// ── Map init ──────────────────────────────────────────────────────
-const map=L.map('mapc',{center:MC,zoom:13,zoomControl:false,preferCanvas:true});
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
-L.control.zoom({position:'bottomright'}).addTo(map);
-const pLG=L.layerGroup().addTo(map),eLG=L.layerGroup().addTo(map),zLG=L.layerGroup().addTo(map);
+    // ── Map init ──────────────────────────────────────────────────────
+    const map = L.map('mapc', { center: MC, zoom: 13, zoomControl: false, preferCanvas: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    const pLG = L.layerGroup().addTo(map), eLG = L.layerGroup().addTo(map), zLG = L.layerGroup().addTo(map);
 
-// Pipeline
-async function loadPipeline(){
-  const geo=await api.pub('/pipeline');
-  if(!geo||!geo.features)return;
-  document.getElementById('spp').textContent=geo.features.length.toLocaleString();
-  geo.features.forEach(f=>{
-    if(!f.geometry)return;
-    const cs=f.geometry.type==='MultiLineString'?f.geometry.coordinates[0]:f.geometry.coordinates;
-    if(!cs||cs.length<2)return;
-    L.polyline(cs.map(c=>[c[1],c[0]]),{color:'#1976D2',weight:1.2,opacity:.7,smoothFactor:1}).addTo(pLG);
-  });
-}
+    // Pipeline
+    async function loadPipeline() {
+      const geo = await api.pub('/pipeline');
+      if (!geo || !geo.features) return;
+      document.getElementById('spp').textContent = geo.features.length.toLocaleString();
+      geo.features.forEach(f => {
+        if (!f.geometry) return;
+        const cs = f.geometry.type === 'MultiLineString' ? f.geometry.coordinates[0] : f.geometry.coordinates;
+        if (!cs || cs.length < 2) return;
+        L.polyline(cs.map(c => [c[1], c[0]]), { color: '#1976D2', weight: 1.2, opacity: .7, smoothFactor: 1 }).addTo(pLG);
+      });
+    }
 
-// ESR markers
-async function loadMarkers(){
-  const infra=await api.pub('/infrastructure');
-  const ei=n=>L.divIcon({html:`<div class="mesr">${n}</div>`,className:'',iconSize:[24,24],iconAnchor:[12,12]});
-  if(infra&&infra.markers&&infra.markers.length>0){
-    let n=1;infra.markers.filter(m=>m.feature_type==='storage_tank').forEach(m=>L.marker([m.lat,m.lon],{icon:ei(n++),zIndexOffset:100}).addTo(eLG));
-  } else {
-    ESRS.forEach((e,i)=>L.marker([e.lat,e.lon],{icon:ei(i+1),zIndexOffset:100}).addTo(eLG));
-  }
-}
+    // ESR markers
+    async function loadMarkers() {
+      const infra = await api.pub('/infrastructure');
+      const ei = n => L.divIcon({ html: `<div class="mesr">${n}</div>`, className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
+      if (infra && infra.markers && infra.markers.length > 0) {
+        let n = 1; infra.markers.filter(m => m.feature_type === 'storage_tank').forEach(m => L.marker([m.lat, m.lon], { icon: ei(n++), zIndexOffset: 100 }).addTo(eLG));
+      } else {
+        ESRS.forEach((e, i) => L.marker([e.lat, e.lon], { icon: ei(i + 1), zIndexOffset: 100 }).addTo(eLG));
+      }
+    }
 
-// Zone overlays from equity data
-let zoneData=[];
-function renderZoneOverlays(){
-  zLG.clearLayers();
-  zoneData.forEach(z=>{
-    const col=heiCol(z.hei||0);
-    L.circle([z.lat,z.lon],{radius:1800,fillColor:col,fillOpacity:.15,color:col,weight:1.5,opacity:.6})
-     .bindTooltip(`<b>${z.nm}</b> · HEI: ${(z.hei||0).toFixed(2)} · ${heiLbl(z.hei||0)[0]}`,{sticky:true})
-     .addTo(zLG);
-  });
-}
+    // Zone overlays from equity data
+    let zoneData = [];
+    function renderZoneOverlays() {
+      zLG.clearLayers();
+      zoneData.forEach(z => {
+        const col = heiCol(z.hei || 0);
+        L.circle([z.lat, z.lon], { radius: 1800, fillColor: col, fillOpacity: .15, color: col, weight: 1.5, opacity: .6 })
+          .bindTooltip(`<b>${z.nm}</b> · HEI: ${(z.hei || 0).toFixed(2)} · ${heiLbl(z.hei || 0)[0]}`, { sticky: true })
+          .addTo(zLG);
+      });
+    }
 
-let heiChart=null;
-function drawHeiChart(scores){
-  const ctx=document.getElementById('tlch').getContext('2d');
-  const labels=scores.map(z=>z.nm.replace('Zone ','Z'));
-  const vals=scores.map(z=>z.hei||0);
-  const colors=vals.map(v=>heiCol(v));
-  if(heiChart){heiChart.destroy();}
-  heiChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:colors,borderRadius:3}]},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,
-      plugins:{legend:{display:false}},
-      scales:{x:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#8A96A4'}},
-              y:{grid:{color:'#EEF2F6'},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#8A96A4'},min:0,max:1.5}}}});
-}
+    let heiChart = null;
+    function drawHeiChart(scores) {
+      const ctx = document.getElementById('tlch').getContext('2d');
+      const labels = scores.map(z => z.nm.replace('Zone ', 'Z'));
+      const vals = scores.map(z => z.hei || 0);
+      const colors = vals.map(v => heiCol(v));
+      if (heiChart) { heiChart.destroy(); }
+      heiChart = new Chart(ctx, {
+        type: 'bar', data: { labels, datasets: [{ data: vals, backgroundColor: colors, borderRadius: 3 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'IBM Plex Mono', size: 9 }, color: '#8A96A4' } },
+            y: { grid: { color: '#EEF2F6' }, ticks: { font: { family: 'IBM Plex Mono', size: 9 }, color: '#8A96A4' }, min: 0, max: 1.5 }
+          }
+        }
+      });
+    }
 
-// ── Load equity ───────────────────────────────────────────────────
-async function loadEquity(){
-  const data=await api.get('/zones');
-  if(!data||data.error||!Array.isArray(data)||data.length===0){
-    document.getElementById('znl').innerHTML='<div style="padding:16px 14px;color:#D32F2F;font-size:11px;font-weight:500;">No equity data — run V4 first</div>';
-    return;
-  }
-  // Merge with zone coordinates
-  zoneData=ZONES.map(z=>{
-    const az=data.find(x=>(x.zone_id||x.id||'').replace('zone_','z')===z.id);
-    return az?{...z,hei:az.hei||0,status:az.status||'',color:az.color||heiCol(az.hei||0)}:{...z,hei:0,status:'unknown',color:'#8A96A4'};
-  });
-  const cwei=zoneData.reduce((s,z)=>s+(z.hei||0),0)/zoneData.length;
-  const sorted=[...zoneData].sort((a,b)=>a.hei-b.hei);
-  const eq=zoneData.filter(z=>z.status==='equitable').length;
-  const mod=zoneData.filter(z=>z.status==='moderate').length;
-  const sev=zoneData.filter(z=>z.status==='severe').length;
-  const pct=Math.round(cwei*100);
+    // ── Load equity ───────────────────────────────────────────────────
+    async function loadEquity() {
+      const data = await api.get('/zones');
+      if (!data || data.error || !Array.isArray(data) || data.length === 0) {
+        document.getElementById('znl').innerHTML = '<div style="padding:16px 14px;color:#D32F2F;font-size:11px;font-weight:500;">No equity data — run V4 first</div>';
+        return;
+      }
+      // Merge with zone coordinates
+      zoneData = ZONES.map(z => {
+        const az = data.find(x => (x.zone_id || x.id || '').replace('zone_', 'z') === z.id);
+        return az ? { ...z, hei: az.hei || 0, status: az.status || '', color: az.color || heiCol(az.hei || 0) } : { ...z, hei: 0, status: 'unknown', color: '#8A96A4' };
+      });
+      const cwei = zoneData.reduce((s, z) => s + (z.hei || 0), 0) / zoneData.length;
+      const sorted = [...zoneData].sort((a, b) => a.hei - b.hei);
+      const eq = zoneData.filter(z => z.status === 'equitable').length;
+      const mod = zoneData.filter(z => z.status === 'moderate').length;
+      const sev = zoneData.filter(z => z.status === 'severe').length;
+      const pct = Math.round(cwei * 100);
 
-  // Header
-  document.getElementById('scw').textContent=pct+'%';
-  document.getElementById('sSv').textContent=sev;
-  document.getElementById('sNrw').textContent='18%';
-  // CWEI box
-  const col=heiCol(cwei);
-  document.getElementById('cwsc').textContent=pct+'%';
-  document.getElementById('cwsc').style.color=col;
-  const lbls={equitable:'Equitable',moderate:'Moderate Imbalance',severe:'Severe Inequity',over:'Over-Pressurized'};
-  const bgs={equitable:'#E8F5E9',moderate:'#FFF3E0',severe:'#FFEBEE',over:'#F3E5F5'};
-  const st=cwei>1.30?'over':cwei>=0.85?'equitable':cwei>=0.70?'moderate':'severe';
-  const de=document.getElementById('cwdesc');
-  de.textContent=lbls[st];de.style.color=col;de.style.background=bgs[st];
-  document.getElementById('wz').textContent=sorted[0]?sorted[0].nm:'—';
-  document.getElementById('bz').textContent=sorted[sorted.length-1]?sorted[sorted.length-1].nm:'—';
-  document.getElementById('nrw').textContent='18%';
-  document.getElementById('st1').textContent=zoneData.length;
-  document.getElementById('st2').textContent=eq;
-  document.getElementById('st3').textContent=mod;
-  document.getElementById('st4').textContent=sev;
+      // Header
+      document.getElementById('scw').textContent = pct + '%';
+      document.getElementById('sSv').textContent = sev;
+      document.getElementById('sNrw').textContent = '18%';
+      // CWEI box
+      const col = heiCol(cwei);
+      document.getElementById('cwsc').textContent = pct + '%';
+      document.getElementById('cwsc').style.color = col;
+      const lbls = { equitable: 'Equitable', moderate: 'Moderate Imbalance', severe: 'Severe Inequity', over: 'Over-Pressurized' };
+      const bgs = { equitable: '#E8F5E9', moderate: '#FFF3E0', severe: '#FFEBEE', over: '#F3E5F5' };
+      const st = cwei > 1.30 ? 'over' : cwei >= 0.85 ? 'equitable' : cwei >= 0.70 ? 'moderate' : 'severe';
+      const de = document.getElementById('cwdesc');
+      de.textContent = lbls[st]; de.style.color = col; de.style.background = bgs[st];
+      document.getElementById('wz').textContent = sorted[0] ? sorted[0].nm : '—';
+      document.getElementById('bz').textContent = sorted[sorted.length - 1] ? sorted[sorted.length - 1].nm : '—';
+      document.getElementById('nrw').textContent = '18%';
+      document.getElementById('st1').textContent = zoneData.length;
+      document.getElementById('st2').textContent = eq;
+      document.getElementById('st3').textContent = mod;
+      document.getElementById('st4').textContent = sev;
 
-  // Zone list (sorted worst first)
-  document.getElementById('znl').innerHTML=sorted.map(z=>{
-    const[lbl,cls]=heiLbl(z.hei||0);const col=z.color||heiCol(z.hei||0);
-    return`<div class="zrow" onclick="map.flyTo([${z.lat},${z.lon}],15,{duration:1})">
+      // Zone list (sorted worst first)
+      document.getElementById('znl').innerHTML = sorted.map(z => {
+        const [lbl, cls] = heiLbl(z.hei || 0); const col = z.color || heiCol(z.hei || 0);
+        return `<div class="zrow" onclick="map.flyTo([${z.lat},${z.lon}],15,{duration:1})">
       <div class="zbdg" style="background:${col}"></div>
       <div class="znm">${z.nm}</div>
-      <div class="zhei" style="color:${col}">${(z.hei||0).toFixed(2)}</div>
+      <div class="zhei" style="color:${col}">${(z.hei || 0).toFixed(2)}</div>
       <div class="zst ${cls}">${lbl}</div>
-      <div class="zbarw"><div class="zbar" style="width:${Math.min(100,(z.hei||0)*77)}%;background:${col}"></div></div>
+      <div class="zbarw"><div class="zbar" style="width:${Math.min(100, (z.hei || 0) * 77)}%;background:${col}"></div></div>
     </div>`;
-  }).join('');
+      }).join('');
 
-  renderZoneOverlays();
-  drawHeiChart(zoneData);
-}
+      renderZoneOverlays();
+      drawHeiChart(zoneData);
+    }
 
-// ── Load alerts ───────────────────────────────────────────────────
-async function loadAlerts(){
-  const data=await api.get('/alerts/active?scenario=baseline');
-  if(!data||data.error){document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">Alert data unavailable — run V5 first.</div>';return;}
-  const al=data.alerts||[];
-  document.getElementById('acnt').textContent=al.length;
-  document.getElementById('sAl').textContent=al.length;
-  if(al.length===0){document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts</div>';return;}
-  document.getElementById('albody').innerHTML=al.map(a=>{
-    const isHigh=(a.level==='HIGH'||a.level==='high');
-    const col=isHigh?'#D32F2F':'#E65100';
-    const clps=parseFloat(a.clps||0);
-    return`<div class="acard ${isHigh?'high':'moderate'}">
-      <div class="atit" style="color:${col}">${isHigh?'🔴':'🟠'} ${a.zone}</div>
-      <div class="abody">${a.dominant_signal} · ${a.body||''}</div>
+    // ── Load alerts ───────────────────────────────────────────────────
+    async function loadAlerts() {
+      const data = await api.get('/alerts/active?scenario=baseline');
+      if (!data || data.error) { document.getElementById('albody').innerHTML = '<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">Alert data unavailable — run V5 first.</div>'; return; }
+      const al = data.alerts || [];
+      document.getElementById('acnt').textContent = al.length;
+      document.getElementById('sAl').textContent = al.length;
+      if (al.length === 0) { document.getElementById('albody').innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts</div>'; return; }
+      document.getElementById('albody').innerHTML = al.map(a => {
+        const isHigh = (a.level === 'HIGH' || a.level === 'high');
+        const col = isHigh ? '#D32F2F' : '#E65100';
+        const clps = parseFloat(a.clps || 0);
+        return `<div class="acard ${isHigh ? 'high' : 'moderate'}">
+      <div class="atit" style="color:${col}">${isHigh ? '🔴' : '🟠'} ${a.zone}</div>
+      <div class="abody">${a.dominant_signal} · ${a.body || ''}</div>
       <div class="ameta">CLPS: <span class="clpsv" style="color:${col}">${clps.toFixed(3)}</span></div>
-      <div class="clpsbar" style="width:${Math.min(100,clps*100)}%;background:${col}"></div>
+      <div class="clpsbar" style="width:${Math.min(100, clps * 100)}%;background:${col}"></div>
     </div>`;
-  }).join('');
-}
+      }).join('');
+    }
 
-async function renderRecommendations(){
-  const data = await api.get('/recommendations/commissioner');
-  const el   = document.getElementById('recbody');
-  if(!el) return;
-  if(!data || data.error){
-    el.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:#D32F2F;line-height:1.6;">${
-      data&&data.error?data.error:'Run V7 first: python scripts/v7_recommendations.py'}</div>`;
-    return;
-  }
-  const recs = data.recs || data.recommendations || [];
-  const stamp = document.getElementById('recstamp');
-  if(stamp) stamp.textContent = recs.length>0?`${recs.length} rec(s)  · ${(data.updated_at||'').slice(0,16).replace('T',' ')}`:
-    (data.updated_at ? data.updated_at.slice(0,16).replace('T',' ') : '—');
+    async function renderRecommendations() {
+      const data = await api.get('/recommendations/commissioner');
+      const el = document.getElementById('recbody');
+      if (!el) return;
+      if (!data || data.error) {
+        el.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:#D32F2F;line-height:1.6;">${data && data.error ? data.error : 'Run V7 first: python scripts/v7_recommendations.py'}</div>`;
+        return;
+      }
+      const recs = data.recs || data.recommendations || [];
+      const stamp = document.getElementById('recstamp');
+      if (stamp) stamp.textContent = recs.length > 0 ? `${recs.length} rec(s)  · ${(data.updated_at || '').slice(0, 16).replace('T', ' ')}` :
+        (data.updated_at ? data.updated_at.slice(0, 16).replace('T', ' ') : '—');
 
-  if(recs.length === 0){
-    el.innerHTML = '<div style="padding:10px 12px;font-size:11px;color:var(--text3);line-height:1.6;">No strategic recommendations yet.<br>V7 engine refreshes every 5 minutes.</div>';
-    return;
-  }
+      if (recs.length === 0) {
+        el.innerHTML = '<div style="padding:10px 12px;font-size:11px;color:var(--text3);line-height:1.6;">No strategic recommendations yet.<br>V7 engine refreshes every 5 minutes.</div>';
+        return;
+      }
 
-  const trigMap = {
-    'A_equity': {icon:'⚖️', label:'Equity', defCls:''},
-    'B_leak':   {icon:'💧', label:'Leak / Anomaly', defCls:'leak'},
-    'C_burst':  {icon:'💥', label:'Burst Risk', defCls:'budget'},
-  };
+      const trigMap = {
+        'A_equity': { icon: '⚖️', label: 'Equity', defCls: '' },
+        'B_leak': { icon: '💧', label: 'Leak / Anomaly', defCls: 'leak' },
+        'C_burst': { icon: '💥', label: 'Burst Risk', defCls: 'budget' },
+      };
 
-  el.innerHTML = recs.map(r => {
-    const tm = trigMap[r.trigger_type] || {icon:'📋', label:'System', defCls:''};
-    const cls = r.budget_flag ? 'budget' : tm.defCls;
-    const worstArr = Array.isArray(r.worst_zones) ? r.worst_zones : [];
-    const worst = worstArr.map(z => z.replace('_',' ').replace('zone','Zone').trim()).join(', ');
-    return `<div class="crcard ${cls}">
-      <div class="crtrig" style="color:${r.budget_flag?'var(--red)':'var(--blue)'}">
+      el.innerHTML = recs.map(r => {
+        const tm = trigMap[r.trigger_type] || { icon: '📋', label: 'System', defCls: '' };
+        const cls = r.budget_flag ? 'budget' : tm.defCls;
+        const worstArr = Array.isArray(r.worst_zones) ? r.worst_zones : [];
+        const worst = worstArr.map(z => z.replace('_', ' ').replace('zone', 'Zone').trim()).join(', ');
+        return `<div class="crcard ${cls}">
+      <div class="crtrig" style="color:${r.budget_flag ? 'var(--red)' : 'var(--blue)'}">
         <span>${tm.icon} ${tm.label}</span>
         ${r.budget_flag ? '<span class="crbudget">⚠ BUDGET FLAG</span>' : ''}
       </div>
       <div class="crtxt">${r.city_summary || ''}</div>
       ${worst ? `<div class="crworst">Priority zones: ${worst}</div>` : ''}
       ${r.theft_summary ? `<div class="crworst" style="color:var(--red)">Theft: ${r.theft_summary}</div>` : ''}
-      ${r.resolution_rate>0 ? `<div class="crworst">Resolution rate: ${Math.round(r.resolution_rate*100)}%</div>` : ''}
+      ${r.resolution_rate > 0 ? `<div class="crworst">Resolution rate: ${Math.round(r.resolution_rate * 100)}%</div>` : ''}
     </div>`;
-  }).join('');
-}
-
-async function downloadPDF(){
-  const btn    = document.getElementById('pdfBtn');
-  const status = document.getElementById('pdfStatus');
-  btn.disabled = true;
-  btn.textContent = '⏳ Generating PDF...';
-  status.textContent = 'Building report from V4/V5/V6 analytics data...';
-  status.style.color = 'var(--text3)';
-  try {
-    const resp = await fetch(`${BACK}/reports/weekly`, {
-      headers: {'Authorization': 'Bearer ' + TOKEN}
-    });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({detail: 'Report generation failed'}));
-      throw new Error(err.detail || `HTTP ${resp.status}`);
+      }).join('');
     }
-    const blob = await resp.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    const now  = new Date().toISOString().slice(0,10);
-    a.href     = url;
-    a.download = `hydro_equity_report_${now}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    status.textContent = '✅ PDF downloaded successfully.';
-    status.style.color = 'var(--green)';
-  } catch(e) {
-    status.textContent = `❌ ${e.message}`;
-    status.style.color = 'var(--red)';
-    console.warn('[PDF]', e.message);
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = '📄 Download Weekly Report (PDF)';
-  }
-}
 
-async function loadAll(){
-  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),renderRecommendations()]);
-  setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
-}
-window.addEventListener('load',()=>setTimeout(loadAll,400));
-setInterval(()=>{loadEquity();loadAlerts();renderRecommendations();},60000);
-</script>
+    async function downloadPDF() {
+      const btn = document.getElementById('pdfBtn');
+      const status = document.getElementById('pdfStatus');
+      btn.disabled = true;
+      btn.textContent = '⏳ Generating PDF...';
+      status.textContent = 'Building report from V4/V5/V6 analytics data...';
+      status.style.color = 'var(--text3)';
+      try {
+        const resp = await fetch(`${BACK}/reports/weekly`, {
+          headers: { 'Authorization': 'Bearer ' + TOKEN }
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ detail: 'Report generation failed' }));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const now = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `hydro_equity_report_${now}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        status.textContent = '✅ PDF downloaded successfully.';
+        status.style.color = 'var(--green)';
+      } catch (e) {
+        status.textContent = `❌ ${e.message}`;
+        status.style.color = 'var(--red)';
+        console.warn('[PDF]', e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📄 Download Weekly Report (PDF)';
+      }
+    }
+
+    // M2: Fetch alert counts by status — 4 calls, display only
+    async function loadAlertCounts() {
+      const statuses = [
+        { key: 'new', elId: 'cnt-new' },
+        { key: 'acknowledged', elId: 'cnt-ack' },
+        { key: 'resolve_requested', elId: 'cnt-pend' },
+        { key: 'resolved', elId: 'cnt-res' },
+      ];
+      for (const s of statuses) {
+        try {
+          const r = await fetch(`${BACK}/alerts/active?status=${s.key}`, {
+            headers: { 'Authorization': 'Bearer ' + TOKEN }
+          });
+          if (r.ok) {
+            const d = await r.json();
+            const count = Array.isArray(d.alerts) ? d.alerts.length : (d.count ?? '—');
+            document.getElementById(s.elId).textContent = count;
+          } else {
+            document.getElementById(s.elId).textContent = '?';
+          }
+        } catch {
+          document.getElementById(s.elId).textContent = '—';
+        }
+      }
+    }
+
+    async function loadAll() {
+      await Promise.all([loadPipeline(), loadMarkers(), loadEquity(), loadAlerts(), renderRecommendations(), loadAlertCounts()]); // M2: added loadAlertCounts
+      setTimeout(() => document.getElementById('ld').classList.add('hidden'), 300);
+    }
+    window.addEventListener('load', () => setTimeout(loadAll, 400));
+    setInterval(() => { loadEquity(); loadAlerts(); renderRecommendations(); loadAlertCounts(); }, 60000); // M2: refresh counts every 60s
+  </script>
 </body>
+
 </html>
