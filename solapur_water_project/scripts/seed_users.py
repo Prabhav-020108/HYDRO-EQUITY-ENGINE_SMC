@@ -1,5 +1,5 @@
 """
-Hydro-Equity Engine — Phase 4a + M4
+Hydro-Equity Engine — Phase 4a + M4 + Phase 2
 scripts/seed_users.py
 
 Seeds demo users into the PostgreSQL 'users' table.
@@ -7,8 +7,11 @@ Seeds demo users into the PostgreSQL 'users' table.
 M4 ADDITION: 8 field_operator users (field_op_z1 through field_op_z8)
              one per zone, password: demo@1234, role: field_operator
 
+Phase 2 ADDITION: ward_z3 through ward_z8 (ward_officer, zone_3..zone_8,
+                  password: demo@1234)
+
 WORKS BOTH WAYS:
-  - If PostgreSQL is running: seeds all 12 users into the DB
+  - If PostgreSQL is running: seeds all 18 users into the DB
   - If PostgreSQL is unavailable: shows a clear error message with fix steps
   - AUTH_DEV_MODE note: seeding always requires PostgreSQL (users must be stored
     somewhere). AUTH_DEV_MODE bypasses DB *at runtime* for login only.
@@ -22,7 +25,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-# ── All 12 demo users ──────────────────────────────────────────────────────────
+# ── All 18 demo users ──────────────────────────────────────────────────────────
 DEMO_USERS = [
 
     # ── Original 4 users (Phase 4a) ──────────────────────────────────────────
@@ -53,6 +56,50 @@ DEMO_USERS = [
         "role":      "commissioner",
         "zone_id":   None,
         "full_name": "SMC Commissioner",
+    },
+
+    # ── Phase 2 NEW: ward_z3 through ward_z8 ─────────────────────────────────
+    {
+        "username":  "ward_z3",
+        "password":  "demo123",
+        "role":      "ward_officer",
+        "zone_id":   "zone_3",
+        "full_name": "Ward Officer — Zone 3",
+    },
+    {
+        "username":  "ward_z4",
+        "password":  "demo123",
+        "role":      "ward_officer",
+        "zone_id":   "zone_4",
+        "full_name": "Ward Officer — Zone 4",
+    },
+    {
+        "username":  "ward_z5",
+        "password":  "demo123",
+        "role":      "ward_officer",
+        "zone_id":   "zone_5",
+        "full_name": "Ward Officer — Zone 5",
+    },
+    {
+        "username":  "ward_z6",
+        "password":  "demo123",
+        "role":      "ward_officer",
+        "zone_id":   "zone_6",
+        "full_name": "Ward Officer — Zone 6",
+    },
+    {
+        "username":  "ward_z7",
+        "password":  "demo123",
+        "role":      "ward_officer",
+        "zone_id":   "zone_7",
+        "full_name": "Ward Officer — Zone 7",
+    },
+    {
+        "username":  "ward_z8",
+        "password":  "demo123",
+        "role":      "ward_officer",
+        "zone_id":   "zone_8",
+        "full_name": "Ward Officer — Zone 8",
     },
 
     # ── M4 NEW: 8 field operators, one per zone ───────────────────────────────
@@ -115,6 +162,7 @@ DEMO_USERS = [
 ]
 
 FIELD_OP_COUNT   = sum(1 for u in DEMO_USERS if u["role"] == "field_operator")
+WARD_COUNT       = sum(1 for u in DEMO_USERS if u["role"] == "ward_officer")
 TOTAL_USERS      = len(DEMO_USERS)
 
 
@@ -134,9 +182,9 @@ def _check_db_connection(engine):
 
 def seed():
     print("=" * 62)
-    print("  seed_users.py · Phase 4a + M4 User Seeding")
+    print("  seed_users.py · Phase 4a + M4 + Phase 2 User Seeding")
     print(f"  Total users to seed: {TOTAL_USERS} "
-          f"(4 original + {FIELD_OP_COUNT} field operators)")
+          f"(4 original + {WARD_COUNT - 1} ward officers + {FIELD_OP_COUNT} field operators)")
     print("=" * 62)
 
     # ── Import DB dependencies ────────────────────────────────────────
@@ -212,7 +260,12 @@ def seed():
                 )
                 conn.commit()
                 zone_str = f"zone={user['zone_id']}" if user.get("zone_id") else "all zones"
-                tag      = "NEW (M4)" if user["role"] == "field_operator" else "original"
+                if user["role"] == "field_operator":
+                    tag = "NEW (M4)"
+                elif user["username"] in ("ward_z3","ward_z4","ward_z5","ward_z6","ward_z7","ward_z8"):
+                    tag = "NEW (Ph2)"
+                else:
+                    tag = "original"
                 print(f"  ✅  {user['username']:<18} ({user['role']:<16}) "
                       f"[{zone_str}]  [{tag}]")
                 success_count += 1
@@ -235,7 +288,7 @@ def seed():
     # ── Credentials table ─────────────────────────────────────────────
     print()
     print("  ─" * 33)
-    print("  DEMO LOGIN CREDENTIALS (all passwords: demo@1234)")
+    print("  DEMO LOGIN CREDENTIALS (all passwords: demo123)")
     print("  ─" * 33)
     print(f"  {'Username':<18} {'Role':<18} {'Zone'}")
     print(f"  {'─'*18} {'─'*18} {'─'*10}")
@@ -243,8 +296,8 @@ def seed():
         zone_str = u.get("zone_id") or "all zones"
         print(f"  {u['username']:<18} {u['role']:<18} {zone_str}")
     print()
-    print(f"  M4 field operators: {FIELD_OP_COUNT} users "
-          f"(field_op_z1 through field_op_z8)")
+    print(f"  M4 field operators : {FIELD_OP_COUNT} users (field_op_z1 through field_op_z8)")
+    print(f"  Phase 2 ward officers added: ward_z3 through ward_z8 (demo@1234)")
     print()
     print("  ─" * 33)
     print("  Next step: restart the server")

@@ -149,10 +149,11 @@ def get_mobile_alerts(
             })
 
         return {
-            "alerts":  alerts,
-            "total":   len(alerts),
-            "zone_id": zone_id,
-            "filter":  "status=acknowledged",
+            "alerts":                alerts,
+            "total":                 len(alerts),
+            "zone_id":               zone_id,
+            "filter":                "status=acknowledged",
+            "poll_interval_seconds": 5,
         }
 
     except HTTPException:
