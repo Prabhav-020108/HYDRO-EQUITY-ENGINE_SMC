@@ -240,8 +240,18 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
         <span>Active Alerts
           <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px;margin-left:6px">0</span>
         </span>
-        <span id="engAlertArrow" style="font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate(90deg)">▶</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <button id="alertLogBtn" onclick="event.stopPropagation();downloadAlertLog()"
+            title="Download full alert log as CSV"
+            style="font-size:10px;padding:3px 8px;background:#EBF3FB;border:1px solid #BBDEFB;
+                   border-radius:4px;color:var(--blue);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+                   font-weight:500;white-space:nowrap;line-height:1.4">
+            ⬇ Alert Log
+          </button>
+          <span id="engAlertArrow" style="font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate(90deg)">▶</span>
+        </span>
       </div>
+      <div id="alertLogErr" style="display:none;font-size:10px;color:var(--red);padding:3px 14px 0;background:#FFF8F8"></div>
       <div id="engAlertBody" style="overflow:hidden;transition:max-height .25s ease,opacity .15s ease;max-height:600px;opacity:1">
         <div id="albody" style="overflow-y:auto;max-height:220px"></div>
       </div>
@@ -923,6 +933,42 @@ async function loadAll(){
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
 window.addEventListener('load',()=>setTimeout(loadAll,400));
+
+async function downloadAlertLog() {
+  const btn = document.getElementById('alertLogBtn');
+  const errEl = document.getElementById('alertLogErr');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading...'; }
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+  try {
+    const resp = await fetch(`${BACK}/reports/alert-log`, {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: `HTTP ${resp.status}` }));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `alert_log_${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    if (errEl) {
+      errEl.textContent = `❌ ${e.message}`;
+      errEl.style.display = 'block';
+      setTimeout(() => { errEl.style.display = 'none'; }, 5000);
+    }
+    console.warn('[alertLog]', e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '⬇ Alert Log'; }
+  }
+}
 </script>
 </body>
 </html>
