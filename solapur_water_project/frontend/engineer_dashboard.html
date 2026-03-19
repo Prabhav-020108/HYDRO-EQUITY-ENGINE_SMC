@@ -240,8 +240,18 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
         <span>Active Alerts
           <span id="acnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px;margin-left:6px">0</span>
         </span>
-        <span id="engAlertArrow" style="font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate(90deg)">▶</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <button id="alertLogBtn" onclick="event.stopPropagation();downloadAlertLog()"
+            title="Download full alert log as CSV"
+            style="font-size:10px;padding:3px 8px;background:#EBF3FB;border:1px solid #BBDEFB;
+                   border-radius:4px;color:var(--blue);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+                   font-weight:500;white-space:nowrap;line-height:1.4">
+            ⬇ Alert Log
+          </button>
+          <span id="engAlertArrow" style="font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate(90deg)">▶</span>
+        </span>
       </div>
+      <div id="alertLogErr" style="display:none;font-size:10px;color:var(--red);padding:3px 14px 0;background:#FFF8F8"></div>
       <div id="engAlertBody" style="overflow:hidden;transition:max-height .25s ease,opacity .15s ease;max-height:600px;opacity:1">
         <div id="albody" style="overflow-y:auto;max-height:220px"></div>
       </div>
@@ -307,6 +317,7 @@ function logout() { sessionStorage.clear(); window.location.href = 'login.html';
 const BACK = 'http://localhost:8000';
 const MC   = [17.68, 75.908];
 let scen = 'baseline', hr = 6, tlChart = null, tick = null;
+let zoneHeiCache = {};
 let pipes = [], pLG, nLG, lLG, zLG, eLG, sLG, bLG;
 let _pipelineCache = null;
 
@@ -595,6 +606,7 @@ async function compEquity(){
     if(az)return{...z,hei:az.hei||0,status:az.status||'',color:az.color||heiCol(az.hei||0)};
     return{...z,hei:0,status:'unknown',color:'#8A96A4'};
   });
+  zScores.forEach(z => { zoneHeiCache[z.apiId] = z.hei || 0; });
   const rawCwei=zScores.reduce((s,z)=>s+(z.hei||0),0)/zScores.length;
   const pct=Math.round(rawCwei*100);
   const ci=cweiInfo(rawCwei);
@@ -644,6 +656,32 @@ function _statusBadge(status){
 }
 
 // ── Alerts — V5 ───────────────────────────────────────────────────
+// M3: Accept resolution — engineer only
+async function acceptResolution(id, btnEl) {
+  if (!id || id === 0) { _alertFeedback(btnEl, '✓ Accepted', '#2E7D32'); return; }
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = '...'; }
+  const d = await api.post(`/alerts/${id}/accept-resolution`);
+  if (d && d.success) {
+    _alertFeedback(btnEl, '✓ Done', '#2E7D32');
+    setTimeout(() => renderAlerts(), 1200);
+  } else {
+    _alertFeedback(btnEl, (d && d.error ? d.error : 'Failed').slice(0, 30), '#D32F2F');
+  }
+}
+
+// M3: Reject resolution — engineer only
+async function rejectResolution(id, btnEl) {
+  if (!id || id === 0) { _alertFeedback(btnEl, '↩ Rejected', '#E65100'); return; }
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = '...'; }
+  const d = await api.post(`/alerts/${id}/reject-resolution`);
+  if (d && d.success) {
+    _alertFeedback(btnEl, '↩ Sent back', '#E65100');
+    setTimeout(() => renderAlerts(), 1200);
+  } else {
+    _alertFeedback(btnEl, (d && d.error ? d.error : 'Failed').slice(0, 30), '#D32F2F');
+  }
+}
+
 async function renderAlerts(){
   lLG.clearLayers();
   const data=await api.get(`/alerts/active?scenario=${scen}`);
@@ -658,56 +696,79 @@ async function renderAlerts(){
     document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts for this scenario</div>';
     return;
   }
-
   document.getElementById('albody').innerHTML=al.map((a,i)=>{
     const isHigh=(a.level==='HIGH'||a.level==='high');
     const col=isHigh?'#D32F2F':'#E65100';
     const clps=parseFloat(a.clps||0);
     const dbId=a.db_alert_id||0;
     const devMode = dbId===0;
-    const ackTip  = devMode ? 'Mark as acknowledged (dev mode — no DB)' : 'POST /alerts/{id}/acknowledge (engineer only)';
-    const resTip  = devMode ? 'Mark as resolved (dev mode — no DB)'    : 'POST /alerts/{id}/accept-resolution — alert must be PENDING first';
+    const alertStatus = a.status || 'new';
 
-    // ── M2 CHANGE 4: status badge injected into card title ──────
-    // _statusBadge reads a.status from the alert object.
-    // When ?status= is omitted (our case), alerts default to 'new'.
-    // After ackAlert() or resolveAlert() succeed, renderAlerts() is called
-    // again and the badge updates to reflect the new state from the backend.
-    const badge = _statusBadge(a.status);
-    // ── end M2 CHANGE 4 ─────────────────────────────────────────
+    // M3: build resolution validation panel if status = resolve_requested
+    let resolutionPanel = '';
+    if (alertStatus === 'resolve_requested') {
+      // Look up HEI for this alert's zone from the cache populated by compEquity()
+      // zone_id from alert is e.g. "zone_3", cache key is also "zone_3" (apiId)
+      const zoneHei = zoneHeiCache[a.zone_id] !== undefined
+        ? zoneHeiCache[a.zone_id].toFixed(3)
+        : '—';
+      const reportText = a.resolution_report || a.report || '(No report submitted)';
+
+      resolutionPanel = `
+        <div style="margin-top:8px;padding:9px 10px;background:#F0F7FF;border:1px solid #BBDEFB;border-radius:5px;border-left:3px solid #1976D2;">
+          <div style="font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+            🔍 Resolution Request — Awaiting Engineer Review
+          </div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px">
+            <span style="color:var(--text3)">Zone HEI at resolution:</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:${parseFloat(zoneHei)>=0.85?'#2E7D32':parseFloat(zoneHei)>=0.70?'#E65100':'#D32F2F'}">${zoneHei}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">
+            <span style="color:var(--text3)">Field report:</span>
+            <span style="font-style:${reportText==='(No report submitted)'?'italic':''};color:${reportText==='(No report submitted)'?'var(--text3)':'var(--text)'}">${reportText}</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button
+              onclick="acceptResolution(${dbId}, this)"
+              style="flex:1;padding:5px 8px;border:1px solid #2E7D32;background:#E8F5E9;color:#2E7D32;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
+              ✓ Accept Resolution
+            </button>
+            <button
+              onclick="rejectResolution(${dbId}, this)"
+              style="flex:1;padding:5px 8px;border:1px solid #E65100;background:#FFF3E0;color:#E65100;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
+              ↩ Reject — Send Back
+            </button>
+          </div>
+        </div>`;
+    }
 
     return`<div class="acard ${isHigh?'high':'moderate'}" id="acard-${i}">
-      <div class="atit" style="color:${col}">
-        ${isHigh?'🔴':'🟠'} ${a.title||('Alert — '+(a.zone||''))}
-        ${badge}
-      </div>
+      <div class="atit" style="color:${col}">${isHigh?'🔴':'🟠'} ${a.title||('Alert — '+(a.zone||''))}</div>
       <div class="abody">${a.body||''}</div>
       <div class="ameta" onclick="flyToAlert('${a.zone_id_short||''}')" title="Click to fly to zone on map">
         <span>📍 ${a.zone||''}</span>
         <span>Signal: <b>${a.dominant_signal||'—'}</b></span>
         <span>CLPS: <span class="clpsv" style="color:${col}">${clps.toFixed(3)}</span></span>
+        ${alertStatus!=='new'?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;background:${alertStatus==='resolved'?'#E8F5E9':alertStatus==='acknowledged'?'#E3F2FD':'#FFF3E0'};color:${alertStatus==='resolved'?'#2E7D32':alertStatus==='acknowledged'?'#1565C0':'#E65100'}">${alertStatus==='resolved'?'Resolved':alertStatus==='acknowledged'?'Acknowledged':'Pending Review'}</span>`:''}
       </div>
       <div class="clpsbar" style="width:${Math.min(100,clps*100)}%;background:${col}"></div>
       <div style="margin-top:7px;display:flex;gap:6px;">
-        <button class="abtn" id="ack-${i}" title="${ackTip}"
+        <button class="abtn" id="ack-${i}" title="${devMode?'Acknowledge (dev mode)':'Acknowledge this alert'}"
           onclick="ackAlert(${dbId},this)"
           style="border:1px solid #1976D2;background:#EBF3FB;color:#1976D2;padding:5px 8px;">
           ✓ Acknowledge
         </button>
-        <button class="abtn" id="res-${i}" title="${resTip}"
+        <button class="abtn" id="res-${i}" title="${devMode?'Resolve (dev mode)':'Resolve this alert (acknowledge first)'}"
           onclick="resolveAlert(${dbId},this)"
           style="border:1px solid #2E7D32;background:#E8F5E9;color:#2E7D32;padding:5px 8px;">
-          ✓ Accept Resolution
+          ✓ Resolve
         </button>
       </div>
-      <div class="m2-hint" style="display:none;font-size:9px;color:var(--orange);margin-top:4px;line-height:1.4">
-        ℹ Alert must be in PENDING state. Ask the field operator to submit a resolution report first.
-      </div>
-      ${devMode?`<div style="font-size:9px;color:var(--text3);margin-top:3px">Dev mode: buttons show feedback locally. Run with PostgreSQL + db_migrate.py for full lifecycle.</div>`:''}
+      ${devMode?`<div style="font-size:9px;color:var(--text3);margin-top:3px">Dev mode: buttons log locally. Run with PostgreSQL for full lifecycle.</div>`:''}
+      ${resolutionPanel}
     </div>`;
   }).join('');
 
-  // Map markers only for non-baseline scenarios
   if(scen!=='baseline'){
     const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]});
     al.forEach(a=>{
@@ -718,8 +779,7 @@ async function renderAlerts(){
           .bindPopup(`<div class="ptit2" style="color:${col}">⚠ ${a.title||'Alert'}</div>
             <div class="prow"><span class="pkey">Zone</span><span class="pval">${a.zone||''}</span></div>
             <div class="prow"><span class="pkey">CLPS</span><span class="pval">${parseFloat(a.clps||0).toFixed(2)}</span></div>
-            <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal||''}</span></div>
-            <div class="prow"><span class="pkey">Status</span><span class="pval">${a.status||'new'}</span></div>`)
+            <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal||''}</span></div>`)
           .addTo(lLG);
       }
     });
@@ -873,6 +933,42 @@ async function loadAll(){
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 }
 window.addEventListener('load',()=>setTimeout(loadAll,400));
+
+async function downloadAlertLog() {
+  const btn = document.getElementById('alertLogBtn');
+  const errEl = document.getElementById('alertLogErr');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading...'; }
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+  try {
+    const resp = await fetch(`${BACK}/reports/alert-log`, {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: `HTTP ${resp.status}` }));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `alert_log_${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    if (errEl) {
+      errEl.textContent = `❌ ${e.message}`;
+      errEl.style.display = 'block';
+      setTimeout(() => { errEl.style.display = 'none'; }, 5000);
+    }
+    console.warn('[alertLog]', e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '⬇ Alert Log'; }
+  }
+}
 </script>
 </body>
 </html>
