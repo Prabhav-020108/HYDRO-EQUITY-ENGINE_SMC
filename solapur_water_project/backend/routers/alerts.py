@@ -4,6 +4,11 @@ backend/routers/alerts.py
 
 Bible Reference: Section 3 M1 — "New REST Endpoints"
 
+FIX (post-M2): Branch B (no ?status= filter) now merges real lifecycle status
+from the DB into each alert before returning. This means the commissioner
+dashboard correctly shows Acknowledged / Resolved / Pending Review badges
+instead of always showing every alert as 'new'.
+
 ENDPOINTS IN THIS FILE:
   GET  /alerts/active?scenario=<baseline|leak|valve|surge>
                       &status=<new|acknowledged|resolve_requested|resolved>
@@ -34,10 +39,6 @@ ENDPOINTS IN THIS FILE:
        → Backward-compat alias kept for existing dashboards
        → engineer role only
        → Works from both acknowledged and resolve_requested states
-
-NOTE: The old POST /alerts/{alert_id}/acknowledge and /resolve that were
-      defined in backend/app.py have been REMOVED from app.py and live here
-      exclusively. This avoids route conflicts.
 """
 
 import os
@@ -56,7 +57,7 @@ router = APIRouter(tags=["Analytics"])
 
 OUTPUTS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'outputs')
 
-# ── Zone display maps ─────────────────────────────────────────────
+# ── Zone display maps ─────────────────────────────────────────────────────────
 ZONE_MAP = {
     'zone_1': {'nm': 'Zone 1', 'short': 'z1'},
     'zone_2': {'nm': 'Zone 2', 'short': 'z2'},
@@ -83,7 +84,7 @@ SCENARIO_SUFFIX = {
 }
 
 
-# ── Pydantic request bodies ───────────────────────────────────────
+# ── Pydantic request bodies ───────────────────────────────────────────────────
 
 class AlertActionRequest(BaseModel):
     notes: Optional[str] = None
@@ -94,12 +95,62 @@ class ResolutionRequest(BaseModel):
     notes:  Optional[str] = None
 
 
-# ══════════════════════════════════════════════════════════════════
+# ── Internal helper: fetch real lifecycle statuses from DB ────────────────────
+
+def _fetch_real_statuses(scenario: str) -> dict:
+    """
+    Returns a dict keyed by zone_id with real lifecycle status from the DB.
+    Used by Branch B to merge actual state into v5_alerts.json data.
+
+    Example return:
+        {
+            'zone_3': {
+                'status': 'acknowledged',
+                'acknowledged_by': 'engineer1',
+                'acknowledged_at': '2026-03-19T10:30:00',
+                'resolved_at': None,
+                'db_alert_id': 42,
+            },
+            ...
+        }
+    Falls back to empty dict if DB is unavailable (non-fatal).
+    """
+    real_statuses: dict = {}
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("""
+                    SELECT alert_id, zone_id, status,
+                           acknowledged_by, acknowledged_at, resolved_at
+                    FROM alerts
+                    WHERE scenario = :scen
+                    ORDER BY clps DESC NULLS LAST
+                """),
+                {'scen': scenario}
+            ).fetchall()
+            for row in rows:
+                zid = str(row[1] or '')
+                if zid and zid not in real_statuses:
+                    # Keep only the highest-CLPS alert per zone (ORDER BY clps DESC above)
+                    real_statuses[zid] = {
+                        'db_alert_id':     row[0],
+                        'status':          str(row[2] or 'new'),
+                        'acknowledged_by': str(row[3]) if row[3] else None,
+                        'acknowledged_at': row[4].isoformat() if row[4] else None,
+                        'resolved_at':     row[5].isoformat() if row[5] else None,
+                    }
+    except Exception:
+        pass  # DB unavailable — callers handle the empty dict gracefully
+    return real_statuses
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 #  GET /alerts/active
 #  EXISTING — added optional ?status= query param. No breaking change.
 #  Without ?status= → reads from v5_alerts.json (existing behavior)
+#                     + merges real lifecycle status from DB on top
 #  With    ?status= → queries PostgreSQL alerts table by state
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 @router.get(
     "/alerts/active",
@@ -109,7 +160,8 @@ class ResolutionRequest(BaseModel):
         "Optional ?status= filter (new|acknowledged|resolve_requested|resolved) "
         "queries the PostgreSQL state machine instead of the JSON file. "
         "ward_officer sees only their assigned zone. "
-        "Without ?status=, existing behavior is fully preserved."
+        "Without ?status=, existing behavior is preserved AND real lifecycle "
+        "status is merged from DB so dashboards show accurate badge state."
     )
 )
 def get_active_alerts(
@@ -126,7 +178,7 @@ def get_active_alerts(
     role    = current_user.get('role', '')
     zone_id = current_user.get('zone_id')
 
-    # ── Branch A: status filter provided → query PostgreSQL ──────────
+    # ── Branch A: status filter provided → query PostgreSQL ──────────────────
     if status is not None:
         try:
             with engine.connect() as conn:
@@ -199,7 +251,7 @@ def get_active_alerts(
                 'error':         f"DB query failed: {e}",
             }
 
-    # ── Branch B: no status filter → existing JSON-file behavior ────
+    # ── Branch B: no status filter → JSON file + real status merge ───────────
     path = os.path.join(OUTPUTS_DIR, "v5_alerts.json")
     if not os.path.exists(path):
         return {
@@ -222,18 +274,11 @@ def get_active_alerts(
     if role == 'ward_officer' and zone_id:
         raw = [a for a in raw if str(a.get('zone_id', '')) == str(zone_id)]
 
-    # Look up db_alert_ids from PostgreSQL (for Ack/Resolve buttons)
-    db_ids: dict = {}
-    try:
-        with engine.connect() as conn:
-            rows = conn.execute(
-                text("SELECT alert_id, zone_id FROM alerts WHERE scenario = :scen"),
-                {'scen': scenario}
-            ).fetchall()
-            for row in rows:
-                db_ids[row[1]] = row[0]
-    except Exception:
-        pass  # PostgreSQL not available — fallback to 0
+    # ── Fetch real lifecycle statuses from DB ─────────────────────────────────
+    # This is the key fix: merge actual DB state into the JSON-based alert list
+    # so dashboards show the real lifecycle status (acknowledged, resolved, etc.)
+    # instead of always showing 'new'.
+    real_statuses = _fetch_real_statuses(scenario)
 
     suffix = SCENARIO_SUFFIX.get(scenario, 'Alert')
     formatted = []
@@ -247,6 +292,9 @@ def get_active_alerts(
         lvl  = str(a.get('severity', 'moderate') or 'moderate')
         clps = float(a.get('clps', 0) or 0)
 
+        # Pull real status from DB (falls back to 'new' if zone not in DB)
+        db_info = real_statuses.get(zid, {})
+
         formatted.append({
             'title':           f"{zm['nm']} · {sig} {suffix}",
             'body':            SIGNAL_BODY.get(sig, f"Anomaly detected: dominant signal {sig}."),
@@ -257,8 +305,12 @@ def get_active_alerts(
             'clps':            round(clps, 3),
             'dominant_signal': sig,
             'probable_nodes':  a.get('probable_node_ids', []),
-            'db_alert_id':     db_ids.get(zid, 0),
-            'status':          'new',  # file-based alerts default to 'new'
+            # Real lifecycle state from DB — no longer hardcoded 'new'
+            'db_alert_id':     db_info.get('db_alert_id', 0),
+            'status':          db_info.get('status', 'new'),
+            'acknowledged_by': db_info.get('acknowledged_by'),
+            'acknowledged_at': db_info.get('acknowledged_at'),
+            'resolved_at':     db_info.get('resolved_at'),
         })
 
     formatted.sort(key=lambda x: x['clps'], reverse=True)
@@ -270,11 +322,11 @@ def get_active_alerts(
     }
 
 
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/acknowledge
 #  Bible: "engineer → status = acknowledged, save acknowledged_by + acknowledged_at"
 #  State: new | fired → acknowledged
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 @router.post(
     "/alerts/{alert_id}/acknowledge",
@@ -329,11 +381,11 @@ def acknowledge_alert(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/request-resolution
 #  Bible: "field_operator → status = resolve_requested, save resolution_report"
 #  State: acknowledged → resolve_requested
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 @router.post(
     "/alerts/{alert_id}/request-resolution",
@@ -385,11 +437,11 @@ def request_resolution(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/accept-resolution
 #  Bible: "engineer → status = resolved, save resolved_at"
 #  State: resolve_requested → resolved
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 @router.post(
     "/alerts/{alert_id}/accept-resolution",
@@ -439,11 +491,11 @@ def accept_resolution(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/reject-resolution
 #  Bible: "engineer → status = acknowledged (sends back to field operator)"
 #  State: resolve_requested → acknowledged   + rejected_count += 1
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 @router.post(
     "/alerts/{alert_id}/reject-resolution",
@@ -498,12 +550,12 @@ def reject_resolution(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/resolve
 #  BACKWARD COMPATIBILITY — kept so existing engineer_dashboard.html
 #  and index.html continue to work without changes (Bible M1 constraint).
 #  Maps to accept-resolution logic. Works from acknowledged OR resolve_requested.
-# ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
 
 @router.post(
     "/alerts/{alert_id}/resolve",
@@ -514,12 +566,6 @@ def resolve_alert_compat(
     body: AlertActionRequest = AlertActionRequest(),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    Backward compatibility shim.
-    Old dashboards call POST /alerts/{id}/resolve directly.
-    This endpoint accepts from both 'acknowledged' and 'resolve_requested' states
-    so existing Ack → Resolve flows on old dashboard still work.
-    """
     role = current_user.get('role', '')
     if role not in ('engineer',):
         raise HTTPException(
