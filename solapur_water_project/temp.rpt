@@ -1,4 +1,4 @@
-  Page 1                                    Thu Mar 19 21:47:12 2026
+  Page 1                                    Thu Mar 19 22:16:35 2026
 
   ******************************************************************
   *                           E P A N E T                          *
@@ -9,10 +9,10 @@
   
    
       Input Data File ................... temp.inp
-      Number of Junctions................ 2397
+      Number of Junctions................ 714
       Number of Reservoirs............... 4
       Number of Tanks ................... 0
-      Number of Pipes ................... 2680
+      Number of Pipes ................... 799
       Number of Pumps ................... 0
       Number of Valves .................. 0
       Headloss Formula .................. Hazen-Williams
@@ -33,6 +33,6 @@
          No Nodes
          No Links
    
-  Analysis begun Thu Mar 19 21:47:12 2026
+  Analysis begun Thu Mar 19 22:16:35 2026
 
-  Analysis ended Thu Mar 19 21:47:13 2026
+  Analysis ended Thu Mar 19 22:16:36 2026
