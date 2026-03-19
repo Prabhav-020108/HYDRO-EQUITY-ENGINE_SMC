@@ -44,7 +44,7 @@ from backend.auth import get_current_user
 from backend.routers import (
     auth_router, zones, alerts, burst,
     pipeline, infrastructure,
-    recommendations, citizen, reports,
+    recommendations,reports,
 )
 
 # ── App instance ───────────────────────────────────────────────────
@@ -82,7 +82,6 @@ app.include_router(infrastructure.router)   # /infrastructure  (public)
 
 # ── Routers (Phase 4b NEW) ────────────────────────────────────────
 app.include_router(recommendations.router)  # /recommendations/*
-app.include_router(citizen.router)          # /citizen/complaint, /citizen/zones
 app.include_router(reports.router)          # /reports/weekly (PDF)
 
 

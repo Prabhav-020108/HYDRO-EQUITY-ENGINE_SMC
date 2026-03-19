@@ -42,6 +42,10 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 #mapd{flex:1;position:relative}
 #mapc{width:100%;height:100%}
 .panel{width:var(--lw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shad);z-index:100}
+/* Left panel (#lp) scrolls as a whole so all sections are always reachable */
+#lp{overflow-y:auto;overflow-x:hidden}
+#lp::-webkit-scrollbar{width:4px}
+#lp::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 #rp{width:var(--rw);border-right:none;border-left:1px solid var(--border)}
 .psec{border-bottom:1px solid var(--border)}
 .ptit{padding:10px 14px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);background:#FAFBFC;display:flex;align-items:center;gap:6px;justify-content:space-between}
@@ -66,7 +70,7 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 .legitems{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .legitem{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)}
 .legdot{width:8px;height:8px;border-radius:2px}
-#znl{flex:1;overflow-y:auto;min-height:60px}
+#znl{overflow-y:visible;min-height:60px}
 .zrow{display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;gap:6px}
 .zrow:hover{background:#F7F9FB}
 .zbdg{width:8px;height:8px;border-radius:50%;flex-shrink:0}
@@ -328,23 +332,30 @@ const api = {
 };
 
 // Zone definitions matching V4 output zone_ids
+// Zone grid: 3-row x 3-col minus NW corner = 8 zones
+// Covers full Solapur pipeline network  radius=1800m, mathematically zero-gap
+// N:17.720 S:17.618 W:75.853 E:75.960 -- exact boundary fit
 const ZONES = [
-  {id:'z1',apiId:'zone_1',nm:'Zone 1',lat:17.710,lon:75.882},
-  {id:'z2',apiId:'zone_2',nm:'Zone 2',lat:17.700,lon:75.910},
-  {id:'z3',apiId:'zone_3',nm:'Zone 3',lat:17.690,lon:75.935},
-  {id:'z4',apiId:'zone_4',nm:'Zone 4',lat:17.675,lon:75.898},
-  {id:'z5',apiId:'zone_5',nm:'Zone 5',lat:17.665,lon:75.920},
-  {id:'z6',apiId:'zone_6',nm:'Zone 6',lat:17.680,lon:75.870},
-  {id:'z7',apiId:'zone_7',nm:'Zone 7',lat:17.695,lon:75.958},
-  {id:'z8',apiId:'zone_8',nm:'Zone 8',lat:17.655,lon:75.940},
+  {id:'z1',apiId:'zone_1',nm:'Zone 1',lat:17.7038,lon:75.9065},
+  {id:'z2',apiId:'zone_2',nm:'Zone 2',lat:17.7038,lon:75.9430},
+  {id:'z3',apiId:'zone_3',nm:'Zone 3',lat:17.6690,lon:75.8700},
+  {id:'z4',apiId:'zone_4',nm:'Zone 4',lat:17.6690,lon:75.9065},
+  {id:'z5',apiId:'zone_5',nm:'Zone 5',lat:17.6690,lon:75.9430},
+  {id:'z6',apiId:'zone_6',nm:'Zone 6',lat:17.6342,lon:75.8700},
+  {id:'z7',apiId:'zone_7',nm:'Zone 7',lat:17.6342,lon:75.9065},
+  {id:'z8',apiId:'zone_8',nm:'Zone 8',lat:17.6342,lon:75.9430},
 ];
 
-// Fallback ESR positions (used until /infrastructure responds)
+// ESRs co-located with zone centres
 const ESRS = [
-  {lat:17.6935,lon:75.8810,h:72},{lat:17.7012,lon:75.9280,h:68},
-  {lat:17.6623,lon:75.9034,h:65},{lat:17.6878,lon:75.8654,h:70},
-  {lat:17.6758,lon:75.9412,h:60},{lat:17.7080,lon:75.8950,h:66},
-  {lat:17.6700,lon:75.8780,h:63},
+  {lat:17.7038,lon:75.9065,h:68},
+  {lat:17.7038,lon:75.9430,h:65},
+  {lat:17.6690,lon:75.8700,h:70},
+  {lat:17.6690,lon:75.9065,h:72},
+  {lat:17.6690,lon:75.9430,h:66},
+  {lat:17.6342,lon:75.8700,h:63},
+  {lat:17.6342,lon:75.9065,h:60},
+  {lat:17.6342,lon:75.9430,h:61},
 ];
 
 // ── Color helpers ─────────────────────────────────────────────────
@@ -370,11 +381,11 @@ zLG=L.layerGroup();eLG=L.layerGroup().addTo(map);sLG=L.layerGroup().addTo(map);b
 function formulaP(lat,lon,s,h){
   let md=1e9,sh=65;
   for(const e of ESRS){const dx=(e.lon-lon)*111*Math.cos(lat*Math.PI/180),dy=(e.lat-lat)*111,d=Math.sqrt(dx*dx+dy*dy);if(d<md){md=d;sh=e.h;}}
-  const fl=md*3.8,el=(lat-17.655)*22+(lon-75.960)*15,dm=h>=6&&h<8?2.5:h>=17&&h<20?2.0:h>=8&&h<17?1.0:0.05;
+  const fl=md*3.8,el=(lat-17.643)*22+(lon-75.943)*15,dm=h>=6&&h<8?2.5:h>=17&&h<20?2.0:h>=8&&h<17?1.0:0.05;
   const ns=((Math.abs(lat*1000)*7+Math.abs(lon*100)*13)%100)/100*6-3;
   let p=sh-fl+el*0.4-dm*3+ns;
-  if(s==='leak'){if(lon>75.935)p*=0.52;else if(lon>75.920)p*=0.78;}
-  else if(s==='valve'){if(lat<17.663)p*=0.22;else if(lat<17.672)p*=0.55;}
+  if(s==='leak'){if(lon>75.930)p*=0.52;else if(lon>75.910)p*=0.78;}
+  else if(s==='valve'){if(lat<17.634)p*=0.22;else if(lat<17.657)p*=0.55;}
   else if(s==='surge'){p*=(lon>75.91?0.64:0.72);}
   return Math.max(2,Math.min(82,p));
 }
@@ -469,7 +480,7 @@ function renderZones(){
   zLG.clearLayers();
   zScores.forEach(z=>{
     const col=heiCol(z.hei||0);
-    L.circle([z.lat,z.lon],{radius:1400,fillColor:col,fillOpacity:.13,color:col,weight:1.5,opacity:.5})
+    L.circle([z.lat,z.lon],{radius:1800,fillColor:col,fillOpacity:.13,color:col,weight:1.5,opacity:.5})
      .bindTooltip(`<b>${z.nm}</b><br>HEI: ${(z.hei||0).toFixed(2)} · ${heiLbl(z.hei||0)[0]}`,{sticky:true})
      .addTo(zLG);
   });

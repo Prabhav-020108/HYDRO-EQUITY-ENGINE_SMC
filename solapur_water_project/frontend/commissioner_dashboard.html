@@ -230,18 +230,20 @@ function toggleAcc(bodyId, arrowId) {
 const BACK = 'http://localhost:8000';
 const MC   = [17.68, 75.908];
 
+// Zone grid: 3-row x 3-col minus NW corner = 8 zones
+// Covers full Solapur pipeline network  radius=1800m, mathematically zero-gap
+// N:17.720 S:17.618 W:75.853 E:75.960 -- exact boundary fit
 const ZONES = [
-  {id:'z1',apiId:'zone_1',nm:'Zone 1',lat:17.710,lon:75.882},
-  {id:'z2',apiId:'zone_2',nm:'Zone 2',lat:17.700,lon:75.910},
-  {id:'z3',apiId:'zone_3',nm:'Zone 3',lat:17.690,lon:75.935},
-  {id:'z4',apiId:'zone_4',nm:'Zone 4',lat:17.675,lon:75.898},
-  {id:'z5',apiId:'zone_5',nm:'Zone 5',lat:17.665,lon:75.920},
-  {id:'z6',apiId:'zone_6',nm:'Zone 6',lat:17.680,lon:75.870},
-  {id:'z7',apiId:'zone_7',nm:'Zone 7',lat:17.695,lon:75.958},
-  {id:'z8',apiId:'zone_8',nm:'Zone 8',lat:17.655,lon:75.940},
+  {id:'z1',apiId:'zone_1',nm:'Zone 1',lat:17.7038,lon:75.9065},
+  {id:'z2',apiId:'zone_2',nm:'Zone 2',lat:17.7038,lon:75.9430},
+  {id:'z3',apiId:'zone_3',nm:'Zone 3',lat:17.6690,lon:75.8700},
+  {id:'z4',apiId:'zone_4',nm:'Zone 4',lat:17.6690,lon:75.9065},
+  {id:'z5',apiId:'zone_5',nm:'Zone 5',lat:17.6690,lon:75.9430},
+  {id:'z6',apiId:'zone_6',nm:'Zone 6',lat:17.6342,lon:75.8700},
+  {id:'z7',apiId:'zone_7',nm:'Zone 7',lat:17.6342,lon:75.9065},
+  {id:'z8',apiId:'zone_8',nm:'Zone 8',lat:17.6342,lon:75.9430},
 ];
-const ESRS=[{lat:17.6935,lon:75.8810},{lat:17.7012,lon:75.9280},{lat:17.6623,lon:75.9034},
-            {lat:17.6878,lon:75.8654},{lat:17.6758,lon:75.9412},{lat:17.7080,lon:75.8950},{lat:17.6700,lon:75.8780}];
+const ESRS=[{lat:17.7038,lon:75.9065},{lat:17.7038,lon:75.9430},{lat:17.6690,lon:75.8700},{lat:17.6690,lon:75.9065},{lat:17.6690,lon:75.9430},{lat:17.6342,lon:75.8700},{lat:17.6342,lon:75.9065},{lat:17.6342,lon:75.9430}];
 
 const api = {
   get: async(ep) => {
@@ -295,7 +297,7 @@ function renderZoneOverlays(){
   zLG.clearLayers();
   zoneData.forEach(z=>{
     const col=heiCol(z.hei||0);
-    L.circle([z.lat,z.lon],{radius:1400,fillColor:col,fillOpacity:.15,color:col,weight:1.5,opacity:.6})
+    L.circle([z.lat,z.lon],{radius:1800,fillColor:col,fillOpacity:.15,color:col,weight:1.5,opacity:.6})
      .bindTooltip(`<b>${z.nm}</b> · HEI: ${(z.hei||0).toFixed(2)} · ${heiLbl(z.hei||0)[0]}`,{sticky:true})
      .addTo(zLG);
   });

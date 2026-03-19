@@ -50,20 +50,7 @@ DEMO_USERS = [
         "zone_id":   None,               # commissioners see all zones
         "full_name": "SMC Commissioner",
     },
-    {
-        "username":  "field_op1",
-        "password":  "demo@1234",
-        "role":      "field_operator",
-        "zone_id":   "zone_1",
-        "full_name": "Field Operator — Zone 1",
-    },
-    {
-        "username":  "field_op2",
-        "password":  "demo@1234",
-        "role":      "field_operator",
-        "zone_id":   "zone_3",
-        "full_name": "Field Operator — Zone 3",
-    },
+    
 ]
 
 

@@ -131,11 +131,6 @@ table.demo td:nth-child(2){font-family:'IBM Plex Mono',monospace;color:var(--tex
             <td>••••••••••</td>
             <td><span class="role-chip">commissioner</span></td>
           </tr>
-          <tr>
-            <td>field_op1</td>
-            <td>••••••••••</td>
-            <td><span class="role-chip">field_operator</span></td>
-          </tr>
         </tbody>
       </table>
       <p style="font-size:10px;color:var(--text3);margin-top:8px">
@@ -203,7 +198,6 @@ function redirectByRole(role) {
   if      (role === 'engineer')       window.location.href = 'engineer_dashboard.html';
   else if (role === 'ward_officer')   window.location.href = 'ward_dashboard.html';
   else if (role === 'commissioner')   window.location.href = 'commissioner_dashboard.html';
-  else if (role === 'field_operator') window.location.href = 'field_operator_dashboard.html';
   else                                window.location.href = 'engineer_dashboard.html';
 }
 
