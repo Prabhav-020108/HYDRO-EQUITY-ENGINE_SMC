@@ -157,7 +157,7 @@ def migrate_alerts():
                 INSERT INTO alerts
                     (zone_id, clps, severity, dominant_signal, probable_nodes, scenario, status)
                 VALUES
-                    (:zone_id,:clps,:severity,:dominant_signal,:probable_nodes,:scenario,'fired')
+                    (:zone_id,:clps,:severity,:dominant_signal,:probable_nodes,:scenario,'new')
             """), {
                 'zone_id':         a.get('zone_id', a.get('zone', '')),
                 'clps':            float(a.get('clps', 0) or 0),
