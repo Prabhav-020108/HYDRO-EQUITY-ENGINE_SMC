@@ -1,12 +1,18 @@
 """
-Hydro-Equity Engine / Dhara — Phase 4b + M1
+Hydro-Equity Engine / Dhara — Phase 4b + M1 + M2
 backend/app.py
 
-M1 CHANGE:
+M1 CHANGE (already done):
   - Removed POST /alerts/{alert_id}/acknowledge (now in backend/routers/alerts.py)
   - Removed POST /alerts/{alert_id}/resolve     (now in backend/routers/alerts.py)
-  These were duplicated in app.py before M1 and would cause route conflicts
-  now that the alerts router owns all /alerts/* lifecycle endpoints.
+
+M2 CHANGE:
+  - Registered backend/routers/mobile.py → adds /mobile/* endpoints
+    GET  /mobile/profile
+    GET  /mobile/alerts
+    POST /mobile/alerts/{id}/start
+    POST /mobile/alerts/{id}/resolve
+    GET  /mobile/zone-status
 
 Run from project root:
     AUTH_DEV_MODE=1 uvicorn backend.app:app --reload --port 8000
@@ -36,31 +42,39 @@ PROTECTED endpoints (require Bearer token from POST /auth/login):
     GET  /recommendations/commissioner   → V7 commissioner channel
     GET  /recommendations/updated-at     → last V7 run timestamp
     GET  /reports/weekly                 → download PDF report
+
+MOBILE endpoints (field_operator only unless stated):
+    GET  /mobile/profile                 → JWT profile (all authenticated roles)
+    GET  /mobile/alerts                  → acknowledged alerts for JWT zone (field_operator only)
+    POST /mobile/alerts/{id}/start       → note-only, no state change (field_operator only)
+    POST /mobile/alerts/{id}/resolve     → request-resolution M1 logic (field_operator only)
+    GET  /mobile/zone-status             → zone HEI + active alert count (field_operator only)
 """
 
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
 
-from backend.auth import get_current_user
 from backend.routers import (
     auth_router, zones, alerts, burst,
     pipeline, infrastructure,
     recommendations, reports,
 )
+# M2: import mobile router
+from backend.routers import mobile
 
 # ── App instance ───────────────────────────────────────────────────
 app = FastAPI(
     title="Hydro-Equity Engine / Dhara API",
-    version="4b.1-M1",
+    version="4b.1-M2",
     description=(
         "Smart Water Pressure Management — Solapur Municipal Corporation\n"
-        "SAMVED-2026 | Team Devsters | Phase 4b + M1\n\n"
+        "SAMVED-2026 | Team Devsters | Phase 4b + M1 + M2\n\n"
         "M1: Alert state machine (new→acknowledged→resolve_requested→resolved).\n"
+        "M2: Mobile API for field operators (/mobile/*).\n"
         "Protected endpoints require Bearer token from POST /auth/login.\n"
         "Demo: engineer1 / demo@1234  |  AUTH_DEV_MODE=1 for no-Postgres dev mode."
     ),
@@ -85,13 +99,16 @@ app.include_router(burst.router)            # /burst-risk/top10
 app.include_router(pipeline.router)         # /pipeline        (public)
 app.include_router(infrastructure.router)   # /infrastructure  (public)
 
-# ── Routers (Phase 4b NEW) ────────────────────────────────────────
+# ── Routers (Phase 4b) ────────────────────────────────────────────
 app.include_router(recommendations.router)  # /recommendations/*
 app.include_router(reports.router)          # /reports/weekly (PDF)
 
+# ── Routers (M2 — Mobile field operator API) ──────────────────────
+app.include_router(mobile.router)           # /mobile/*
 
-# ── NOTE: Alert lifecycle POST endpoints are now in alerts.router ──
-# (removed from app.py in M1 to avoid route conflicts)
+
+# ── NOTE: Alert lifecycle POST endpoints are in alerts.router ─────
+# (moved from app.py in M1 to avoid route conflicts)
 # See: backend/routers/alerts.py for:
 #   POST /alerts/{id}/acknowledge
 #   POST /alerts/{id}/request-resolution
@@ -138,7 +155,7 @@ async def startup_event():
 @app.get("/", tags=["Public"])
 def root():
     return {
-        "status":   "Hydro-Equity Engine / Dhara API — Phase 4b + M1",
+        "status":   "Hydro-Equity Engine / Dhara API — Phase 4b + M1 + M2",
         "team":     "Devsters",
         "event":    "SAMVED-2026",
         "docs":     "/docs",
@@ -150,6 +167,13 @@ def root():
             "POST /alerts/{id}/reject-resolution  (engineer)",
             "GET  /alerts/active?status=<state>   (all authed roles)",
         ],
+        "m2_mobile_api": [
+            "GET  /mobile/profile                 (all authenticated roles)",
+            "GET  /mobile/alerts                  (field_operator only)",
+            "POST /mobile/alerts/{id}/start       (field_operator only)",
+            "POST /mobile/alerts/{id}/resolve     (field_operator only)",
+            "GET  /mobile/zone-status             (field_operator only)",
+        ],
     }
 
 
@@ -157,8 +181,9 @@ def root():
 def health():
     return {
         "status": "ok",
-        "phase":  "4b+M1",
+        "phase":  "4b+M1+M2",
         "auth":   "JWT active",
         "v7":     "APScheduler active",
         "m1":     "Alert state machine active",
+        "m2":     "Mobile API active (/mobile/*)",
     }
