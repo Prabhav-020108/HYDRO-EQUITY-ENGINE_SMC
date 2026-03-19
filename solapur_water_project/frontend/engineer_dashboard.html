@@ -42,7 +42,6 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 #mapd{flex:1;position:relative}
 #mapc{width:100%;height:100%}
 .panel{width:var(--lw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shad);z-index:100}
-/* Left panel (#lp) scrolls as a whole so all sections are always reachable */
 #lp{overflow-y:auto;overflow-x:hidden}
 #lp::-webkit-scrollbar{width:4px}
 #lp::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -94,7 +93,7 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 .acard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.07)}
 .acard.high{border-color:var(--red);background:#FFFCFC}
 .acard.moderate{border-color:var(--orange);background:#FFFDF9}
-.atit{font-size:12px;font-weight:600;margin-bottom:4px;line-height:1.3}
+.atit{font-size:12px;font-weight:600;margin-bottom:4px;line-height:1.3;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 .abody{font-size:11px;color:var(--text2);line-height:1.55;word-break:break-word}
 .ameta{font-size:10px;color:var(--text3);margin-top:5px;font-family:'IBM Plex Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .clpsbar{height:4px;border-radius:2px;margin-top:6px}
@@ -102,7 +101,19 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 .abtn{font-size:10px;padding:4px 8px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;flex:1;font-weight:500;transition:opacity .15s}
 .abtn:hover{opacity:.8}
 .abtn:disabled{opacity:.5;cursor:default}
-/* Recommendation cards */
+
+/* ── M2 CHANGE 1: Status badge styles ───────────────────────────────
+   Four states from the M1 alert state machine:
+   new (grey) | acknowledged/ACK (blue) | resolve_requested/PENDING (orange) | resolved (green)
+   Font-size 10px — does not break existing card layout.
+   ─────────────────────────────────────────────────────────────────── */
+.sbadge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;display:inline-block;vertical-align:middle;letter-spacing:.02em;white-space:nowrap;flex-shrink:0}
+.sbadge-new{background:#F0F4F8;color:#8A96A4;border:1px solid #DDE3EA}
+.sbadge-ack{background:#EBF3FB;color:#1565C0;border:1px solid #BBDEFB}
+.sbadge-pending{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80}
+.sbadge-resolved{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
+/* ── end M2 CHANGE 1 ─────────────────────────────────────────────── */
+
 .rcard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:#F0F7FF;border:1px solid #BBDEFB;border-left:3px solid var(--blue)}
 .rcard.urgent{background:#FFF5F5;border-color:#FFCDD2;border-left-color:var(--red)}
 .rcard.high-u{background:#FFF8F2;border-color:#FFE0B2;border-left-color:var(--orange)}
@@ -311,7 +322,6 @@ const api = {
       return await r.json();
     } catch(e) { console.warn('[API]', ep, e.message); return null; }
   },
-  // Public endpoints (no auth needed)
   pub: async(ep) => {
     try {
       const r = await fetch(BACK + ep);
@@ -319,12 +329,12 @@ const api = {
       return await r.json();
     } catch(e) { console.warn('[API-pub]', ep, e.message); return null; }
   },
-  post: async(ep) => {
+  post: async(ep, body) => {
     try {
       const r = await fetch(BACK + ep, {
         method: 'POST',
         headers: {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-        body: JSON.stringify({notes:'Action via dashboard'})
+        body: JSON.stringify(body || {notes:'Action via dashboard'})
       });
       return await r.json();
     } catch(e) { return {success:false,error:e.message}; }
@@ -332,9 +342,6 @@ const api = {
 };
 
 // Zone definitions matching V4 output zone_ids
-// Zone grid: 3-row x 3-col minus NW corner = 8 zones
-// Covers full Solapur pipeline network  radius=1800m, mathematically zero-gap
-// N:17.720 S:17.618 W:75.853 E:75.960 -- exact boundary fit
 const ZONES = [
   {id:'z1',apiId:'zone_1',nm:'Zone 1',lat:17.7038,lon:75.9065},
   {id:'z2',apiId:'zone_2',nm:'Zone 2',lat:17.7038,lon:75.9430},
@@ -346,7 +353,6 @@ const ZONES = [
   {id:'z8',apiId:'zone_8',nm:'Zone 8',lat:17.6342,lon:75.9430},
 ];
 
-// ESRs co-located with zone centres
 const ESRS = [
   {lat:17.7038,lon:75.9065,h:68},
   {lat:17.7038,lon:75.9430,h:65},
@@ -436,7 +442,6 @@ async function addMarkers(){
   const ei=n=>L.divIcon({html:`<div class="mesr">${n}</div>`,className:'',iconSize:[24,24],iconAnchor:[12,12]});
   const si=()=>L.divIcon({html:`<div class="msrc">W</div>`,className:'',iconSize:[20,20],iconAnchor:[10,10]});
 
-  // Try to load real infrastructure from API
   const infra = await api.pub('/infrastructure');
   if (infra && infra.markers && infra.markers.length > 0) {
     let esrNum = 1, srcNum = 1;
@@ -456,7 +461,6 @@ async function addMarkers(){
       }
     });
   } else {
-    // Fallback: use hard-coded ESRs from index.html
     ESRS.forEach((e,i) => {
       const m = L.marker([e.lat,e.lon],{icon:ei(i+1),zIndexOffset:100});
       m.bindPopup(`<div class="ptit2">ESR-${i+1}</div><div class="prow"><span class="pkey">Head</span><span class="pval">${e.h}m</span></div>`);
@@ -494,36 +498,86 @@ function showFeat(data,typeLbl){
   document.getElementById('finfo').innerHTML=`<div class="ihdr"><div class="ityp">${typeLbl||data.type}</div><div class="iid">${data.ID||data.Zone||'Detail View'}</div></div>${rows}`;
 }
 
-// ── Alert lifecycle ───────────────────────────────────────────────
-async function ackAlert(id, btnEl){
-  if(!id || id===0){
-    _alertFeedback(btnEl,'✓ Acknowledged','#1976D2');return;
-  }
-  if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
-  const d=await api.post(`/alerts/${id}/acknowledge`);
-  if(d&&d.success){_alertFeedback(btnEl,'✓ Done','#1976D2');setTimeout(()=>renderAlerts(),1200);}
-  else _alertFeedback(btnEl,(d&&d.error?d.error:'Failed').slice(0,30),'#D32F2F');
-}
-async function resolveAlert(id, btnEl){
-  if(!id || id===0){
-    _alertFeedback(btnEl,'✓ Resolved','#2E7D32');return;
-  }
-  if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
-  const d=await api.post(`/alerts/${id}/resolve`);
-  if(d&&d.success){_alertFeedback(btnEl,'✓ Done','#2E7D32');setTimeout(()=>renderAlerts(),1200);}
-  else if(d&&d.error&&d.error.toLowerCase().includes('acknowledged')){
-    _alertFeedback(btnEl,'Ack first!','#E65100');
-    if(confirm('Alert must be acknowledged before resolving. Acknowledge now?'))
-      await ackAlert(id,null);
-  } else _alertFeedback(btnEl,(d&&d.error?d.error:'Failed').slice(0,30),'#D32F2F');
-}
+// ═══════════════════════════════════════════════════════════════════
+//  M2 CHANGE 2: _alertFeedback helper (unchanged from original)
+// ═══════════════════════════════════════════════════════════════════
 function _alertFeedback(btn,txt,col){
   if(!btn)return;
   const orig=btn.textContent,oc=btn.style.color;
   btn.disabled=true;btn.textContent=txt;btn.style.color=col;btn.style.fontWeight='600';
   setTimeout(()=>{btn.disabled=false;btn.textContent=orig;btn.style.color=oc;btn.style.fontWeight='';},2200);
 }
+
 function flyToAlert(zid){const z=ZONES.find(x=>x.id===zid);if(z)map.flyTo([z.lat,z.lon],15,{duration:1});}
+
+// ═══════════════════════════════════════════════════════════════════
+//  M2 CHANGE 2 (part A): ackAlert — wired to POST /alerts/{id}/acknowledge
+//  Uses Bearer token via api.post().  Refreshes list on success.
+//  NOTE: This function already called the correct endpoint in M1.
+//  Kept as-is per Bible rule "keep existing function names".
+// ═══════════════════════════════════════════════════════════════════
+async function ackAlert(id, btnEl){
+  // Dev mode (no DB): show visual confirmation without API call
+  if(!id || id===0){
+    _alertFeedback(btnEl,'✓ Acknowledged','#1976D2');
+    return;
+  }
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
+
+  // POST /alerts/{id}/acknowledge — Bearer token included by api.post
+  const d = await api.post(`/alerts/${id}/acknowledge`, {notes:'Acknowledged via engineer dashboard'});
+
+  if(d && d.success){
+    _alertFeedback(btnEl,'✓ Done','#1976D2');
+    // Refresh alert list after 600ms so badge updates to ACK
+    setTimeout(()=>renderAlerts(), 600);
+  } else {
+    const msg = (d && d.error) ? d.error : 'Acknowledge failed';
+    _alertFeedback(btnEl, msg.slice(0,35), '#D32F2F');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  M2 CHANGE 2 (part B): resolveAlert — wired to POST /alerts/{id}/accept-resolution
+//  Bible Section 3 M2: "Wire the Resolve button to POST /alerts/{id}/accept-resolution"
+//  Changed from backward-compat /resolve to the M1 state-machine endpoint.
+//  /accept-resolution requires status = 'resolve_requested' (PENDING).
+//  If not in that state, a clear error message guides the engineer.
+// ═══════════════════════════════════════════════════════════════════
+async function resolveAlert(id, btnEl){
+  // Dev mode (no DB): show visual confirmation without API call
+  if(!id || id===0){
+    _alertFeedback(btnEl,'✓ Resolved','#2E7D32');
+    return;
+  }
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
+
+  // POST /alerts/{id}/accept-resolution — requires status='resolve_requested'
+  const d = await api.post(`/alerts/${id}/accept-resolution`, {notes:'Resolution accepted via engineer dashboard'});
+
+  if(d && d.success){
+    _alertFeedback(btnEl,'✓ Accepted','#2E7D32');
+    // Refresh alert list after 600ms so badge updates to RESOLVED
+    setTimeout(()=>renderAlerts(), 600);
+  } else {
+    const errMsg = (d && d.error) ? d.error : 'Accept-resolution failed';
+    // State-aware error: if alert is not yet in PENDING state, guide the engineer
+    if(
+      errMsg.toLowerCase().includes('resolve_request') ||
+      errMsg.toLowerCase().includes('not in')         ||
+      errMsg.toLowerCase().includes('not found')
+    ){
+      _alertFeedback(btnEl,'Needs PENDING first','#E65100');
+      // Non-blocking hint below the button
+      if(btnEl){
+        const hint = btnEl.closest('.acard')?.querySelector('.m2-hint');
+        if(hint){ hint.style.display='block'; setTimeout(()=>{hint.style.display='none';},4000); }
+      }
+    } else {
+      _alertFeedback(btnEl, errMsg.slice(0,35), '#D32F2F');
+    }
+  }
+}
 
 // ── Equity — V4 ───────────────────────────────────────────────────
 async function compEquity(){
@@ -573,6 +627,22 @@ async function compEquity(){
 }
 function flyZ(la,lo){map.flyTo([la,lo],15,{duration:1})}
 
+// ═══════════════════════════════════════════════════════════════════
+//  M2 CHANGE 3: _statusBadge helper
+//  Converts the alert.status string from the M1 state machine into a
+//  small colour-coded badge.  Badge classes are defined in the CSS above.
+//  States: new/fired → grey NEW | acknowledged → blue ACK
+//          resolve_requested → orange PENDING | resolved → green RESOLVED
+// ═══════════════════════════════════════════════════════════════════
+function _statusBadge(status){
+  const s = (status || 'new').toLowerCase();
+  if(s === 'acknowledged')      return '<span class="sbadge sbadge-ack">ACK</span>';
+  if(s === 'resolve_requested') return '<span class="sbadge sbadge-pending">PENDING</span>';
+  if(s === 'resolved')          return '<span class="sbadge sbadge-resolved">RESOLVED</span>';
+  // 'new', 'fired', or anything else → grey NEW
+  return '<span class="sbadge sbadge-new">NEW</span>';
+}
+
 // ── Alerts — V5 ───────────────────────────────────────────────────
 async function renderAlerts(){
   lLG.clearLayers();
@@ -588,18 +658,29 @@ async function renderAlerts(){
     document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts for this scenario</div>';
     return;
   }
+
   document.getElementById('albody').innerHTML=al.map((a,i)=>{
     const isHigh=(a.level==='HIGH'||a.level==='high');
     const col=isHigh?'#D32F2F':'#E65100';
     const clps=parseFloat(a.clps||0);
     const dbId=a.db_alert_id||0;
-    // Phase 4b: Ack/Resolve work when DB is running (PostgreSQL mode).
-    // In file-based dev mode (db_alert_id=0), buttons show visual confirmation.
     const devMode = dbId===0;
-    const ackTip  = devMode ? 'Mark as acknowledged (dev mode — no DB)' : 'Acknowledge this alert in the database';
-    const resTip  = devMode ? 'Mark as resolved (dev mode — no DB)'    : 'Resolve this alert (acknowledge first)';
+    const ackTip  = devMode ? 'Mark as acknowledged (dev mode — no DB)' : 'POST /alerts/{id}/acknowledge (engineer only)';
+    const resTip  = devMode ? 'Mark as resolved (dev mode — no DB)'    : 'POST /alerts/{id}/accept-resolution — alert must be PENDING first';
+
+    // ── M2 CHANGE 4: status badge injected into card title ──────
+    // _statusBadge reads a.status from the alert object.
+    // When ?status= is omitted (our case), alerts default to 'new'.
+    // After ackAlert() or resolveAlert() succeed, renderAlerts() is called
+    // again and the badge updates to reflect the new state from the backend.
+    const badge = _statusBadge(a.status);
+    // ── end M2 CHANGE 4 ─────────────────────────────────────────
+
     return`<div class="acard ${isHigh?'high':'moderate'}" id="acard-${i}">
-      <div class="atit" style="color:${col}">${isHigh?'🔴':'🟠'} ${a.title||('Alert — '+(a.zone||''))}</div>
+      <div class="atit" style="color:${col}">
+        ${isHigh?'🔴':'🟠'} ${a.title||('Alert — '+(a.zone||''))}
+        ${badge}
+      </div>
       <div class="abody">${a.body||''}</div>
       <div class="ameta" onclick="flyToAlert('${a.zone_id_short||''}')" title="Click to fly to zone on map">
         <span>📍 ${a.zone||''}</span>
@@ -616,12 +697,17 @@ async function renderAlerts(){
         <button class="abtn" id="res-${i}" title="${resTip}"
           onclick="resolveAlert(${dbId},this)"
           style="border:1px solid #2E7D32;background:#E8F5E9;color:#2E7D32;padding:5px 8px;">
-          ✓ Resolve
+          ✓ Accept Resolution
         </button>
       </div>
-      ${devMode?`<div style="font-size:9px;color:var(--text3);margin-top:3px">Dev mode: buttons log locally. Run with PostgreSQL for full lifecycle.</div>`:''}
+      <div class="m2-hint" style="display:none;font-size:9px;color:var(--orange);margin-top:4px;line-height:1.4">
+        ℹ Alert must be in PENDING state. Ask the field operator to submit a resolution report first.
+      </div>
+      ${devMode?`<div style="font-size:9px;color:var(--text3);margin-top:3px">Dev mode: buttons show feedback locally. Run with PostgreSQL + db_migrate.py for full lifecycle.</div>`:''}
     </div>`;
   }).join('');
+
+  // Map markers only for non-baseline scenarios
   if(scen!=='baseline'){
     const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]});
     al.forEach(a=>{
@@ -632,7 +718,8 @@ async function renderAlerts(){
           .bindPopup(`<div class="ptit2" style="color:${col}">⚠ ${a.title||'Alert'}</div>
             <div class="prow"><span class="pkey">Zone</span><span class="pval">${a.zone||''}</span></div>
             <div class="prow"><span class="pkey">CLPS</span><span class="pval">${parseFloat(a.clps||0).toFixed(2)}</span></div>
-            <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal||''}</span></div>`)
+            <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal||''}</span></div>
+            <div class="prow"><span class="pkey">Status</span><span class="pval">${a.status||'new'}</span></div>`)
           .addTo(lLG);
       }
     });
