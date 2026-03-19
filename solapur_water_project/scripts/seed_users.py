@@ -1,75 +1,200 @@
 """
-Hydro-Equity Engine — Phase 4a
+Hydro-Equity Engine — Phase 4a + M4
 scripts/seed_users.py
-Seeds 6 demo users into the PostgreSQL 'users' table.
 
-Run AFTER create_users_table.py:
-    python scripts/seed_users.py
+Seeds demo users into the PostgreSQL 'users' table.
 
-Safe to re-run (uses ON CONFLICT DO UPDATE — updates existing users).
+M4 ADDITION: 8 field_operator users (field_op_z1 through field_op_z8)
+             one per zone, password: demo@1234, role: field_operator
+
+WORKS BOTH WAYS:
+  - If PostgreSQL is running: seeds all 12 users into the DB
+  - If PostgreSQL is unavailable: shows a clear error message with fix steps
+  - AUTH_DEV_MODE note: seeding always requires PostgreSQL (users must be stored
+    somewhere). AUTH_DEV_MODE bypasses DB *at runtime* for login only.
+
+Run:  python scripts/seed_users.py
+Safe to re-run (ON CONFLICT DO UPDATE — updates existing users).
 """
 
 import sys
 import os
 
-# Add project root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from sqlalchemy import text
-from backend.database import engine
-from backend.auth import get_password_hash
-
-
-# ── 6 Demo Users (covers all 4 roles) ─────────────────────────────
+# ── All 12 demo users ──────────────────────────────────────────────────────────
 DEMO_USERS = [
+
+    # ── Original 4 users (Phase 4a) ──────────────────────────────────────────
     {
         "username":  "engineer1",
-        "password":  "demo@1234",
+        "password":  "demo123",
         "role":      "engineer",
-        "zone_id":   None,               # engineers see all zones
+        "zone_id":   None,
         "full_name": "Prabhav Tiwari — Engineer",
     },
     {
         "username":  "ward_z1",
-        "password":  "demo@1234",
+        "password":  "demo123",
         "role":      "ward_officer",
-        "zone_id":   "zone_1",           # ward officer for Zone 1
+        "zone_id":   "zone_1",
         "full_name": "Ward Officer — Zone 1",
     },
     {
         "username":  "ward_z2",
-        "password":  "demo@1234",
+        "password":  "demo123",
         "role":      "ward_officer",
-        "zone_id":   "zone_2",           # ward officer for Zone 2
+        "zone_id":   "zone_2",
         "full_name": "Ward Officer — Zone 2",
     },
     {
         "username":  "commissioner1",
-        "password":  "demo@1234",
+        "password":  "demo123",
         "role":      "commissioner",
-        "zone_id":   None,               # commissioners see all zones
+        "zone_id":   None,
         "full_name": "SMC Commissioner",
     },
-    
+
+    # ── M4 NEW: 8 field operators, one per zone ───────────────────────────────
+    {
+        "username":  "field_op_z1",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_1",
+        "full_name": "Field Operator — Zone 1",
+    },
+    {
+        "username":  "field_op_z2",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_2",
+        "full_name": "Field Operator — Zone 2",
+    },
+    {
+        "username":  "field_op_z3",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_3",
+        "full_name": "Field Operator — Zone 3",
+    },
+    {
+        "username":  "field_op_z4",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_4",
+        "full_name": "Field Operator — Zone 4",
+    },
+    {
+        "username":  "field_op_z5",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_5",
+        "full_name": "Field Operator — Zone 5",
+    },
+    {
+        "username":  "field_op_z6",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_6",
+        "full_name": "Field Operator — Zone 6",
+    },
+    {
+        "username":  "field_op_z7",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_7",
+        "full_name": "Field Operator — Zone 7",
+    },
+    {
+        "username":  "field_op_z8",
+        "password":  "demo123",
+        "role":      "field_operator",
+        "zone_id":   "zone_8",
+        "full_name": "Field Operator — Zone 8",
+    },
 ]
+
+FIELD_OP_COUNT   = sum(1 for u in DEMO_USERS if u["role"] == "field_operator")
+TOTAL_USERS      = len(DEMO_USERS)
+
+
+def _check_db_connection(engine):
+    """
+    Test the DB connection before attempting seeding.
+    Returns (True, None) on success or (False, error_message) on failure.
+    """
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 
 def seed():
-    print("=" * 60)
-    print("  seed_users.py · Phase 4a Demo User Seeding")
-    print("=" * 60)
-    print(f"  Seeding {len(DEMO_USERS)} demo users...\n")
+    print("=" * 62)
+    print("  seed_users.py · Phase 4a + M4 User Seeding")
+    print(f"  Total users to seed: {TOTAL_USERS} "
+          f"(4 original + {FIELD_OP_COUNT} field operators)")
+    print("=" * 62)
 
+    # ── Import DB dependencies ────────────────────────────────────────
+    try:
+        from sqlalchemy import text
+        from backend.database import engine
+        from backend.auth import get_password_hash
+    except Exception as e:
+        print(f"\n  ❌  Import error: {e}")
+        print("  Make sure you are running from the project root:")
+        print("      python scripts/seed_users.py")
+        sys.exit(1)
+
+    # ── Test DB connection first ──────────────────────────────────────
+    print("\n  Testing PostgreSQL connection...")
+    db_ok, db_err = _check_db_connection(engine)
+
+    if not db_ok:
+        print(f"\n  ❌  Cannot connect to PostgreSQL: {db_err}")
+        print()
+        print("  ── HOW TO FIX ──────────────────────────────────────────")
+        print("  1. Make sure PostgreSQL is running")
+        print("     Windows: Open Services → start 'postgresql-x64-XX'")
+        print()
+        print("  2. Check your .env file at the project root:")
+        print("     DB_HOST=localhost")
+        print("     DB_PORT=5432")
+        print("     DB_NAME=hydro_equity")
+        print("     DB_USER=postgres")
+        print("     DB_PASSWORD=<your_password>")
+        print()
+        print("  3. Make sure the database exists:")
+        print("     psql -U postgres -c \"CREATE DATABASE hydro_equity;\"")
+        print()
+        print("  4. Make sure the users table exists:")
+        print("     python scripts/create_users_table.py")
+        print()
+        print("  NOTE: AUTH_DEV_MODE=1 lets the SERVER run without DB,")
+        print("  but seeding always requires PostgreSQL to store users.")
+        print("  ────────────────────────────────────────────────────────")
+        sys.exit(1)
+
+    print("  ✅  PostgreSQL connection OK\n")
+
+    # ── Seed users ────────────────────────────────────────────────────
     success_count = 0
+    fail_count    = 0
 
     with engine.connect() as conn:
         for user in DEMO_USERS:
-            hashed = get_password_hash(user["password"])
             try:
+                hashed = get_password_hash(user["password"])
                 conn.execute(
                     text("""
-                        INSERT INTO users (username, hashed_password, role, zone_id, full_name)
-                        VALUES (:username, :hashed_password, :role, :zone_id, :full_name)
+                        INSERT INTO users
+                            (username, hashed_password, role, zone_id, full_name)
+                        VALUES
+                            (:username, :hashed_password, :role, :zone_id, :full_name)
                         ON CONFLICT (username) DO UPDATE SET
                             hashed_password = EXCLUDED.hashed_password,
                             role            = EXCLUDED.role,
@@ -87,26 +212,45 @@ def seed():
                 )
                 conn.commit()
                 zone_str = f"zone={user['zone_id']}" if user.get("zone_id") else "all zones"
-                print(f"  ✅  {user['username']:<16} ({user['role']:<16}) [{zone_str}]")
+                tag      = "NEW (M4)" if user["role"] == "field_operator" else "original"
+                print(f"  ✅  {user['username']:<18} ({user['role']:<16}) "
+                      f"[{zone_str}]  [{tag}]")
                 success_count += 1
             except Exception as e:
                 print(f"  ❌  {user['username']}: {e}")
+                fail_count += 1
 
-    print(f"\n  {success_count}/{len(DEMO_USERS)} users seeded successfully.")
+    # ── Summary ───────────────────────────────────────────────────────
+    print(f"\n  {success_count}/{TOTAL_USERS} users seeded successfully."
+          + (f"  {fail_count} failed." if fail_count else ""))
+
+    if success_count == TOTAL_USERS:
+        print("  ✅  All users seeded — M4 seeding complete.")
+    elif success_count >= 4:
+        print("  ⚠   Original users OK but some M4 field operators may have failed.")
+        print("      Check the errors above.")
+    else:
+        print("  ❌  Seeding had significant failures. Check PostgreSQL and try again.")
+
+    # ── Credentials table ─────────────────────────────────────────────
     print()
-    print("  ─" * 30)
+    print("  ─" * 33)
     print("  DEMO LOGIN CREDENTIALS (all passwords: demo@1234)")
-    print("  ─" * 30)
-    print(f"  {'Username':<16} {'Password':<14} {'Role':<18} {'Zone'}")
-    print(f"  {'─'*16} {'─'*14} {'─'*18} {'─'*10}")
+    print("  ─" * 33)
+    print(f"  {'Username':<18} {'Role':<18} {'Zone'}")
+    print(f"  {'─'*18} {'─'*18} {'─'*10}")
     for u in DEMO_USERS:
         zone_str = u.get("zone_id") or "all zones"
-        print(f"  {u['username']:<16} {u['password']:<14} {u['role']:<18} {zone_str}")
-
+        print(f"  {u['username']:<18} {u['role']:<18} {zone_str}")
     print()
-    print("  ─" * 30)
-    print("  Next step: uvicorn backend.app:app --reload --port 8000")
-    print("=" * 60)
+    print(f"  M4 field operators: {FIELD_OP_COUNT} users "
+          f"(field_op_z1 through field_op_z8)")
+    print()
+    print("  ─" * 33)
+    print("  Next step: restart the server")
+    print("  $env:AUTH_DEV_MODE = '1'; "
+          "python -m uvicorn backend.app:app --reload --port 8000")
+    print("=" * 62)
 
 
 if __name__ == '__main__':

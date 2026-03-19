@@ -1,48 +1,29 @@
 """
-Hydro-Equity Engine / Dhara — Phase 4b M2
+Hydro-Equity Engine / Dhara — Phase 4b M2 + M4
 backend/routers/mobile.py
 
 Mobile API Router for Field Operators.
 All /mobile/* endpoints require Bearer token.
-Only field_operator role can call /mobile/alerts (403 for all other roles).
+Only field_operator role can call most endpoints (403 for all other roles).
 Zone filtering is server-side only — derived from JWT zone_id claim.
 
-Bible Reference: Section 3 M2 — "Create the /mobile/* API router for field operators"
+M4 CHANGE to /mobile/zone-status:
+  - hei now sourced via data_provider.get_zone_status() instead of direct file read
+  - active_alert_count now counts ONLY status='acknowledged' (was all active statuses)
+  - Returns 0 with a logged warning if DB is unavailable (graceful fallback)
+  - Response shape: {zone_id, hei, active_alert_count}
 
 ENDPOINTS:
     GET  /mobile/profile
-         Reads JWT only (no DB call).
-         Returns {username, zone_id, role}.
-         All authenticated roles allowed (field_operator, engineer, etc.).
-
     GET  /mobile/alerts
-         field_operator role ONLY — 403 for all other roles.
-         Returns alerts WHERE zone_id = JWT.zone_id AND status = "acknowledged".
-         Zone filtering is server-side from JWT (never trust client-supplied zone).
-
     POST /mobile/alerts/{id}/start
-         field_operator role ONLY.
-         Appends note "work started" to the alert notes column.
-         No state change — status stays "acknowledged".
-         Returns {success, alert_id, note_added}.
-
     POST /mobile/alerts/{id}/resolve
-         field_operator role ONLY.
-         Calls the M1 request-resolution logic:
-           status: acknowledged → resolve_requested
-           Saves resolution_report from request body.
-         Returns {success, alert_id, status}.
-
-    GET  /mobile/zone-status
-         field_operator role ONLY.
-         Returns {zone_id, hei, status, active_alert_count}.
-         HEI is read from outputs/v4_zone_status.json (no DB call for HEI).
-         active_alert_count = count of alerts WHERE zone_id = JWT.zone_id
-                              AND status IN ('new', 'acknowledged', 'resolve_requested').
+    GET  /mobile/zone-status   ← updated in M4
 """
 
 import os
 import json
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -52,35 +33,28 @@ from sqlalchemy import text
 
 from backend.auth import get_current_user
 from backend.database import engine
+from backend import data_provider
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/mobile", tags=["Mobile — Field Operator"])
-
-# Path to outputs directory (two levels up from this file)
-OUTPUTS_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "outputs")
-)
-V4_STATUS_PATH = os.path.join(OUTPUTS_DIR, "v4_zone_status.json")
 
 
 # ── Pydantic request bodies ───────────────────────────────────────────────────
 
 class StartWorkRequest(BaseModel):
-    note: Optional[str] = None  # optional extra note; "work started" is always appended
+    note: Optional[str] = None
 
 
 class MobileResolveRequest(BaseModel):
-    report: Optional[str] = None   # field operator's work notes / resolution report
-    notes:  Optional[str] = None   # alias — accept either key for flexibility
+    report: Optional[str] = None
+    notes:  Optional[str] = None
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
 def _require_field_operator(current_user: dict) -> dict:
-    """
-    Raises HTTP 403 if the caller is not a field_operator.
-    Returns current_user dict on success.
-    Called explicitly in each endpoint that is field_operator-only.
-    """
+    """Raises HTTP 403 if the caller is not a field_operator."""
     role = current_user.get("role", "")
     if role != "field_operator":
         raise HTTPException(
@@ -93,47 +67,18 @@ def _require_field_operator(current_user: dict) -> dict:
     return current_user
 
 
-def _get_zone_hei(zone_id: str) -> dict:
-    """
-    Reads v4_zone_status.json and returns the HEI record for the given zone_id.
-    Returns a default dict if the file is missing or the zone is not found.
-    """
-    if not os.path.exists(V4_STATUS_PATH):
-        return {"zone_id": zone_id, "hei": None, "status": "unknown"}
-    try:
-        with open(V4_STATUS_PATH, encoding="utf-8") as f:
-            zones = json.load(f)
-        if isinstance(zones, list):
-            for z in zones:
-                if str(z.get("zone_id", "")) == str(zone_id):
-                    return {
-                        "zone_id": zone_id,
-                        "hei":     round(float(z.get("hei", 0) or 0), 4),
-                        "status":  str(z.get("status", "unknown")),
-                    }
-    except Exception:
-        pass
-    return {"zone_id": zone_id, "hei": None, "status": "unknown"}
-
-
 # ══════════════════════════════════════════════════════════════════════════════
 #  GET /mobile/profile
-#  Reads JWT only — no DB call.
-#  All authenticated roles allowed.
+#  Reads JWT only — no DB call. All authenticated roles allowed.
 # ══════════════════════════════════════════════════════════════════════════════
 
 @router.get(
     "/profile",
     summary="Field operator profile from JWT (no DB call)",
-    description=(
-        "Returns {username, zone_id, role} decoded directly from the Bearer token. "
-        "No database call is made. All authenticated roles may call this endpoint."
-    ),
 )
 def get_mobile_profile(
     current_user: dict = Depends(get_current_user),
 ):
-    """Returns the JWT payload fields relevant to the mobile app."""
     return {
         "username":  current_user.get("sub", ""),
         "zone_id":   current_user.get("zone_id"),
@@ -144,27 +89,17 @@ def get_mobile_profile(
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  GET /mobile/alerts
-#  field_operator role ONLY — 403 for all other roles.
+#  field_operator role ONLY.
 #  Returns alerts WHERE zone_id = JWT.zone_id AND status = "acknowledged".
-#  Zone filtering is strictly server-side (derived from JWT).
 # ══════════════════════════════════════════════════════════════════════════════
 
 @router.get(
     "/alerts",
     summary="Acknowledged alerts for field operator's zone (field_operator only)",
-    description=(
-        "Returns all alerts in 'acknowledged' state for the zone_id in the JWT. "
-        "Only field_operator role may call this endpoint (403 for engineer, ward_officer, etc.). "
-        "Zone is derived server-side from the JWT — the client cannot supply or override it."
-    ),
 )
 def get_mobile_alerts(
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Query: SELECT * FROM alerts WHERE zone_id = :jwt_zone AND status = 'acknowledged'
-    Returns a list of alert dicts with fields needed by the field operator app.
-    """
     _require_field_operator(current_user)
 
     zone_id = current_user.get("zone_id")
@@ -173,7 +108,7 @@ def get_mobile_alerts(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 "Your account does not have a zone_id assigned. "
-                "Contact the system administrator to assign a zone to your field_operator account."
+                "Contact the system administrator to assign a zone."
             ),
         )
 
@@ -205,12 +140,12 @@ def get_mobile_alerts(
                 "probable_nodes":    r[5] or "",
                 "scenario":          str(r[6] or "baseline"),
                 "status":            str(r[7] or "acknowledged"),
-                "acknowledged_at":   r[8].isoformat() if r[8] else None,
-                "acknowledged_by":   str(r[9]) if r[9] else None,
-                "resolution_report": str(r[10]) if r[10] else None,
+                "acknowledged_at":   r[8].isoformat()  if r[8]  else None,
+                "acknowledged_by":   str(r[9])          if r[9]  else None,
+                "resolution_report": str(r[10])          if r[10] else None,
                 "rejected_count":    int(r[11] or 0),
-                "notes":             str(r[12]) if r[12] else None,
-                "created_at":        r[13].isoformat() if r[13] else None,
+                "notes":             str(r[12])          if r[12] else None,
+                "created_at":        r[13].isoformat()  if r[13] else None,
             })
 
         return {
@@ -232,50 +167,32 @@ def get_mobile_alerts(
 # ══════════════════════════════════════════════════════════════════════════════
 #  POST /mobile/alerts/{id}/start
 #  field_operator role ONLY.
-#  Appends "work started" to notes — NO state change.
-#  Status stays "acknowledged".
+#  Appends "work started" note — NO state change.
 # ══════════════════════════════════════════════════════════════════════════════
 
 @router.post(
     "/alerts/{alert_id}/start",
     summary="Mark work started on an alert (field_operator only, no state change)",
-    description=(
-        "Appends 'work started' note to the alert. "
-        "Status is NOT changed — alert remains 'acknowledged'. "
-        "field_operator role only. "
-        "Bible reference: POST /mobile/alerts/{id}/start — adds note 'work started' — no state change."
-    ),
 )
 def start_alert_work(
     alert_id: int,
     body: StartWorkRequest = StartWorkRequest(),
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Appends "work started [timestamp]" to the alert notes column.
-    The alert must belong to the field operator's zone (server-side check).
-    Status stays 'acknowledged' — this is a note-only operation.
-    """
     _require_field_operator(current_user)
 
     zone_id  = current_user.get("zone_id")
     username = current_user.get("sub", "field_operator")
     ts       = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
-    # Build the note text
     base_note = f"work started by {username} at {ts}"
     if body.note:
         base_note = f"{base_note}. Field note: {body.note}"
 
     try:
         with engine.connect() as conn:
-            # Verify the alert exists, belongs to this zone, and is in 'acknowledged' state
             existing = conn.execute(
-                text("""
-                    SELECT alert_id, zone_id, status
-                    FROM alerts
-                    WHERE alert_id = :aid
-                """),
+                text("SELECT alert_id, zone_id, status FROM alerts WHERE alert_id = :aid"),
                 {"aid": alert_id},
             ).fetchone()
 
@@ -285,14 +202,12 @@ def start_alert_work(
                     detail=f"Alert {alert_id} not found.",
                 )
 
-            # Zone enforcement: field operator can only act on their own zone
             if zone_id and str(existing[1]) != str(zone_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=(
                         f"Alert {alert_id} belongs to zone '{existing[1]}', "
-                        f"but your zone is '{zone_id}'. "
-                        f"Zone-scoped access enforced server-side."
+                        f"but your zone is '{zone_id}'."
                     ),
                 )
 
@@ -305,7 +220,6 @@ def start_alert_work(
                     ),
                 )
 
-            # Append note — concatenate with any existing notes
             conn.execute(
                 text("""
                     UPDATE alerts
@@ -323,7 +237,7 @@ def start_alert_work(
             "success":    True,
             "alert_id":   alert_id,
             "note_added": base_note,
-            "status":     "acknowledged",   # unchanged
+            "status":     "acknowledged",
             "message":    "Work started note recorded. Alert status unchanged.",
         }
 
@@ -339,47 +253,27 @@ def start_alert_work(
 # ══════════════════════════════════════════════════════════════════════════════
 #  POST /mobile/alerts/{id}/resolve
 #  field_operator role ONLY.
-#  Calls M1 request-resolution logic:
-#    state: acknowledged → resolve_requested
-#    Saves resolution_report.
+#  Calls M1 request-resolution: acknowledged → resolve_requested
 # ══════════════════════════════════════════════════════════════════════════════
 
 @router.post(
     "/alerts/{alert_id}/resolve",
     summary="Field operator files resolution report (field_operator only)",
-    description=(
-        "Transitions alert from 'acknowledged' → 'resolve_requested'. "
-        "Saves the field operator's resolution_report. "
-        "This calls the same M1 request-resolution logic as POST /alerts/{id}/request-resolution. "
-        "field_operator role only. Zone is verified server-side from JWT."
-    ),
 )
 def mobile_resolve_alert(
     alert_id: int,
     body: MobileResolveRequest = MobileResolveRequest(),
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Bible M2: POST /mobile/alerts/{id}/resolve →
-      calls the request-resolution logic from M1.
-    Equivalent to POST /alerts/{id}/request-resolution but accessible
-    from the /mobile/ prefix so the field operator app uses a consistent base URL.
-    Zone is validated server-side.
-    """
     _require_field_operator(current_user)
 
-    zone_id      = current_user.get("zone_id")
-    report_text  = body.report or body.notes or ""
+    zone_id     = current_user.get("zone_id")
+    report_text = body.report or body.notes or ""
 
     try:
         with engine.connect() as conn:
-            # Verify alert exists and zone matches before acting
             existing = conn.execute(
-                text("""
-                    SELECT alert_id, zone_id, status
-                    FROM alerts
-                    WHERE alert_id = :aid
-                """),
+                text("SELECT alert_id, zone_id, status FROM alerts WHERE alert_id = :aid"),
                 {"aid": alert_id},
             ).fetchone()
 
@@ -389,14 +283,12 @@ def mobile_resolve_alert(
                     detail=f"Alert {alert_id} not found.",
                 )
 
-            # Zone enforcement
             if zone_id and str(existing[1]) != str(zone_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=(
                         f"Alert {alert_id} belongs to zone '{existing[1]}', "
-                        f"but your zone is '{zone_id}'. "
-                        f"Zone-scoped access enforced server-side."
+                        f"but your zone is '{zone_id}'."
                     ),
                 )
 
@@ -405,19 +297,16 @@ def mobile_resolve_alert(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
                         f"Alert {alert_id} is in state '{existing[2]}'. "
-                        f"Resolution can only be requested from 'acknowledged' state. "
-                        f"Ask the engineer to acknowledge it first."
+                        f"Resolution can only be requested from 'acknowledged' state."
                     ),
                 )
 
-            # M1 request-resolution transition: acknowledged → resolve_requested
             result = conn.execute(
                 text("""
                     UPDATE alerts
                     SET status            = 'resolve_requested',
                         resolution_report = :report
-                    WHERE alert_id = :aid
-                      AND status   = 'acknowledged'
+                    WHERE alert_id = :aid AND status = 'acknowledged'
                     RETURNING alert_id, status
                 """),
                 {"report": report_text, "aid": alert_id},
@@ -430,17 +319,9 @@ def mobile_resolve_alert(
                 "success":  True,
                 "alert_id": alert_id,
                 "status":   "resolve_requested",
-                "message":  (
-                    "Resolution report submitted. "
-                    "Waiting for engineer to accept or reject."
-                ),
+                "message":  "Resolution report submitted. Waiting for engineer to accept.",
             }
-
-        # Should not reach here given the state check above, but be safe
-        return {
-            "success": False,
-            "error":   "Alert not found or not in acknowledged state.",
-        }
+        return {"success": False, "error": "Alert not found or not in acknowledged state."}
 
     except HTTPException:
         raise
@@ -452,31 +333,37 @@ def mobile_resolve_alert(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  GET /mobile/zone-status
-#  field_operator role ONLY.
-#  Returns {zone_id, hei, hei_status, active_alert_count}.
-#  HEI read from v4_zone_status.json (file read, no DB for HEI).
-#  active_alert_count from DB: alerts in (new, acknowledged, resolve_requested).
+#  GET /mobile/zone-status   (M4 — updated)
+#
+#  Returns {zone_id, hei, active_alert_count}
+#    hei               — from data_provider.get_zone_status()  (V4 output)
+#    active_alert_count — COUNT alerts WHERE zone_id=jwt.zone_id
+#                         AND status='acknowledged'
+#    If DB unavailable  — active_alert_count = 0, warning logged
+#    field_operator role ONLY
 # ══════════════════════════════════════════════════════════════════════════════
 
 @router.get(
     "/zone-status",
-    summary="Zone HEI and active alert count for field operator's zone (field_operator only)",
+    summary="Field Operator — Zone HEI and acknowledged alert count (M4)",
     description=(
-        "Returns the zone HEI score (from v4_zone_status.json) and the count of active alerts "
-        "(status IN new, acknowledged, resolve_requested) for the JWT zone_id. "
+        "Returns {zone_id, hei, active_alert_count} for the field operator's zone. "
+        "hei comes from data_provider.get_zone_status() (v4_zone_status.json). "
+        "active_alert_count = alerts with status='acknowledged' for this zone. "
+        "Returns active_alert_count=0 with a logged warning if DB is unavailable. "
         "field_operator role only."
-    ),
+    )
 )
-def get_mobile_zone_status(
+def get_zone_status(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Returns:
-        zone_id            — from JWT
-        hei                — from v4_zone_status.json
-        hei_status         — severe | moderate | equitable | over
-        active_alert_count — count from DB: status IN ('new','acknowledged','resolve_requested')
+    M4 spec:
+      - field_operator role required
+      - hei from data_provider.get_zone_status()
+      - active_alert_count = COUNT WHERE zone_id=jwt.zone_id AND status='acknowledged'
+      - graceful 0 + warning log if DB unavailable
+      - response: {zone_id, hei, active_alert_count}
     """
     _require_field_operator(current_user)
 
@@ -485,35 +372,52 @@ def get_mobile_zone_status(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                "Your field_operator account has no zone_id assigned. "
-                "Ask the system administrator to set your zone."
-            ),
+                "No zone_id assigned to this field operator account. "
+                "Contact administrator to assign a zone."
+            )
         )
 
-    # ── HEI from v4_zone_status.json (file read, not DB) ─────────────────────
-    hei_data = _get_zone_hei(zone_id)
+    # ── Step 1: Get HEI from data_provider (V4 output file) ──────────
+    all_zones = data_provider.get_zone_status()
+    hei = 0.0
+    for z in all_zones:
+        if str(z.get('zone_id', '')) == str(zone_id):
+            hei = float(z.get('hei', 0.0) or 0.0)
+            break
+    else:
+        # zone not found in V4 output — V4 may not have been run yet
+        logger.warning(
+            "[mobile/zone-status] zone_id '%s' not found in v4_zone_status.json "
+            "— returning hei=0.0. Run python scripts/v4_equity_minimal.py to populate.",
+            zone_id
+        )
 
-    # ── Active alert count from DB ────────────────────────────────────────────
+    # ── Step 2: Get active_alert_count from PostgreSQL ────────────────
+    # Only count status='acknowledged' (M4 spec)
     active_alert_count = 0
     try:
         with engine.connect() as conn:
             result = conn.execute(
                 text("""
                     SELECT COUNT(*)
-                    FROM alerts
-                    WHERE zone_id = :zone_id
-                      AND status  IN ('new', 'acknowledged', 'resolve_requested')
+                    FROM   alerts
+                    WHERE  zone_id = :zone_id
+                      AND  status  = 'acknowledged'
                 """),
-                {"zone_id": zone_id},
-            ).fetchone()
-            active_alert_count = int(result[0] or 0)
-    except Exception as e:
-        # Non-fatal — return 0 if DB unavailable
+                {"zone_id": zone_id}
+            ).scalar()
+            active_alert_count = int(result or 0)
+    except Exception as exc:
+        # DB unavailable — return 0 gracefully and log a warning (M4 spec)
+        logger.warning(
+            "[mobile/zone-status] DB unavailable, returning active_alert_count=0. "
+            "Error: %s", exc
+        )
         active_alert_count = 0
 
+    # ── Step 3: Return M4 spec response shape ─────────────────────────
     return {
         "zone_id":            zone_id,
-        "hei":                hei_data.get("hei"),
-        "hei_status":         hei_data.get("status", "unknown"),
+        "hei":                round(hei, 4),
         "active_alert_count": active_alert_count,
     }
