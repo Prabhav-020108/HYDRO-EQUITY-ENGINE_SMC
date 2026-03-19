@@ -1,20 +1,17 @@
 """
-Hydro-Equity Engine — Phase 4a
+Hydro-Equity Engine — Phase 4a (M3 refactor)
 backend/routers/burst.py
-GET /burst-risk/top10 → returns v6_burst_top10.json (Pipe Stress Score top-10)
+GET /burst-risk/top10 → returns v6_burst_top10.json via data_provider
 Protected: requires valid JWT token.
-All roles receive the same data (no zone filtering — burst risk is city-wide concern).
+All roles receive the same data (no zone filtering).
 """
 
-import os
-import json
 from fastapi import APIRouter, Depends
 
 from backend.auth import get_current_user
+from backend import data_provider
 
 router = APIRouter(tags=["Analytics"])
-
-OUTPUTS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'outputs')
 
 
 @router.get(
@@ -32,12 +29,9 @@ def get_burst_risk_top10(current_user: dict = Depends(get_current_user)):
     All authenticated roles receive this data — no zone filtering applied.
     PSS formula: 0.40 × PSI_n + 0.35 × CFF_n + 0.25 × ADF
     """
-    path = os.path.join(OUTPUTS_DIR, "v6_burst_top10.json")
+    segments = data_provider.get_burst_top10()
 
-    if not os.path.exists(path):
+    if not segments:
         return {"error": "Run V6 first — v6_burst_top10.json not found in outputs/"}
 
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-
-    return data
+    return segments
