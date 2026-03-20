@@ -60,3 +60,7 @@ Impact on B/C: None. No endpoints, DB schema, or shared files changed.
        (still returns a PDF binary). They will now get real data
        instead of an error.
 Status: Done and tested.
+
+
+
+Person: A | N4 | No deviations — all changes match Bible spec exactly.

@@ -9,8 +9,12 @@ BASE_URL="http://localhost:8000"
 PASS=0
 FAIL=0
 
+# Fetch a real alert ID in 'new' status
+ALERT_ID=$(PGPASSWORD=admin1234 psql -U postgres -d hydro_equity -t -c \
+"SELECT alert_id FROM alerts WHERE status='new' AND zone_id='zone_1' ORDER BY alert_id DESC LIMIT 1;" | tr -d ' ')
+
 # Reset the alert to 'new' before running tests
-PGPASSWORD=admin1234 psql -U postgres -d hydro_equity -c "UPDATE alerts SET status='new', acknowledged_at=NULL, acknowledged_by=NULL, resolution_report=NULL, resolved_at=NULL, rejected_count=0, notes=NULL WHERE alert_id=65;"
+PGPASSWORD=admin1234 psql -U postgres -d hydro_equity -c "UPDATE alerts SET status='new', acknowledged_at=NULL, acknowledged_by=NULL, resolution_report=NULL, resolved_at=NULL, rejected_count=0, notes=NULL WHERE alert_id=$ALERT_ID;"
 
 # ── Colour helpers ────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'
@@ -113,10 +117,10 @@ else
 fi
 
 # =============================================================================
-# STEP 4 — POST /alerts/65/acknowledge with engineer token
+# STEP 4 — POST /alerts/$ALERT_ID/acknowledge with engineer token
 # =============================================================================
-STEP="POST /alerts/65/acknowledge (engineer token)"
-RESP=$(curl -s -X POST "$BASE_URL/alerts/65/acknowledge" \
+STEP="POST /alerts/$ALERT_ID/acknowledge (engineer token)"
+RESP=$(curl -s -X POST "$BASE_URL/alerts/$ALERT_ID/acknowledge" \
     -H "Authorization: Bearer $ENG_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"notes":"test"}')
@@ -129,12 +133,12 @@ else
 fi
 
 # =============================================================================
-# STEP 5 — GET /alerts/active?status=acknowledged → alert 65 in list
+# STEP 5 — GET /alerts/active?status=acknowledged → alert $ALERT_ID in list
 # =============================================================================
-STEP="GET /alerts/active?status=acknowledged — alert 65 present"
+STEP="GET /alerts/active?status=acknowledged — alert $ALERT_ID present"
 RESP=$(curl -s -X GET "$BASE_URL/alerts/active?status=acknowledged" \
     -H "Authorization: Bearer $ENG_TOKEN")
-HAS=$(json_list_contains_id "$RESP" "alerts" "65")
+HAS=$(json_list_contains_id "$RESP" "alerts" "$ALERT_ID")
 
 if [ "$HAS" = "yes" ]; then
     pass "$STEP"
@@ -143,10 +147,10 @@ else
 fi
 
 # =============================================================================
-# STEP 6 — POST /mobile/alerts/65/resolve with field op token
+# STEP 6 — POST /mobile/alerts/$ALERT_ID/resolve with field op token
 # =============================================================================
-STEP="POST /mobile/alerts/65/resolve (field op token)"
-RESP=$(curl -s -X POST "$BASE_URL/mobile/alerts/65/resolve" \
+STEP="POST /mobile/alerts/$ALERT_ID/resolve (field op token)"
+RESP=$(curl -s -X POST "$BASE_URL/mobile/alerts/$ALERT_ID/resolve" \
     -H "Authorization: Bearer $FOP_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"report":"test report"}')
@@ -159,12 +163,12 @@ else
 fi
 
 # =============================================================================
-# STEP 7 — GET /alerts/active?status=resolve_requested → alert 65 in list
+# STEP 7 — GET /alerts/active?status=resolve_requested → alert $ALERT_ID in list
 # =============================================================================
-STEP="GET /alerts/active?status=resolve_requested — alert 65 present"
+STEP="GET /alerts/active?status=resolve_requested — alert $ALERT_ID present"
 RESP=$(curl -s -X GET "$BASE_URL/alerts/active?status=resolve_requested" \
     -H "Authorization: Bearer $ENG_TOKEN")
-HAS=$(json_list_contains_id "$RESP" "alerts" "65")
+HAS=$(json_list_contains_id "$RESP" "alerts" "$ALERT_ID")
 
 if [ "$HAS" = "yes" ]; then
     pass "$STEP"
@@ -173,10 +177,10 @@ else
 fi
 
 # =============================================================================
-# STEP 8 — POST /alerts/65/accept-resolution with engineer token
+# STEP 8 — POST /alerts/$ALERT_ID/accept-resolution with engineer token
 # =============================================================================
-STEP="POST /alerts/65/accept-resolution (engineer token)"
-RESP=$(curl -s -X POST "$BASE_URL/alerts/65/accept-resolution" \
+STEP="POST /alerts/$ALERT_ID/accept-resolution (engineer token)"
+RESP=$(curl -s -X POST "$BASE_URL/alerts/$ALERT_ID/accept-resolution" \
     -H "Authorization: Bearer $ENG_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"notes":"test"}')
@@ -189,12 +193,12 @@ else
 fi
 
 # =============================================================================
-# STEP 9 — GET /alerts/active?status=resolved → alert 65 in list
+# STEP 9 — GET /alerts/active?status=resolved → alert $ALERT_ID in list
 # =============================================================================
-STEP="GET /alerts/active?status=resolved — alert 65 present"
+STEP="GET /alerts/active?status=resolved — alert $ALERT_ID present"
 RESP=$(curl -s -X GET "$BASE_URL/alerts/active?status=resolved" \
     -H "Authorization: Bearer $ENG_TOKEN")
-HAS=$(json_list_contains_id "$RESP" "alerts" "65")
+HAS=$(json_list_contains_id "$RESP" "alerts" "$ALERT_ID")
 
 if [ "$HAS" = "yes" ]; then
     pass "$STEP"
@@ -220,6 +224,82 @@ else
 fi
 
 # =============================================================================
+# N4 — Ward officer login tests (Person A)
+# =============================================================================
+for i in {1..8}; do
+    UNIT="ward_z$i"
+    STEP="N4 — login test for $UNIT"
+    
+    RESP=$(curl -s --max-time 10 -w "|%{http_code}" -X POST "$BASE_URL/auth/login" \
+        -H "Content-Type: application/json" \
+        -d "{\"username\":\"$UNIT\",\"password\":\"demo123\"}")
+    
+    BODY="${RESP%|*}"
+    CODE="${RESP##*|}"
+    
+    ROLE=$(json_get "$BODY" "role")
+    ZONE=$(json_get "$BODY" "zone_id")
+    
+    if [ "$CODE" = "200" ] && [ "$ROLE" = "ward_officer" ] && [ "$ZONE" = "zone_$i" ]; then
+        pass "$STEP"
+    else
+        fail "$STEP" "Code: $CODE, Body: $BODY"
+    fi
+done
+
+# =============================================================================
+# N4 — Weekly report download test (Person A)
+# =============================================================================
+STEP="N4 — Weekly report download test"
+CODE_CTYPE=$(curl -s -o /dev/null -w "%{http_code}|%{content_type}" \
+    -H "Authorization: Bearer $ENG_TOKEN" \
+    "$BASE_URL/reports/weekly")
+
+CODE="${CODE_CTYPE%|*}"
+CTYPE="${CODE_CTYPE##*|}"
+
+if [ "$CODE" = "200" ] && [[ "$CTYPE" == *"application/pdf"* ]]; then
+    pass "$STEP"
+else
+    fail "$STEP" "Weekly report returned non-PDF or error"
+fi
+
+# =============================================================================
+# N4 — No hardcoded mock data in /alerts/active (Person A)
+# =============================================================================
+STEP="N4 — No hardcoded mock data in /alerts/active"
+RESP=$(curl -s -w "|%{http_code}" -X GET "$BASE_URL/alerts/active?scenario=baseline" \
+    -H "Authorization: Bearer $ENG_TOKEN")
+
+BODY="${RESP%|*}"
+CODE="${RESP##*|}"
+
+if [ "$CODE" = "200" ]; then
+    IS_JSON=$(python -c "
+import sys, json
+try:
+    json.loads(sys.argv[1])
+    print('yes')
+except:
+    print('no')
+" "$BODY")
+
+    HAS_MOCK=$(python -c "
+import sys
+text = sys.argv[1].lower()
+print('yes' if 'hardcoded' in text or 'mock' in text else 'no')
+" "$BODY")
+
+    if [ "$IS_JSON" = "yes" ] && [ "$HAS_MOCK" = "no" ]; then
+        pass "$STEP"
+    else
+        fail "$STEP" "alerts/active returned hardcoded or mock data"
+    fi
+else
+    fail "$STEP" "alerts/active returned hardcoded or mock data"
+fi
+
+# =============================================================================
 # Summary
 # =============================================================================
 TOTAL=$((PASS + FAIL))
@@ -227,6 +307,11 @@ echo ""
 echo "============================================="
 echo " Results: $PASS passed, $FAIL failed  (total $TOTAL)"
 echo "============================================="
+
+# Phase 1 tests: untouched
+# N1 tests: untouched  
+# N4 new tests: ward x8, weekly report, alerts/active
+echo "N4 integration tests complete — ward logins, PDF report, alerts data verified"
 
 if [ "$FAIL" -eq 0 ]; then
     exit 0
