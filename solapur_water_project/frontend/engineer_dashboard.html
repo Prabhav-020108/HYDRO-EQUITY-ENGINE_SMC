@@ -348,6 +348,7 @@ function logout() { sessionStorage.clear(); window.location.href = 'login.html';
 // ── API config ────────────────────────────────────────────────────
 const BACK = 'http://localhost:8000';
 const MC   = [17.68, 75.908];
+let _nrwValue = '18%';
 let scen = 'baseline', hr = 6, tlChart = null, tick = null;
 let zoneHeiCache = {};
 let pipes = [], pLG, nLG, lLG, zLG, eLG, sLG, bLG;
@@ -389,6 +390,18 @@ const api = {
     } catch(e) { return {success:false,error:e.message}; }
   }
 };
+
+async function loadNrw() {
+  try {
+    const r = await fetch(BACK + '/nrw');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d && d.nrw) { _nrwValue = d.nrw; }
+  } catch(e) {
+    console.warn('[NRW] Could not fetch NRW:', e.message);
+    _nrwValue = '18%';
+  }
+}
 
 // Zone definitions matching V4 output zone_ids
 const ZONES = [
@@ -718,11 +731,11 @@ async function compEquity(){
   const ci=cweiInfo(rawCwei);
   const srt=[...zScores].sort((a,b)=>a.hei-b.hei);
   const avgP=pipes.length>0?pipes.reduce((s,p)=>s+p.p,0)/pipes.length:34;
-  const nrw=scen==='leak'?28:scen==='surge'?22:18;
+  const nrw = _nrwValue;
   document.getElementById('scw').textContent=pct+'%';
   document.getElementById('scw').style.color='#FFFFFF';
   document.getElementById('sap').textContent=avgP.toFixed(0)+'m';
-  document.getElementById('snw').textContent=nrw+'%';
+  document.getElementById('snw').textContent=nrw;
   document.getElementById('cwsc').textContent=pct+'%';
   document.getElementById('cwsc').style.color=ci.color;
   document.getElementById('cwlb').textContent='CWEI · HEI city mean';
@@ -730,7 +743,7 @@ async function compEquity(){
   de.textContent=ci.label;de.style.color=ci.color;de.style.background=ci.bg;
   document.getElementById('wz').textContent=srt[0]?srt[0].nm:'—';
   document.getElementById('bz').textContent=srt[srt.length-1]?srt[srt.length-1].nm:'—';
-  document.getElementById('nrw').textContent=nrw+'%';
+  document.getElementById('nrw').textContent=nrw;
   document.getElementById('znl').innerHTML=zScores.map(z=>{
     const col=z.color||heiCol(z.hei||0);const[lbl,cls]=heiLbl(z.hei||0);
     return`<div class="zrow" onclick="flyZ(${z.lat},${z.lon})">
@@ -1068,6 +1081,7 @@ async function renderRecommendations(){
 // The isRefreshing guard inside renderAlerts() prevents overlap.
 // ══════════════════════════════════════════════════════════════════
 async function loadAll(){
+  await loadNrw();
   try{
     const geo=await api.pub('/pipeline');
     if(geo&&geo.features){_pipelineCache=geo;renderPipes(geo);}

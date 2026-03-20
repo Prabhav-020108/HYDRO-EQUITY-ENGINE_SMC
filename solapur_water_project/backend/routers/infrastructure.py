@@ -11,6 +11,7 @@ Falls back gracefully if file not found (map just skips infra markers).
 
 import os, csv
 from fastapi import APIRouter
+import json as _json
 
 router = APIRouter(tags=["Public"])
 
@@ -72,3 +73,47 @@ def get_infrastructure():
         return {'markers': [], 'total': 0, 'error': str(e)}
 
     return {'markers': markers, 'total': len(markers)}
+
+@router.get(
+    "/nrw",
+    summary="Estimated NRW percentage — public endpoint",
+    description=(
+        "Returns the Non-Revenue Water estimate from outputs/v4_equity_minimal.json. "
+        "Falls back to '18% (baseline estimate)' if file or key is missing. "
+        "Public — no authentication required."
+    )
+)
+def get_nrw():
+    """
+    Public endpoint. Returns NRW value as a plain string like '18%' or '18% (baseline estimate)'.
+    Reads from outputs/v4_equity_minimal.json — the field written by V4 analytics engine.
+    """
+    import json as _json_inner
+    outputs_path = os.path.join(DATA_DIR, '..', 'outputs', 'v4_equity_minimal.json')
+    outputs_path = os.path.normpath(outputs_path)
+
+    if not os.path.exists(outputs_path):
+        return {"nrw": "18% (baseline estimate)", "source": "fallback"}
+
+    try:
+        with open(outputs_path, encoding='utf-8') as f:
+            data = _json_inner.load(f)
+
+        nrw = (
+            data.get('nrw_pct') or
+            data.get('nrw') or
+            data.get('estimated_nrw')
+        )
+
+        if nrw is not None:
+            if isinstance(nrw, (int, float)):
+                val = float(nrw)
+                if val <= 1.0:
+                    val *= 100
+                return {"nrw": f"{val:.1f}%", "source": "v4_equity_minimal.json"}
+            return {"nrw": str(nrw), "source": "v4_equity_minimal.json"}
+
+    except Exception:
+        pass
+
+    return {"nrw": "18% (baseline estimate)", "source": "fallback"}
