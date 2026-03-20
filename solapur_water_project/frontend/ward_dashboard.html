@@ -746,56 +746,74 @@
       L.circle([myZone.lat, myZone.lon], { radius: 1800, fillColor: col, fillOpacity: .15, color: col, weight: 2, opacity: .7 }).addTo(map);
     }
 
-    // ── Load alerts ───────────────────────────────────────────────────
     async function loadAlerts() {
-      lLG.clearLayers();
-      const data = await api.get('/alerts/active?scenario=baseline');
-      if (!data || data.error) {
-        document.getElementById('albody').innerHTML = '<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">Alert data unavailable — run V5 first.</div>';
-        document.getElementById('acnt').textContent = '0'; return;
-      }
-      const al = data.alerts || [];
-      document.getElementById('acnt').textContent = al.length;
-      if (al.length === 0) {
-        document.getElementById('albody').innerHTML = '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts for your zone</div>';
-        return;
-      }
-      const li = L.divIcon({ html: `<div class="mlk">!</div>`, className: '', iconSize: [22, 22], iconAnchor: [11, 11] });
-      document.getElementById('albody').innerHTML = al.map(a => {
-        const isHigh = (a.level === 'HIGH' || a.level === 'high');
-        const col = isHigh ? '#D32F2F' : '#E65100';
-        const clps = parseFloat(a.clps || 0);
-        // Add map marker for this alert
-        L.marker([myZone.lat, myZone.lon], { icon: li, zIndexOffset: 200 })
-          .bindPopup(`<div class="ptit2" style="color:${col}">⚠ ${a.title}</div>
+  // N2: guard flag — prevents the panel blanking out during background refresh
+  const isBackgroundRefresh = document.getElementById('albody').innerHTML.trim() !== '';
+
+  lLG.clearLayers();
+  const data = await api.get('/alerts/active?scenario=baseline');
+
+  if (!data || data.error) {
+    if (!isBackgroundRefresh) {
+      // Only show the error message on first load, not on silent background refresh
+      document.getElementById('albody').innerHTML =
+        '<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">Alert data unavailable — run V5 first.</div>';
+    }
+    document.getElementById('acnt').textContent = '0';
+    return;
+  }
+
+  const al = data.alerts || [];
+  document.getElementById('acnt').textContent = al.length;
+
+  if (al.length === 0) {
+    document.getElementById('albody').innerHTML =
+      '<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts for your zone</div>';
+    return;
+  }
+
+  // N2: status badge helper — 4 states, view-only (no action buttons for ward officer)
+  function _wardStatusBadge(status) {
+    const s = (status || 'new').toLowerCase();
+    if (s === 'acknowledged')       return '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:#EBF3FB;color:#1565C0;border:1px solid #BBDEFB">ACK</span>';
+    if (s === 'resolve_requested')  return '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:#FFF3E0;color:#E65100;border:1px solid #FFCC80">PENDING</span>';
+    if (s === 'resolved')           return '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7">RESOLVED</span>';
+    // 'new' / 'fired' / anything else
+    return '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:#F0F4F8;color:#8A96A4;border:1px solid #DDE3EA">NEW</span>';
+  }
+
+  const li = L.divIcon({ html: `<div class="mlk">!</div>`, className: '', iconSize: [22, 22], iconAnchor: [11, 11] });
+
+  document.getElementById('albody').innerHTML = al.map(a => {
+    const isHigh = (a.level === 'HIGH' || a.level === 'high');
+    const col    = isHigh ? '#D32F2F' : '#E65100';
+    const clps   = parseFloat(a.clps || 0);
+
+    // Map marker (only for non-baseline scenarios, consistent with engineer dashboard)
+    L.marker([myZone.lat, myZone.lon], { icon: li, zIndexOffset: 200 })
+      .bindPopup(`<div class="ptit2" style="color:${col}">⚠ ${a.title}</div>
         <div class="prow"><span class="pkey">CLPS</span><span class="pval">${clps.toFixed(3)}</span></div>
         <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal}</span></div>`)
-          .addTo(lLG);
-    // M2: Map alert status to badge label and color
-    const statusMap = {
-      'new':              { label: 'NEW',                color: '#8A96A4', bg: '#F0F4F8' },
-      'acknowledged':     { label: 'ACK',                color: '#1976D2', bg: '#EBF3FB' },
-      'pending':          { label: 'PENDING',            color: '#E65100', bg: '#FFF3E0' },
-      'resolve_requested':{ label: 'PENDING',            color: '#E65100', bg: '#FFF3E0' },
-      'resolved':         { label: 'RESOLVED',           color: '#2E7D32', bg: '#E8F5E9' },
-    };
-    const alertStatus = (a.status || 'new').toLowerCase();
-    const badge = statusMap[alertStatus] || statusMap['new'];
+      .addTo(lLG);
 
-    return`<div class="acard ${isHigh?'high':'moderate'}">
+    // N2: left border colour tracks lifecycle state, not just severity
+    const alertStatus = a.status || 'new';
+    let cardBorderCol = isHigh ? '#D32F2F' : '#E65100';
+    if (alertStatus === 'resolved')          cardBorderCol = '#2E7D32';
+    else if (alertStatus === 'acknowledged') cardBorderCol = '#1976D2';
+
+    return `<div class="acard ${isHigh ? 'high' : 'moderate'}" style="border-left-color:${cardBorderCol};${alertStatus === 'resolved' ? 'opacity:0.70;' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-        <div class="atit" style="color:${col};margin-bottom:0">${isHigh?'🔴':'🟠'} ${a.title}</div>
-        <!-- M2: Status badge — view only, no buttons -->
-        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
-                     color:${badge.color};background:${badge.bg};border:1px solid ${badge.color};
-                     white-space:nowrap;flex-shrink:0;margin-left:8px">${badge.label}</span>
+        <div class="atit" style="color:${col};margin-bottom:0">${isHigh ? '🔴' : '🟠'} ${a.title}</div>
+        <!-- N2: status badge — view only, no action buttons -->
+        <span style="margin-left:8px;flex-shrink:0">${_wardStatusBadge(alertStatus)}</span>
       </div>
       <div class="abody">${a.body}</div>
       <div class="ameta">${a.zone} · CLPS: <span class="clpsv" style="color:${col}">${clps.toFixed(3)}</span></div>
-      <div class="clpsbar" style="width:${Math.min(100,clps*100)}%;background:${col}"></div>
+      <div class="clpsbar" style="width:${Math.min(100, clps * 100)}%;background:${col}"></div>
     </div>`;
-      }).join('');
-    }
+  }).join('');
+}
 
     async function loadRecs() {
       const data = await api.get('/recommendations/ward');
@@ -842,7 +860,8 @@
       setTimeout(() => document.getElementById('ld').classList.add('hidden'), 300);
     }
     window.addEventListener('load', () => setTimeout(loadAll, 400));
-    setInterval(() => { loadEquity(); loadAlerts(); loadRecs(); }, 60000);
+    setInterval(() => { loadAlerts(); }, 15000);
+    setInterval(() => { loadEquity(); loadRecs(); }, 60000);
   </script>
 </body>
 

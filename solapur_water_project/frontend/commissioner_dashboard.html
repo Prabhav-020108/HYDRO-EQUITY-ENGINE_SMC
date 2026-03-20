@@ -737,23 +737,33 @@
 
   <!-- M2: Alert count breakdown bar — read only, no actions -->
   <div class="alert-count-bar" id="alertCountBar">
-    <div class="alert-count-box" style="background:#F8F9FA">
-      <div class="acb-num" id="cnt-new" style="color:#8A96A4">—</div>
-      <div class="acb-lbl">New</div>
-    </div>
-    <div class="alert-count-box" style="background:#EBF3FB">
-      <div class="acb-num" id="cnt-ack" style="color:#1976D2">—</div>
-      <div class="acb-lbl">Acknowledged</div>
-    </div>
-    <div class="alert-count-box" style="background:#FFF3E0">
-      <div class="acb-num" id="cnt-pend" style="color:#E65100">—</div>
-      <div class="acb-lbl">Pending Resolution</div>
-    </div>
-    <div class="alert-count-box" style="background:#E8F5E9">
-      <div class="acb-num" id="cnt-res" style="color:#2E7D32">—</div>
-      <div class="acb-lbl">Resolved</div>
-    </div>
+  <div class="alert-count-box" style="background:#F8F9FA">
+    <div class="acb-num" id="cnt-new" style="color:#8A96A4">—</div>
+    <div class="acb-lbl">New</div>
   </div>
+  <div class="alert-count-box" style="background:#EBF3FB">
+    <div class="acb-num" id="cnt-ack" style="color:#1976D2">—</div>
+    <div class="acb-lbl">Acknowledged</div>
+  </div>
+  <div class="alert-count-box" style="background:#FFF3E0">
+    <div class="acb-num" id="cnt-pend" style="color:#E65100">—</div>
+    <div class="acb-lbl">Pending Resolution</div>
+  </div>
+  <div class="alert-count-box" style="background:#E8F5E9">
+    <div class="acb-num" id="cnt-res" style="color:#2E7D32">—</div>
+    <div class="acb-lbl">Resolved</div>
+  </div>
+  <!-- N2: last updated timestamp -->
+  <div id="countBoxTimestamp" style="
+    width:100%;
+    text-align:right;
+    font-size:10px;
+    color:var(--text3);
+    font-family:'IBM Plex Mono',monospace;
+    padding:4px 4px 0 0;
+    letter-spacing:.02em;
+  ">—</div>
+</div>
 
   <div id="lay">
     <!-- Left: Zone equity list -->
@@ -1209,15 +1219,30 @@
 
     // M4: Fetches alert counts by status and updates the 4 stat boxes from M2
     // Boxes are identified by the IDs set during M2: #cnt-new, #cnt-ack, #cnt-pending, #cnt-resolved
-    async function loadStatusCounts(){
-      const statuses = ['new','acknowledged','resolve_requested','resolved'];
-      const ids      = ['cnt-new','cnt-ack','cnt-pending','cnt-resolved'];
-      await Promise.all(statuses.map(async (s, i) => {
-        const data = await api.get(`/alerts/active?status=${s}`);
-        const el   = document.getElementById(ids[i]);
-        if(el) el.textContent = (data && data.total != null) ? data.total : (data && data.alerts ? data.alerts.length : '—');
-      }));
+    async function loadStatusCounts() {
+  const statuses = ['new', 'acknowledged', 'resolve_requested', 'resolved'];
+  const ids      = ['cnt-new', 'cnt-ack', 'cnt-pend', 'cnt-res'];
+
+  await Promise.all(statuses.map(async (s, i) => {
+    const data = await api.get(`/alerts/active?status=${s}`);
+    const el   = document.getElementById(ids[i]);
+    if (el) {
+      el.textContent = (data && data.total != null)
+        ? data.total
+        : (data && data.alerts ? data.alerts.length : '—');
     }
+  }));
+
+  // N2: update "last updated" timestamp after every fetch
+  const ts = document.getElementById('countBoxTimestamp');
+  if (ts) {
+    const now = new Date();
+    const hh  = String(now.getHours()).padStart(2, '0');
+    const mm  = String(now.getMinutes()).padStart(2, '0');
+    const ss  = String(now.getSeconds()).padStart(2, '0');
+    ts.textContent = `updated ${hh}:${mm}:${ss}`;
+  }
+}
 
     async function loadAll(){
       // M4: loadStatusCounts() added — fetches NEW/ACK/PENDING/RESOLVED counts on page load
@@ -1226,7 +1251,8 @@
     }
     window.addEventListener('load', () => setTimeout(loadAll, 400));
     // M4: Added loadStatusCounts() to the 60-second refresh cycle
-    setInterval(()=>{loadEquity();loadAlerts();renderRecommendations();loadStatusCounts();},60000);
+    setInterval(() => { loadStatusCounts(); }, 30000);
+    setInterval(() => { loadEquity(); loadAlerts(); renderRecommendations(); }, 60000);
   </script>
 </body>
 

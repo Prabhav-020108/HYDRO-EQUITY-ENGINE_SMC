@@ -443,6 +443,29 @@
       cursor: pointer;
     }
 
+    .btn-fixed-it {
+  flex: 1;
+  padding: 9px 12px;
+  background: var(--green);
+  color: #fff;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .15s;
+  }
+  .btn-fixed-it:hover:not(:disabled) { background: #1B5E20; }
+  .btn-fixed-it:disabled { opacity: .5; cursor: not-allowed; }
+
+  .alert-card.card-resolved {
+   opacity: 0.55;
+   pointer-events: none;
+   background: #F8F9FA;
+   border-left-color: #A5D6A7 !important;
+}
+
     /* Empty / loading states */
     .state-msg {
       text-align: center;
@@ -620,23 +643,26 @@
     }
 
     function onLoginSuccess() {
-      const user = getUser();
-      const zoneId = user.zone_id || 'Unknown';
-      document.getElementById('zone-title').textContent = 'My Zone — ' + zoneId;
-      document.getElementById('user-display').textContent = user.username;
-      showScreen('screen-home');
-      loadZoneStatus();
-      loadAlerts();
-    }
+  const user   = getUser();
+  const zoneId = user.zone_id || 'Unknown';
+  document.getElementById('zone-title').textContent = 'My Zone — ' + zoneId;
+  document.getElementById('user-display').textContent = user.username;
+  showScreen('screen-home');
+  loadZoneStatus();
+  loadAlerts();
+  startAlertPolling();
+}
 
     function doLogout() {
-      clearToken();
-      sessionStorage.removeItem('fo_user');
-      document.getElementById('inp-username').value = '';
-      document.getElementById('inp-password').value = '';
-      document.getElementById('login-err').style.display = 'none';
-      showScreen('screen-login');
-    }
+  stopAlertPolling();
+  _knownAlertIds = new Set();
+  clearToken();
+  sessionStorage.removeItem('fo_user');
+  document.getElementById('inp-username').value = '';
+  document.getElementById('inp-password').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  showScreen('screen-login');
+}
 
     // ─── Zone status ───────────────────────────────────────────────
     async function loadZoneStatus() {
@@ -656,81 +682,81 @@
 
     // ─── Alerts ────────────────────────────────────────────────────
     async function loadAlerts() {
-      const listEl = document.getElementById('alerts-list');
-      const stateEl = document.getElementById('alerts-state');
+  const listEl  = document.getElementById('alerts-list');
+  const stateEl = document.getElementById('alerts-state');
 
-      stateEl.style.display = 'block';
-      stateEl.textContent = 'Loading alerts…';
+  stateEl.style.display = 'block';
+  stateEl.textContent   = 'Loading alerts…';
+  listEl.querySelectorAll('.alert-card').forEach(c => c.remove());
 
-      // Remove old cards (keep state-msg)
-      const cards = listEl.querySelectorAll('.alert-card');
-      cards.forEach(c => c.remove());
+  try {
+    const res = await fetch(API + '/mobile/alerts', { headers: authHeaders() });
+    if (!res.ok) throw new Error('alerts fetch failed');
+    const alerts = await res.json();
+    if (!Array.isArray(alerts)) throw new Error('unexpected response');
 
-      try {
-        const res = await fetch(API + '/mobile/alerts', { headers: authHeaders() });
-        if (!res.ok) throw new Error('alerts fetch failed');
-        const alerts = await res.json();
+    // Seed known IDs so the first poll does not trigger a false "new task" toast
+    _knownAlertIds = new Set(alerts.map(a => a.alert_id));
+    _firstPoll     = false;
 
-        if (!alerts.length) {
-          stateEl.textContent = 'No active alerts for your zone.';
-          return;
-        }
+    _renderAlertList(alerts);
+  } catch (e) {
+    stateEl.textContent = 'Could not load alerts. Tap to retry.';
+    stateEl.onclick     = loadAlerts;
+  }
+}
 
-        stateEl.style.display = 'none';
-        alerts.forEach(a => listEl.appendChild(buildCard(a)));
-      } catch (e) {
-        stateEl.textContent = 'Could not load alerts. Tap to retry.';
-        stateEl.onclick = loadAlerts;
-      }
-    }
+  function buildCard(a) {
+  const severityClass = a.severity === 'HIGH'     ? 'severity-high'
+                      : a.severity === 'MODERATE' ? 'severity-moderate'
+                      : 'severity-low';
 
-    function buildCard(a) {
-      const severityClass = a.severity === 'HIGH' ? 'severity-high'
-        : a.severity === 'MODERATE' ? 'severity-moderate' : 'severity-low';
+  const statusKey   = (a.status || 'new').toLowerCase();
+  const statusLabel = statusKey === 'in_progress' ? 'In Progress'
+    : statusKey.charAt(0).toUpperCase() + statusKey.slice(1);
 
-      const statusMap = {
-        new: 'new',
-        in_progress: 'in_progress',
-        resolved: 'resolved'
-      };
-      const statusKey = (a.status || 'new').toLowerCase();
-      const statusLabel = statusKey === 'in_progress' ? 'In Progress'
-        : statusKey.charAt(0).toUpperCase() + statusKey.slice(1);
+  const statusClassMap = { new: 'new', in_progress: 'in_progress', resolved: 'resolved' };
 
-      const clps = a.clps_score != null ? parseFloat(a.clps_score).toFixed(3) : '—';
-      const signal = a.dominant_signal || '—';
-      const zone = a.zone_id || a.zone || '—';
+  const clps   = a.clps_score != null ? parseFloat(a.clps_score).toFixed(3) : '—';
+  const signal = a.dominant_signal || '—';
+  const zone   = a.zone_id || a.zone || '—';
 
-      const card = document.createElement('div');
-      card.className = 'alert-card ' + severityClass;
-      card.id = 'card-' + a.id;
+  const card    = document.createElement('div');
+  card.className = `alert-card ${severityClass}`;
+  card.id        = `card-${a.alert_id}`;
 
-      card.innerHTML = `
-        <div class="card-row">
-          <div class="card-zone">Zone ${zone}</div>
-          <span class="status-badge ${statusMap[statusKey] || 'new'}">${statusLabel}</span>
-        </div>
-        <div class="card-meta">CLPS <span>score</span> ${clps}</div>
-        <div class="card-signal">⚡ ${signal}</div>
-        <div class="card-actions">
-          <button class="btn-start" id="btn-start-${a.id}" onclick="startWork(${a.id})" ${statusKey !== 'new' ? 'disabled' : ''}>
-            Start Work
-          </button>
-          <button class="btn-resolve" id="btn-resolve-${a.id}" onclick="openResolve(${a.id})" ${statusKey === 'resolved' ? 'disabled' : ''}>
-            Mark Resolved
-          </button>
-        </div>
-        <div class="resolve-form" id="resolve-form-${a.id}">
-          <textarea id="resolve-report-${a.id}" placeholder="Enter your resolution report…"></textarea>
-          <div class="resolve-form-actions">
-            <button class="btn-submit" onclick="submitResolve(${a.id})">Submit</button>
-            <button class="btn-cancel" onclick="closeResolve(${a.id})">Cancel</button>
-          </div>
-        </div>
-      `;
+  card.innerHTML = `
+    <div class="card-row">
+      <div class="card-zone">Zone ${zone}</div>
+      <span class="status-badge ${statusClassMap[statusKey] || 'new'}">${statusLabel}</span>
+    </div>
+    <div class="card-meta">CLPS <span>score</span> ${clps}</div>
+    <div class="card-signal">⚡ ${signal}</div>
+    <div class="card-actions">
+      <button class="btn-start" id="btn-start-${a.alert_id}"
+              onclick="startWork(${a.alert_id})"
+              ${statusKey !== 'new' ? 'disabled' : ''}>
+        Start Work
+      </button>
+      <button class="btn-fixed-it" id="btn-fixedit-${a.alert_id}"
+              onclick="openFixedIt(${a.alert_id})"
+              ${statusKey === 'resolved' || statusKey === 'resolve_requested' ? 'disabled' : ''}>
+        Fixed It
+      </button>
+    </div>
+    <!-- N2: Fixed It inline form — hidden until Fixed It is tapped -->
+    <div class="resolve-form" id="resolve-form-${a.alert_id}">
+      <textarea id="resolve-report-${a.alert_id}"
+                placeholder="Brief report — what did you fix?"></textarea>
+      <div class="resolve-form-actions">
+        <button class="btn-submit" onclick="submitFixedIt(${a.alert_id})">Submit</button>
+        <button class="btn-cancel" onclick="closeFixedIt(${a.alert_id})">Cancel</button>
+      </div>
+    </div>
+  `;
 
-      return card;
-    }
+  return card;
+}
 
     // ─── Start Work ────────────────────────────────────────────────
     async function startWork(id) {
@@ -761,57 +787,126 @@
       }
     }
 
-    // ─── Resolve ───────────────────────────────────────────────────
-    function openResolve(id) {
-      document.getElementById('resolve-form-' + id).classList.add('open');
-      document.getElementById('resolve-report-' + id).focus();
+    function openFixedIt(id) {
+      document.getElementById(`resolve-form-${id}`).classList.add('open');
+      document.getElementById(`resolve-report-${id}`).focus();
+     }
+
+    function closeFixedIt(id) {
+  document.getElementById(`resolve-form-${id}`).classList.remove('open');
+}
+
+    async function submitFixedIt(id) {
+  const report = document.getElementById(`resolve-report-${id}`).value.trim();
+  const btn    = document.querySelector(`#resolve-form-${id} .btn-submit`);
+
+  if (!report) {
+    showToast('Please enter a brief report.', 'red');
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const res = await fetch(API + '/mobile/alerts/' + id + '/resolve', {
+      method:  'POST',
+      headers: authHeaders(),
+      body:    JSON.stringify({ report })
+    });
+    if (!res.ok) throw new Error(((await res.json().catch(() => ({}))).detail) || 'Failed');
+
+    // N2: success — button → "Sent ✓", card greys out, no further interaction
+    const fixedItBtn = document.getElementById(`btn-fixedit-${id}`);
+    if (fixedItBtn) {
+      fixedItBtn.textContent = 'Sent ✓';
+      fixedItBtn.disabled    = true;
     }
+    const startBtn = document.getElementById(`btn-start-${id}`);
+    if (startBtn) startBtn.disabled = true;
 
-    function closeResolve(id) {
-      document.getElementById('resolve-form-' + id).classList.remove('open');
-    }
+    closeFixedIt(id);
 
-    async function submitResolve(id) {
-      const report = document.getElementById('resolve-report-' + id).value.trim();
-      const btn = document.querySelector('#resolve-form-' + id + ' .btn-submit');
+    // Grey out the entire card (N2 spec)
+    const card = document.getElementById(`card-${id}`);
+    if (card) card.classList.add('card-resolved');
 
-      if (!report) {
-        showToast('Please enter a resolution report.', 'red');
-        return;
+    showToast('Report submitted. Waiting for engineer approval.', 'green');
+    loadZoneStatus(); // refresh the HEI + alert count chip
+
+  } catch (e) {
+    showToast(e.message, 'red');
+    btn.disabled    = false;
+    btn.textContent = 'Submit';
+  }
+}
+
+let _pollInterval    = null;
+let _knownAlertIds   = new Set();
+let _firstPoll       = true;
+
+function startAlertPolling() {
+  if (_pollInterval) return; // already running
+  _pollInterval = setInterval(async () => {
+    await _pollAlerts();
+  }, 5000);
+}
+
+function stopAlertPolling() {
+  if (_pollInterval) {
+    clearInterval(_pollInterval);
+    _pollInterval = null;
+  }
+}
+
+async function _pollAlerts() {
+  try {
+    const res = await fetch(API + '/mobile/alerts', { headers: authHeaders() });
+    if (!res.ok) return; // silent fail — don't disrupt the UI
+    const alerts = await res.json();
+    if (!Array.isArray(alerts)) return;
+
+    const currentIds = new Set(alerts.map(a => a.alert_id));
+
+    if (!_firstPoll) {
+      // Check for any IDs that weren't in the previous set
+      const newOnes = alerts.filter(a => !_knownAlertIds.has(a.alert_id));
+      if (newOnes.length > 0) {
+        showToast(`New task assigned (${newOnes.length} alert${newOnes.length > 1 ? 's' : ''})`, 'green');
+        // Re-render the full list so the new card appears
+        _renderAlertList(alerts);
       }
-
-      btn.disabled = true;
-      btn.textContent = 'Submitting…';
-
-      try {
-        const res = await fetch(API + '/mobile/alerts/' + id + '/resolve', {
-          method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ report })
-        });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed to resolve');
-
-        showToast('Alert #' + id + ' marked resolved.', 'green');
-
-        // Update card
-        const card = document.getElementById('card-' + id);
-        if (card) {
-          const badge = card.querySelector('.status-badge');
-          badge.className = 'status-badge resolved';
-          badge.textContent = 'Resolved';
-          document.getElementById('btn-start-' + id).disabled = true;
-          document.getElementById('btn-resolve-' + id).disabled = true;
-          closeResolve(id);
-        }
-
-        // Refresh status bar counts
-        loadZoneStatus();
-      } catch (e) {
-        showToast(e.message, 'red');
-        btn.disabled = false;
-        btn.textContent = 'Submit';
-      }
+    } else {
+      // First poll: just render the list silently
+      _renderAlertList(alerts);
+      _firstPoll = false;
     }
+
+    _knownAlertIds = currentIds;
+
+  } catch (e) {
+    // Silent fail on poll errors — don't toast every 5 seconds
+  }
+}
+
+// N2: extracted render logic so both loadAlerts() and _pollAlerts() can share it
+function _renderAlertList(alerts) {
+  const listEl  = document.getElementById('alerts-list');
+  const stateEl = document.getElementById('alerts-state');
+
+  // Remove existing cards (keep the state-msg element)
+  listEl.querySelectorAll('.alert-card').forEach(c => c.remove());
+
+  if (!alerts.length) {
+    stateEl.style.display = 'block';
+    stateEl.textContent   = 'No active alerts for your zone.';
+    stateEl.onclick       = null;
+    return;
+  }
+
+  stateEl.style.display = 'none';
+  alerts.forEach(a => listEl.appendChild(buildCard(a)));
+}
 
     // ─── Init ──────────────────────────────────────────────────────
     (function init() {
