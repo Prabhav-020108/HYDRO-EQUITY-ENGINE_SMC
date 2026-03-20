@@ -77,3 +77,37 @@ Files changed outside my column: engineer_dashboard.html (Person B file) — NRW
 Impact on A/B: None. /nrw is a new public endpoint, does not change any existing
        endpoint response shapes. B's alert/recommendation logic untouched.
 Status: Done.
+
+Person: B | N4
+Bible says: "Audit engineer_dashboard.html for hardcoded zone names, HEI numbers,
+             pressure values. Replace any found with dynamic values fetched from
+             /zones and /alerts/active. Confirm auto-refresh is working every 15s."
+I did: Audit completed. One real violation found (NRW hardcoded calculation).
+       NRW fix was applied in N4 Part 1 (const nrw = _nrwValue, reads from /nrw API).
+       Auto-refresh confirmed working — setInterval(renderAlerts, 15000) already
+       in loadAll() from N2. Verified in browser DevTools Network tab.
+       No other violations found:
+         - ESRS array: map config, allowed per Bible
+         - formulaP() constants: map rendering only, not shown as analytics text
+         - getTLData() base values: already marked "(illustrative)" in UI label
+         - Zone status labels: derived from /zones API hei value, not hardcoded
+Files changed outside my column: None.
+Impact on A/C: None. No endpoints or shared files changed.
+Status: Done and tested.
+
+Person: C | N4 | Part 2
+Bible says: "Update integration_test.sh to include field operator lifecycle,
+             auto-refresh verification, commissioner count test"
+I did: Added 3 N4-C test sections to integration_test.sh:
+       (1) Full field op mobile lifecycle: engineer ack → poll mobile/alerts
+           → mobile resolve → check resolve_requested → accept-resolution
+           → check resolved. Uses a fresh ALERT_C fetched dynamically.
+       (2) Auto-refresh / no-caching test: acknowledge an alert, immediately
+           curl /alerts/active (no sleep), verify status=acknowledged in
+           response. Proves N2 Task 1 (no in-memory cache in Branch B).
+       (3) Commissioner count test: verify /alerts/active?status=acknowledged
+           returns count > 0 after Step 1a runs.
+       Did NOT duplicate Person A's ward login, PDF, or mock-data tests.
+Files changed outside my column: None. Only scripts/integration_test.sh.
+Impact on A/B: None. No backend or frontend code changed.
+Status: Done and tested.
