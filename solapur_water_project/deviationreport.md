@@ -7,3 +7,40 @@ Status: Done.
 
 
 
+Person: B | N2 | Part 1
+Bible says: "Add setInterval(renderAlerts, 15000)"
+I did: Added inside loadAll() AFTER the initial data load completes,
+       not at module level, so the first render finishes before the
+       timer fires. Added isRefreshing boolean guard as specified.
+Impact on A/C: None. No shared endpoints or HTML touched.
+Status: Done.
+
+Person: B | N2 | Part 2
+Bible says: "Use the returned alert object from response to update just that card"
+I did: Added _updateSingleCard(alertObj) helper that finds the card by
+       data-alert-id attribute and replaces the .n2-badge-slot span.
+       Called in ackAlert, resolveAlert, acceptResolution, rejectResolution.
+       d.alert comes from N1 backend change (all POST endpoints return full alert).
+Impact on A/C: None. No backend changes. No shared files touched.
+Status: Done.
+
+Person: B | N2 | Part 3
+Bible says: "Status badges: NEW=grey, ACKNOWLEDGED=blue,
+             RESOLVE_REQUESTED=orange, RESOLVED=green"
+I did: Added _statusBadge() helper returning the correct .sbadge class.
+       Badge sits in a <span class="n2-badge-slot"> at top-right of
+       each card title row (flex row, justified space-between).
+       Card has data-status attribute for _scrollToFirstPending().
+Impact on A/C: None. CSS classes are scoped to this file only.
+Status: Done.
+
+Person: B | N2 | Part 4
+Bible says: "Sticky orange banner: X alert(s) pending your review"
+I did: Added <div id="pendingBanner"> in HTML above #albody.
+       _renderPendingBanner(alertsArray) called at end of renderAlerts().
+       _scrollToFirstPending() called on banner click — uses
+       data-status="resolve_requested" selector + scrollIntoView +
+       temporary orange outline for visual feedback.
+Impact on A/C: None. Banner div is inside engAlertBody which is
+       Person B's panel only.
+Status: Done.

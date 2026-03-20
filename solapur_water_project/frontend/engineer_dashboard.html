@@ -93,6 +93,43 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 .acard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.07)}
 .acard.high{border-color:var(--red);background:#FFFCFC}
 .acard.moderate{border-color:var(--orange);background:#FFFDF9}
+
+/* ── N2 CHANGE 3 — Status badge CSS ──────────────────────────────────────────
+   Four lifecycle states. Sits inline at top-right of each card title row.
+   These classes are referenced by _statusBadge() function below.
+   ────────────────────────────────────────────────────────────────────────── */
+.sbadge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;display:inline-block;vertical-align:middle;letter-spacing:.02em;white-space:nowrap;flex-shrink:0}
+.sbadge-new{background:#F0F4F8;color:#8A96A4;border:1px solid #DDE3EA}
+.sbadge-ack{background:#EBF3FB;color:#1565C0;border:1px solid #BBDEFB}
+.sbadge-pending{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80}
+.sbadge-resolved{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
+/* ── end N2 CHANGE 3 CSS ─────────────────────────────────────────────────── */
+
+/* ── N2 CHANGE 4 — Sticky pending-review banner CSS ─────────────────────────
+   Orange sticky banner shown at top of the alerts panel body (inside albody).
+   Hidden by default; shown only when ≥1 alert has status=resolve_requested.
+   Clicking it scrolls to the first pending card.
+   ────────────────────────────────────────────────────────────────────────── */
+#pendingBanner{
+  display:none;
+  margin:8px 10px 2px;
+  padding:8px 12px;
+  background:#FFF3E0;
+  border:1px solid #FFCC80;
+  border-left:3px solid #E65100;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:600;
+  color:#E65100;
+  cursor:pointer;
+  user-select:none;
+  transition:background .15s;
+  line-height:1.4;
+}
+#pendingBanner:hover{background:#FFE0B2}
+#pendingBanner .pb-sub{font-weight:400;color:#BF360C;font-size:10px;display:block;margin-top:2px}
+/* ── end N2 CHANGE 4 CSS ─────────────────────────────────────────────────── */
+
 .atit{font-size:12px;font-weight:600;margin-bottom:4px;line-height:1.3;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 .abody{font-size:11px;color:var(--text2);line-height:1.55;word-break:break-word}
 .ameta{font-size:10px;color:var(--text3);margin-top:5px;font-family:'IBM Plex Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -101,19 +138,6 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
 .abtn{font-size:10px;padding:4px 8px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;flex:1;font-weight:500;transition:opacity .15s}
 .abtn:hover{opacity:.8}
 .abtn:disabled{opacity:.5;cursor:default}
-
-/* ── M2 CHANGE 1: Status badge styles ───────────────────────────────
-   Four states from the M1 alert state machine:
-   new (grey) | acknowledged/ACK (blue) | resolve_requested/PENDING (orange) | resolved (green)
-   Font-size 10px — does not break existing card layout.
-   ─────────────────────────────────────────────────────────────────── */
-.sbadge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;display:inline-block;vertical-align:middle;letter-spacing:.02em;white-space:nowrap;flex-shrink:0}
-.sbadge-new{background:#F0F4F8;color:#8A96A4;border:1px solid #DDE3EA}
-.sbadge-ack{background:#EBF3FB;color:#1565C0;border:1px solid #BBDEFB}
-.sbadge-pending{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80}
-.sbadge-resolved{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
-/* ── end M2 CHANGE 1 ─────────────────────────────────────────────── */
-
 .rcard{margin:8px 10px;padding:10px 12px;border-radius:6px;border-left:3px solid;background:#F0F7FF;border:1px solid #BBDEFB;border-left:3px solid var(--blue)}
 .rcard.urgent{background:#FFF5F5;border-color:#FFCDD2;border-left-color:var(--red)}
 .rcard.high-u{background:#FFF8F2;border-color:#FFE0B2;border-left-color:var(--orange)}
@@ -253,6 +277,14 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
       </div>
       <div id="alertLogErr" style="display:none;font-size:10px;color:var(--red);padding:3px 14px 0;background:#FFF8F8"></div>
       <div id="engAlertBody" style="overflow:hidden;transition:max-height .25s ease,opacity .15s ease;max-height:600px;opacity:1">
+        <!-- N2 CHANGE 4: Pending banner lives here, above the cards.
+             It is hidden by default and shown by _renderPendingBanner()
+             whenever ≥1 alert has status = resolve_requested. -->
+        <div id="pendingBanner" onclick="_scrollToFirstPending()">
+          <span id="pendingBannerText">⏳ 0 alert(s) pending your review</span>
+          <span class="pb-sub">Click to jump to the first pending alert ↓</span>
+        </div>
+        <!-- End N2 CHANGE 4 HTML slot -->
         <div id="albody" style="overflow-y:auto;max-height:220px"></div>
       </div>
     </div>
@@ -320,6 +352,12 @@ let scen = 'baseline', hr = 6, tlChart = null, tick = null;
 let zoneHeiCache = {};
 let pipes = [], pLG, nLG, lLG, zLG, eLG, sLG, bLG;
 let _pipelineCache = null;
+
+// ── N2 CHANGE 1: isRefreshing flag ───────────────────────────────
+// Prevents overlapping renderAlerts() calls from the 15-second timer.
+// Set true at start of each call; false when done (success or error).
+let isRefreshing = false;
+// ── End N2 CHANGE 1 flag ─────────────────────────────────────────
 
 // Authenticated API helper
 const api = {
@@ -509,9 +547,7 @@ function showFeat(data,typeLbl){
   document.getElementById('finfo').innerHTML=`<div class="ihdr"><div class="ityp">${typeLbl||data.type}</div><div class="iid">${data.ID||data.Zone||'Detail View'}</div></div>${rows}`;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  M2 CHANGE 2: _alertFeedback helper (unchanged from original)
-// ═══════════════════════════════════════════════════════════════════
+// ── _alertFeedback helper ─────────────────────────────────────────
 function _alertFeedback(btn,txt,col){
   if(!btn)return;
   const orig=btn.textContent,oc=btn.style.color;
@@ -521,74 +557,144 @@ function _alertFeedback(btn,txt,col){
 
 function flyToAlert(zid){const z=ZONES.find(x=>x.id===zid);if(z)map.flyTo([z.lat,z.lon],15,{duration:1});}
 
-// ═══════════════════════════════════════════════════════════════════
-//  M2 CHANGE 2 (part A): ackAlert — wired to POST /alerts/{id}/acknowledge
-//  Uses Bearer token via api.post().  Refreshes list on success.
-//  NOTE: This function already called the correct endpoint in M1.
-//  Kept as-is per Bible rule "keep existing function names".
-// ═══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// N2 CHANGE 3: _statusBadge helper
+// Converts a.status string → coloured pill HTML.
+// States: new=grey | acknowledged=blue | resolve_requested=orange | resolved=green
+// Called inside renderAlerts() and _updateSingleCard().
+// ══════════════════════════════════════════════════════════════════
+function _statusBadge(status){
+  const s = (status || 'new').toLowerCase();
+  if(s === 'acknowledged')      return '<span class="sbadge sbadge-ack">ACK</span>';
+  if(s === 'resolve_requested') return '<span class="sbadge sbadge-pending">PENDING</span>';
+  if(s === 'resolved')          return '<span class="sbadge sbadge-resolved">RESOLVED</span>';
+  return '<span class="sbadge sbadge-new">NEW</span>';
+}
+// ── End N2 CHANGE 3 helper ────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════
+// N2 CHANGE 2 (Part A): _updateSingleCard
+// After a successful ackAlert / resolveAlert / acceptResolution /
+// rejectResolution, the backend now returns a full alert object at
+// d.alert (added in N1).  This function uses that object to update
+// ONLY the status badge on the affected card — no full re-render.
+// The card is found by its data-alert-id attribute set in renderAlerts().
+// After the badge update, renderAlerts() is still called to fully sync.
+// ══════════════════════════════════════════════════════════════════
+function _updateSingleCard(alertObj){
+  if(!alertObj || !alertObj.alert_id) return;
+  const card = document.querySelector(`[data-alert-id="${alertObj.alert_id}"]`);
+  if(!card) return;
+
+  // Replace the badge span inside .n2-badge-slot
+  const slot = card.querySelector('.n2-badge-slot');
+  if(slot) slot.innerHTML = _statusBadge(alertObj.status);
+
+  // Dim resolved cards
+  if((alertObj.status||'').toLowerCase() === 'resolved'){
+    card.style.opacity = '0.6';
+  }
+}
+// ── End N2 CHANGE 2 (Part A) ──────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════
+// N2 CHANGE 4 (Part A): _renderPendingBanner
+// Shows or hides the sticky orange banner based on how many alerts
+// currently have status = resolve_requested.
+// Receives the alerts array from renderAlerts().
+// ══════════════════════════════════════════════════════════════════
+function _renderPendingBanner(alertsArray){
+  const banner   = document.getElementById('pendingBanner');
+  const textSpan = document.getElementById('pendingBannerText');
+  if(!banner || !textSpan) return;
+
+  const count = alertsArray.filter(a =>
+    (a.status || '').toLowerCase() === 'resolve_requested'
+  ).length;
+
+  if(count > 0){
+    textSpan.textContent = `⏳ ${count} alert${count > 1 ? 's' : ''} pending your review`;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// N2 CHANGE 4 (Part B): _scrollToFirstPending
+// Called when the banner is clicked — scrolls albody to the first
+// card that has status = resolve_requested.
+function _scrollToFirstPending(){
+  const firstPending = document.querySelector('#albody [data-status="resolve_requested"]');
+  if(firstPending){
+    firstPending.scrollIntoView({behavior:'smooth', block:'nearest'});
+    // Briefly highlight it
+    firstPending.style.outline = '2px solid #E65100';
+    setTimeout(() => { firstPending.style.outline = ''; }, 1800);
+  }
+}
+// ── End N2 CHANGE 4 ──────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════
+// N2 CHANGE 2 (Part B): ackAlert — updated to use d.alert
+// On success: call _updateSingleCard(d.alert) to update just the
+// badge immediately, then call renderAlerts() after 600ms to sync.
+// ══════════════════════════════════════════════════════════════════
 async function ackAlert(id, btnEl){
-  // Dev mode (no DB): show visual confirmation without API call
   if(!id || id===0){
     _alertFeedback(btnEl,'✓ Acknowledged','#1976D2');
     return;
   }
   if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
 
-  // POST /alerts/{id}/acknowledge — Bearer token included by api.post
   const d = await api.post(`/alerts/${id}/acknowledge`, {notes:'Acknowledged via engineer dashboard'});
 
   if(d && d.success){
     _alertFeedback(btnEl,'✓ Done','#1976D2');
-    // Refresh alert list after 600ms so badge updates to ACK
+    // N2 CHANGE 2: Use returned alert object to update the card badge immediately
+    if(d.alert) _updateSingleCard(d.alert);
+    // Then do a full refresh after 600ms to sync the whole list
     setTimeout(()=>renderAlerts(), 600);
   } else {
     const msg = (d && d.error) ? d.error : 'Acknowledge failed';
     _alertFeedback(btnEl, msg.slice(0,35), '#D32F2F');
   }
 }
+// ── End N2 CHANGE 2 (Part B) ─────────────────────────────────────
 
-// ═══════════════════════════════════════════════════════════════════
-//  M2 CHANGE 2 (part B): resolveAlert — wired to POST /alerts/{id}/accept-resolution
-//  Bible Section 3 M2: "Wire the Resolve button to POST /alerts/{id}/accept-resolution"
-//  Changed from backward-compat /resolve to the M1 state-machine endpoint.
-//  /accept-resolution requires status = 'resolve_requested' (PENDING).
-//  If not in that state, a clear error message guides the engineer.
-// ═══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// N2 CHANGE 2 (Part C): resolveAlert — updated to use d.alert
+// Wired to POST /alerts/{id}/accept-resolution (set in M1/M2).
+// On success: update single card, then full sync.
+// ══════════════════════════════════════════════════════════════════
 async function resolveAlert(id, btnEl){
-  // Dev mode (no DB): show visual confirmation without API call
   if(!id || id===0){
     _alertFeedback(btnEl,'✓ Resolved','#2E7D32');
     return;
   }
   if(btnEl){btnEl.disabled=true;btnEl.textContent='...';}
 
-  // POST /alerts/{id}/accept-resolution — requires status='resolve_requested'
   const d = await api.post(`/alerts/${id}/accept-resolution`, {notes:'Resolution accepted via engineer dashboard'});
 
   if(d && d.success){
     _alertFeedback(btnEl,'✓ Accepted','#2E7D32');
-    // Refresh alert list after 600ms so badge updates to RESOLVED
+    // N2 CHANGE 2: Use returned alert object to update the card badge immediately
+    if(d.alert) _updateSingleCard(d.alert);
+    // Then do a full refresh after 600ms
     setTimeout(()=>renderAlerts(), 600);
   } else {
     const errMsg = (d && d.error) ? d.error : 'Accept-resolution failed';
-    // State-aware error: if alert is not yet in PENDING state, guide the engineer
     if(
       errMsg.toLowerCase().includes('resolve_request') ||
       errMsg.toLowerCase().includes('not in')         ||
       errMsg.toLowerCase().includes('not found')
     ){
       _alertFeedback(btnEl,'Needs PENDING first','#E65100');
-      // Non-blocking hint below the button
-      if(btnEl){
-        const hint = btnEl.closest('.acard')?.querySelector('.m2-hint');
-        if(hint){ hint.style.display='block'; setTimeout(()=>{hint.style.display='none';},4000); }
-      }
     } else {
       _alertFeedback(btnEl, errMsg.slice(0,35), '#D32F2F');
     }
   }
 }
+// ── End N2 CHANGE 2 (Part C) ─────────────────────────────────────
 
 // ── Equity — V4 ───────────────────────────────────────────────────
 async function compEquity(){
@@ -639,63 +745,79 @@ async function compEquity(){
 }
 function flyZ(la,lo){map.flyTo([la,lo],15,{duration:1})}
 
-// ═══════════════════════════════════════════════════════════════════
-//  M2 CHANGE 3: _statusBadge helper
-//  Converts the alert.status string from the M1 state machine into a
-//  small colour-coded badge.  Badge classes are defined in the CSS above.
-//  States: new/fired → grey NEW | acknowledged → blue ACK
-//          resolve_requested → orange PENDING | resolved → green RESOLVED
-// ═══════════════════════════════════════════════════════════════════
-function _statusBadge(status){
-  const s = (status || 'new').toLowerCase();
-  if(s === 'acknowledged')      return '<span class="sbadge sbadge-ack">ACK</span>';
-  if(s === 'resolve_requested') return '<span class="sbadge sbadge-pending">PENDING</span>';
-  if(s === 'resolved')          return '<span class="sbadge sbadge-resolved">RESOLVED</span>';
-  // 'new', 'fired', or anything else → grey NEW
-  return '<span class="sbadge sbadge-new">NEW</span>';
-}
-
-// ── Alerts — V5 ───────────────────────────────────────────────────
-// M3: Accept resolution — engineer only
+// ── M3 accept/reject helpers ──────────────────────────────────────
 async function acceptResolution(id, btnEl) {
   if (!id || id === 0) { _alertFeedback(btnEl, '✓ Accepted', '#2E7D32'); return; }
   if (btnEl) { btnEl.disabled = true; btnEl.textContent = '...'; }
   const d = await api.post(`/alerts/${id}/accept-resolution`);
   if (d && d.success) {
     _alertFeedback(btnEl, '✓ Done', '#2E7D32');
+    // N2 CHANGE 2: use returned d.alert to update card badge immediately
+    if(d.alert) _updateSingleCard(d.alert);
     setTimeout(() => renderAlerts(), 1200);
   } else {
     _alertFeedback(btnEl, (d && d.error ? d.error : 'Failed').slice(0, 30), '#D32F2F');
   }
 }
 
-// M3: Reject resolution — engineer only
 async function rejectResolution(id, btnEl) {
   if (!id || id === 0) { _alertFeedback(btnEl, '↩ Rejected', '#E65100'); return; }
   if (btnEl) { btnEl.disabled = true; btnEl.textContent = '...'; }
   const d = await api.post(`/alerts/${id}/reject-resolution`);
   if (d && d.success) {
     _alertFeedback(btnEl, '↩ Sent back', '#E65100');
+    // N2 CHANGE 2: use returned d.alert to update card badge immediately
+    if(d.alert) _updateSingleCard(d.alert);
     setTimeout(() => renderAlerts(), 1200);
   } else {
     _alertFeedback(btnEl, (d && d.error ? d.error : 'Failed').slice(0, 30), '#D32F2F');
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+// N2 CHANGE 1 + 3 + 4: renderAlerts — full rewrite of alert list
+//
+// Change 1: isRefreshing guard — if a fetch is in progress, skip.
+// Change 3: Each card now shows _statusBadge(a.status) at top-right.
+//           Card has data-alert-id="${dbId}" for _updateSingleCard().
+//           Card has data-status="${alertStatus}" for _scrollToFirstPending().
+//           The badge lives in a <span class="n2-badge-slot"> so
+//           _updateSingleCard can replace it without re-rendering the card.
+// Change 4: After building cards, calls _renderPendingBanner(al).
+// ══════════════════════════════════════════════════════════════════
 async function renderAlerts(){
+  // N2 CHANGE 1: Guard — skip if a refresh is already running
+  if(isRefreshing){
+    console.debug('[renderAlerts] skipped — refresh already in progress');
+    return;
+  }
+  isRefreshing = true;
+  // End N2 CHANGE 1 guard entry
+
   lLG.clearLayers();
   const data=await api.get(`/alerts/active?scenario=${scen}`);
+
+  // N2 CHANGE 1: always release the lock whether success or error
+  isRefreshing = false;
+
   if(!data||data.error){
     const msg=data&&data.error?data.error:'Alert engine offline (run V5 first).';
     document.getElementById('albody').innerHTML=`<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">${msg}</div>`;
-    document.getElementById('acnt').textContent='0';return;
+    document.getElementById('acnt').textContent='0';
+    _renderPendingBanner([]); // N2 CHANGE 4: hide banner on error
+    return;
   }
   const al=data.alerts||[];
   document.getElementById('acnt').textContent=al.length;
+
+  // N2 CHANGE 4: update the sticky banner before rendering cards
+  _renderPendingBanner(al);
+
   if(al.length===0){
     document.getElementById('albody').innerHTML='<div style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">No active alerts for this scenario</div>';
     return;
   }
+
   document.getElementById('albody').innerHTML=al.map((a,i)=>{
     const isHigh=(a.level==='HIGH'||a.level==='high');
     const col=isHigh?'#D32F2F':'#E65100';
@@ -707,8 +829,6 @@ async function renderAlerts(){
     // M3: build resolution validation panel if status = resolve_requested
     let resolutionPanel = '';
     if (alertStatus === 'resolve_requested') {
-      // Look up HEI for this alert's zone from the cache populated by compEquity()
-      // zone_id from alert is e.g. "zone_3", cache key is also "zone_3" (apiId)
       const zoneHei = zoneHeiCache[a.zone_id] !== undefined
         ? zoneHeiCache[a.zone_id].toFixed(3)
         : '—';
@@ -742,14 +862,32 @@ async function renderAlerts(){
         </div>`;
     }
 
-    return`<div class="acard ${isHigh?'high':'moderate'}" id="acard-${i}">
-      <div class="atit" style="color:${col}">${isHigh?'🔴':'🟠'} ${a.title||('Alert — '+(a.zone||''))}</div>
+    /*
+     * N2 CHANGE 3: Card title row now has two columns:
+     *   Left:  emoji + zone title (existing)
+     *   Right: status badge in a <span class="n2-badge-slot"> wrapper
+     *          so _updateSingleCard() can swap just the badge without
+     *          touching the rest of the card HTML.
+     *
+     * data-alert-id  → used by _updateSingleCard()
+     * data-status    → used by _scrollToFirstPending()
+     */
+    return`<div class="acard ${isHigh?'high':'moderate'}"
+               id="acard-${i}"
+               data-alert-id="${dbId}"
+               data-status="${alertStatus}"
+               style="${alertStatus==='resolved'?'opacity:0.6;':''}"
+          >
+      <div class="atit" style="color:${col};display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;">
+        <span>${isHigh?'🔴':'🟠'} ${a.title||('Alert — '+(a.zone||''))}</span>
+        <!-- N2 CHANGE 3: badge slot — _updateSingleCard targets .n2-badge-slot -->
+        <span class="n2-badge-slot" style="flex-shrink:0">${_statusBadge(alertStatus)}</span>
+      </div>
       <div class="abody">${a.body||''}</div>
       <div class="ameta" onclick="flyToAlert('${a.zone_id_short||''}')" title="Click to fly to zone on map">
         <span>📍 ${a.zone||''}</span>
         <span>Signal: <b>${a.dominant_signal||'—'}</b></span>
         <span>CLPS: <span class="clpsv" style="color:${col}">${clps.toFixed(3)}</span></span>
-        ${alertStatus!=='new'?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;background:${alertStatus==='resolved'?'#E8F5E9':alertStatus==='acknowledged'?'#E3F2FD':'#FFF3E0'};color:${alertStatus==='resolved'?'#2E7D32':alertStatus==='acknowledged'?'#1565C0':'#E65100'}">${alertStatus==='resolved'?'Resolved':alertStatus==='acknowledged'?'Acknowledged':'Pending Review'}</span>`:''}
       </div>
       <div class="clpsbar" style="width:${Math.min(100,clps*100)}%;background:${col}"></div>
       <div style="margin-top:7px;display:flex;gap:6px;">
@@ -769,6 +907,7 @@ async function renderAlerts(){
     </div>`;
   }).join('');
 
+  // Map alert markers for non-baseline scenarios
   if(scen!=='baseline'){
     const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]});
     al.forEach(a=>{
@@ -785,6 +924,7 @@ async function renderAlerts(){
     });
   }
 }
+// ── End N2 CHANGE 1 + 3 + 4 in renderAlerts ──────────────────────
 
 // ── Burst Risk — V6 ───────────────────────────────────────────────
 async function renderBurstRisk(){
@@ -921,7 +1061,12 @@ async function renderRecommendations(){
   }).join('');
 }
 
-// ── Initial load ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// N2 CHANGE 1: loadAll — adds setInterval for 15-second auto-refresh
+// The interval only calls renderAlerts(); all other panels (map,
+// equity, recommendations) are NOT refreshed automatically.
+// The isRefreshing guard inside renderAlerts() prevents overlap.
+// ══════════════════════════════════════════════════════════════════
 async function loadAll(){
   try{
     const geo=await api.pub('/pipeline');
@@ -931,7 +1076,14 @@ async function loadAll(){
   await Promise.all([compEquity(),renderAlerts(),renderBurstRisk(),renderRecommendations()]);
   initTL();startClock();
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
+
+  // N2 CHANGE 1: Auto-refresh alerts every 15 seconds.
+  // Only renderAlerts() is called — map, equity, and recommendations
+  // are NOT touched by this interval (they refresh only on scenario change).
+  setInterval(renderAlerts, 15000);
 }
+// ── End N2 CHANGE 1 in loadAll ────────────────────────────────────
+
 window.addEventListener('load',()=>setTimeout(loadAll,400));
 
 async function downloadAlertLog() {

@@ -1,48 +1,22 @@
 # """
-# Hydro-Equity Engine / Dhara — Phase 4b + M1
+# Hydro-Equity Engine / Dhara — Phase 4b + M1 + M3
 # backend/routers/alerts.py
 
-# Bible Reference: Section 3 M1 — "New REST Endpoints"
-
-# FIX (post-M2): Branch B (no ?status= filter) now merges real lifecycle status
-# from the DB into each alert before returning. This means the commissioner
-# dashboard correctly shows Acknowledged / Resolved / Pending Review badges
-# instead of always showing every alert as 'new'.
+# M3 CHANGE: Branch B of get_active_alerts() now reads v5_alerts.json
+#            via data_provider.get_alerts() instead of opening the file directly.
+#            All other logic is identical to M1.
 
 # ENDPOINTS IN THIS FILE:
 #   GET  /alerts/active?scenario=<baseline|leak|valve|surge>
 #                       &status=<new|acknowledged|resolve_requested|resolved>
-#        → Existing endpoint. Added optional ?status= filter (no breaking change).
-#        → ward_officer sees only their zone_id server-side.
-
-#   POST /alerts/{id}/acknowledge
-#        → engineer role only
-#        → Transition: new/fired → acknowledged
-#        → Saves acknowledged_by + acknowledged_at
-
-#   POST /alerts/{id}/request-resolution
-#        → field_operator role only
-#        → Transition: acknowledged → resolve_requested
-#        → Saves resolution_report
-
-#   POST /alerts/{id}/accept-resolution
-#        → engineer role only
-#        → Transition: resolve_requested → resolved
-#        → Saves resolved_at
-
-#   POST /alerts/{id}/reject-resolution
-#        → engineer role only
-#        → Transition: resolve_requested → acknowledged  (sends back)
-#        → Increments rejected_count
-
-#   POST /alerts/{id}/resolve
-#        → Backward-compat alias kept for existing dashboards
-#        → engineer role only
-#        → Works from both acknowledged and resolve_requested states
+#   POST /alerts/{id}/acknowledge          (engineer only)
+#   POST /alerts/{id}/request-resolution   (field_operator only)
+#   POST /alerts/{id}/accept-resolution    (engineer only)
+#   POST /alerts/{id}/reject-resolution    (engineer only)
+#   POST /alerts/{id}/resolve              (backward-compat alias, engineer only)
 # """
 
 # import os
-# import json
 # from datetime import datetime
 # from typing import Optional
 
@@ -52,12 +26,11 @@
 
 # from backend.auth import get_current_user
 # from backend.database import engine
+# from backend import data_provider
 
 # router = APIRouter(tags=["Analytics"])
 
-# OUTPUTS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'outputs')
-
-# # ── Zone display maps ─────────────────────────────────────────────────────────
+# # ── Zone display maps ─────────────────────────────────────────────
 # ZONE_MAP = {
 #     'zone_1': {'nm': 'Zone 1', 'short': 'z1'},
 #     'zone_2': {'nm': 'Zone 2', 'short': 'z2'},
@@ -84,7 +57,7 @@
 # }
 
 
-# # ── Pydantic request bodies ───────────────────────────────────────────────────
+# # ── Pydantic request bodies ───────────────────────────────────────
 
 # class AlertActionRequest(BaseModel):
 #     notes: Optional[str] = None
@@ -95,90 +68,23 @@
 #     notes:  Optional[str] = None
 
 
-# # ── Internal helper: fetch real lifecycle statuses from DB ────────────────────
-
-# def _fetch_real_statuses(scenario: str) -> dict:
-#     """
-#     Returns a dict keyed by zone_id with real lifecycle status from the DB.
-#     Used by Branch B to merge actual state into v5_alerts.json data.
-
-#     Example return:
-#         {
-#             'zone_3': {
-#                 'status': 'acknowledged',
-#                 'acknowledged_by': 'engineer1',
-#                 'acknowledged_at': '2026-03-19T10:30:00',
-#                 'resolved_at': None,
-#                 'db_alert_id': 42,
-#             },
-#             ...
-#         }
-#     Falls back to empty dict if DB is unavailable (non-fatal).
-#     """
-#     real_statuses: dict = {}
-#     try:
-#         with engine.connect() as conn:
-#             rows = conn.execute(
-#                 text("""
-#                     SELECT alert_id, zone_id, status,
-#                            acknowledged_by, acknowledged_at, resolved_at
-#                     FROM alerts
-#                     WHERE scenario = :scen
-#                     ORDER BY clps DESC NULLS LAST
-#                 """),
-#                 {'scen': scenario}
-#             ).fetchall()
-#             for row in rows:
-#                 zid = str(row[1] or '')
-#                 if zid and zid not in real_statuses:
-#                     # Keep only the highest-CLPS alert per zone (ORDER BY clps DESC above)
-#                     real_statuses[zid] = {
-#                         'db_alert_id':     row[0],
-#                         'status':          str(row[2] or 'new'),
-#                         'acknowledged_by': str(row[3]) if row[3] else None,
-#                         'acknowledged_at': row[4].isoformat() if row[4] else None,
-#                         'resolved_at':     row[5].isoformat() if row[5] else None,
-#                     }
-#     except Exception:
-#         pass  # DB unavailable — callers handle the empty dict gracefully
-#     return real_statuses
-
-
-# # ══════════════════════════════════════════════════════════════════════════════
+# # ══════════════════════════════════════════════════════════════════
 # #  GET /alerts/active
-# #  EXISTING — added optional ?status= query param. No breaking change.
-# #  Without ?status= → reads from v5_alerts.json (existing behavior)
-# #                     + merges real lifecycle status from DB on top
-# #  With    ?status= → queries PostgreSQL alerts table by state
-# # ══════════════════════════════════════════════════════════════════════════════
+# # ══════════════════════════════════════════════════════════════════
 
 # @router.get(
 #     "/alerts/active",
 #     summary="Active Alerts — with optional state filter (M1)",
-#     description=(
-#         "Returns V5 CLPS alerts for the requested scenario. "
-#         "Optional ?status= filter (new|acknowledged|resolve_requested|resolved) "
-#         "queries the PostgreSQL state machine instead of the JSON file. "
-#         "ward_officer sees only their assigned zone. "
-#         "Without ?status=, existing behavior is preserved AND real lifecycle "
-#         "status is merged from DB so dashboards show accurate badge state."
-#     )
 # )
 # def get_active_alerts(
-#     scenario: str = Query(
-#         default='baseline',
-#         description="Scenario name: baseline | leak | valve | surge"
-#     ),
-#     status: Optional[str] = Query(
-#         default=None,
-#         description="State filter: new | acknowledged | resolve_requested | resolved"
-#     ),
+#     scenario: str = Query(default='baseline'),
+#     status: Optional[str] = Query(default=None),
 #     current_user: dict = Depends(get_current_user)
 # ):
 #     role    = current_user.get('role', '')
 #     zone_id = current_user.get('zone_id')
 
-#     # ── Branch A: status filter provided → query PostgreSQL ──────────────────
+#     # ── Branch A: status filter provided → query PostgreSQL ──────────
 #     if status is not None:
 #         try:
 #             with engine.connect() as conn:
@@ -251,9 +157,11 @@
 #                 'error':         f"DB query failed: {e}",
 #             }
 
-#     # ── Branch B: no status filter → JSON file + real status merge ───────────
-#     path = os.path.join(OUTPUTS_DIR, "v5_alerts.json")
-#     if not os.path.exists(path):
+#     # ── Branch B: no status filter → read from v5_alerts.json via data_provider ──
+#     # M3 CHANGE: replaced direct open() + json.load() with data_provider.get_alerts()
+#     raw = data_provider.get_alerts(scenario)
+
+#     if raw is None:
 #         return {
 #             "alerts":   [],
 #             "scenario": scenario,
@@ -261,24 +169,22 @@
 #             "error":    "Run V5 first — v5_alerts.json not found in outputs/"
 #         }
 
-#     with open(path, encoding='utf-8') as f:
-#         data = json.load(f)
-
-#     raw = []
-#     if isinstance(data, dict):
-#         raw = data.get(scenario, data.get('baseline', []))
-#     elif isinstance(data, list):
-#         raw = data
-
 #     # Server-side zone filter for ward officers
 #     if role == 'ward_officer' and zone_id:
 #         raw = [a for a in raw if str(a.get('zone_id', '')) == str(zone_id)]
 
-#     # ── Fetch real lifecycle statuses from DB ─────────────────────────────────
-#     # This is the key fix: merge actual DB state into the JSON-based alert list
-#     # so dashboards show the real lifecycle status (acknowledged, resolved, etc.)
-#     # instead of always showing 'new'.
-#     real_statuses = _fetch_real_statuses(scenario)
+#     # Look up db_alert_ids from PostgreSQL (for Ack/Resolve buttons)
+#     db_ids: dict = {}
+#     try:
+#         with engine.connect() as conn:
+#             rows = conn.execute(
+#                 text("SELECT alert_id, zone_id FROM alerts WHERE scenario = :scen"),
+#                 {'scen': scenario}
+#             ).fetchall()
+#             for row in rows:
+#                 db_ids[row[1]] = row[0]
+#     except Exception:
+#         pass  # PostgreSQL not available — fallback to 0
 
 #     suffix = SCENARIO_SUFFIX.get(scenario, 'Alert')
 #     formatted = []
@@ -292,9 +198,6 @@
 #         lvl  = str(a.get('severity', 'moderate') or 'moderate')
 #         clps = float(a.get('clps', 0) or 0)
 
-#         # Pull real status from DB (falls back to 'new' if zone not in DB)
-#         db_info = real_statuses.get(zid, {})
-
 #         formatted.append({
 #             'title':           f"{zm['nm']} · {sig} {suffix}",
 #             'body':            SIGNAL_BODY.get(sig, f"Anomaly detected: dominant signal {sig}."),
@@ -305,12 +208,8 @@
 #             'clps':            round(clps, 3),
 #             'dominant_signal': sig,
 #             'probable_nodes':  a.get('probable_node_ids', []),
-#             # Real lifecycle state from DB — no longer hardcoded 'new'
-#             'db_alert_id':     db_info.get('db_alert_id', 0),
-#             'status':          db_info.get('status', 'new'),
-#             'acknowledged_by': db_info.get('acknowledged_by'),
-#             'acknowledged_at': db_info.get('acknowledged_at'),
-#             'resolved_at':     db_info.get('resolved_at'),
+#             'db_alert_id':     db_ids.get(zid, 0),
+#             'status':          'new',
 #         })
 
 #     formatted.sort(key=lambda x: x['clps'], reverse=True)
@@ -322,16 +221,11 @@
 #     }
 
 
-# # ══════════════════════════════════════════════════════════════════════════════
-# #  POST /alerts/{id}/acknowledge
-# #  Bible: "engineer → status = acknowledged, save acknowledged_by + acknowledged_at"
-# #  State: new | fired → acknowledged
-# # ══════════════════════════════════════════════════════════════════════════════
+# # ══════════════════════════════════════════════════════════════════
+# #  POST /alerts/{id}/acknowledge   (engineer only)
+# # ══════════════════════════════════════════════════════════════════
 
-# @router.post(
-#     "/alerts/{alert_id}/acknowledge",
-#     summary="Acknowledge alert — engineer only (M1)"
-# )
+# @router.post("/alerts/{alert_id}/acknowledge", summary="Acknowledge alert — engineer only (M1)")
 # def acknowledge_alert(
 #     alert_id: int,
 #     body: AlertActionRequest = AlertActionRequest(),
@@ -339,10 +233,7 @@
 # ):
 #     role = current_user.get('role', '')
 #     if role not in ('engineer',):
-#         raise HTTPException(
-#             status_code=403,
-#             detail="engineer role required to acknowledge alerts."
-#         )
+#         raise HTTPException(status_code=403, detail="engineer role required to acknowledge alerts.")
 
 #     username = current_user.get('sub', 'engineer')
 
@@ -357,40 +248,24 @@
 #                 WHERE alert_id = :id
 #                   AND status IN ('new', 'fired')
 #                 RETURNING alert_id, zone_id, status
-#             """), {
-#                 'ts':    datetime.utcnow(),
-#                 'by':    username,
-#                 'notes': body.notes,
-#                 'id':    alert_id,
-#             })
+#             """), {'ts': datetime.utcnow(), 'by': username, 'notes': body.notes, 'id': alert_id})
 #             row = result.fetchone()
 #             conn.commit()
 
 #         if row:
-#             return {
-#                 'success':  True,
-#                 'alert_id': alert_id,
-#                 'status':   'acknowledged',
-#                 'acknowledged_by': username,
-#             }
-#         return {
-#             'success': False,
-#             'error':   'Alert not found or not in new/fired state.',
-#         }
+#             return {'success': True, 'alert_id': alert_id, 'status': 'acknowledged',
+#                     'acknowledged_by': username}
+#         return {'success': False, 'error': 'Alert not found or not in new/fired state.'}
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
 
-# # ══════════════════════════════════════════════════════════════════════════════
-# #  POST /alerts/{id}/request-resolution
-# #  Bible: "field_operator → status = resolve_requested, save resolution_report"
-# #  State: acknowledged → resolve_requested
-# # ══════════════════════════════════════════════════════════════════════════════
+# # ══════════════════════════════════════════════════════════════════
+# #  POST /alerts/{id}/request-resolution   (field_operator only)
+# # ══════════════════════════════════════════════════════════════════
 
-# @router.post(
-#     "/alerts/{alert_id}/request-resolution",
-#     summary="Field operator files resolution report (M1)"
-# )
+# @router.post("/alerts/{alert_id}/request-resolution",
+#              summary="Field operator files resolution report (M1)")
 # def request_resolution(
 #     alert_id: int,
 #     body: ResolutionRequest = ResolutionRequest(),
@@ -398,10 +273,7 @@
 # ):
 #     role = current_user.get('role', '')
 #     if role != 'field_operator':
-#         raise HTTPException(
-#             status_code=403,
-#             detail="field_operator role required to request resolution."
-#         )
+#         raise HTTPException(status_code=403, detail="field_operator role required.")
 
 #     report_text = body.report or body.notes or ''
 
@@ -412,41 +284,25 @@
 #                 SET status            = 'resolve_requested',
 #                     resolution_report = :report,
 #                     notes             = COALESCE(:notes, notes)
-#                 WHERE alert_id = :id
-#                   AND status   = 'acknowledged'
+#                 WHERE alert_id = :id AND status = 'acknowledged'
 #                 RETURNING alert_id, status
-#             """), {
-#                 'report': report_text,
-#                 'notes':  body.notes,
-#                 'id':     alert_id,
-#             })
+#             """), {'report': report_text, 'notes': body.notes, 'id': alert_id})
 #             row = result.fetchone()
 #             conn.commit()
 
 #         if row:
-#             return {
-#                 'success':  True,
-#                 'alert_id': alert_id,
-#                 'status':   'resolve_requested',
-#             }
-#         return {
-#             'success': False,
-#             'error':   'Alert not found or not in acknowledged state.',
-#         }
+#             return {'success': True, 'alert_id': alert_id, 'status': 'resolve_requested'}
+#         return {'success': False, 'error': 'Alert not found or not in acknowledged state.'}
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
 
-# # ══════════════════════════════════════════════════════════════════════════════
-# #  POST /alerts/{id}/accept-resolution
-# #  Bible: "engineer → status = resolved, save resolved_at"
-# #  State: resolve_requested → resolved
-# # ══════════════════════════════════════════════════════════════════════════════
+# # ══════════════════════════════════════════════════════════════════
+# #  POST /alerts/{id}/accept-resolution   (engineer only)
+# # ══════════════════════════════════════════════════════════════════
 
-# @router.post(
-#     "/alerts/{alert_id}/accept-resolution",
-#     summary="Engineer accepts field resolution (M1)"
-# )
+# @router.post("/alerts/{alert_id}/accept-resolution",
+#              summary="Engineer accepts field resolution (M1)")
 # def accept_resolution(
 #     alert_id: int,
 #     body: AlertActionRequest = AlertActionRequest(),
@@ -454,10 +310,7 @@
 # ):
 #     role = current_user.get('role', '')
 #     if role not in ('engineer',):
-#         raise HTTPException(
-#             status_code=403,
-#             detail="engineer role required to accept resolution."
-#         )
+#         raise HTTPException(status_code=403, detail="engineer role required.")
 
 #     try:
 #         with engine.connect() as conn:
@@ -466,41 +319,25 @@
 #                 SET status      = 'resolved',
 #                     resolved_at = :ts,
 #                     notes       = COALESCE(:notes, notes)
-#                 WHERE alert_id = :id
-#                   AND status   = 'resolve_requested'
+#                 WHERE alert_id = :id AND status = 'resolve_requested'
 #                 RETURNING alert_id, status
-#             """), {
-#                 'ts':    datetime.utcnow(),
-#                 'notes': body.notes,
-#                 'id':    alert_id,
-#             })
+#             """), {'ts': datetime.utcnow(), 'notes': body.notes, 'id': alert_id})
 #             row = result.fetchone()
 #             conn.commit()
 
 #         if row:
-#             return {
-#                 'success':  True,
-#                 'alert_id': alert_id,
-#                 'status':   'resolved',
-#             }
-#         return {
-#             'success': False,
-#             'error':   'Alert not found or not in resolve_requested state.',
-#         }
+#             return {'success': True, 'alert_id': alert_id, 'status': 'resolved'}
+#         return {'success': False, 'error': 'Alert not found or not in resolve_requested state.'}
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
 
-# # ══════════════════════════════════════════════════════════════════════════════
-# #  POST /alerts/{id}/reject-resolution
-# #  Bible: "engineer → status = acknowledged (sends back to field operator)"
-# #  State: resolve_requested → acknowledged   + rejected_count += 1
-# # ══════════════════════════════════════════════════════════════════════════════
+# # ══════════════════════════════════════════════════════════════════
+# #  POST /alerts/{id}/reject-resolution   (engineer only)
+# # ══════════════════════════════════════════════════════════════════
 
-# @router.post(
-#     "/alerts/{alert_id}/reject-resolution",
-#     summary="Engineer rejects field resolution — sends back (M1)"
-# )
+# @router.post("/alerts/{alert_id}/reject-resolution",
+#              summary="Engineer rejects field resolution — sends back (M1)")
 # def reject_resolution(
 #     alert_id: int,
 #     body: AlertActionRequest = AlertActionRequest(),
@@ -508,10 +345,7 @@
 # ):
 #     role = current_user.get('role', '')
 #     if role not in ('engineer',):
-#         raise HTTPException(
-#             status_code=403,
-#             detail="engineer role required to reject resolution."
-#         )
+#         raise HTTPException(status_code=403, detail="engineer role required.")
 
 #     try:
 #         with engine.connect() as conn:
@@ -521,46 +355,27 @@
 #                     resolution_report = NULL,
 #                     rejected_count    = COALESCE(rejected_count, 0) + 1,
 #                     notes             = COALESCE(:notes, notes)
-#                 WHERE alert_id = :id
-#                   AND status   = 'resolve_requested'
+#                 WHERE alert_id = :id AND status = 'resolve_requested'
 #                 RETURNING alert_id, status, rejected_count
-#             """), {
-#                 'notes': body.notes,
-#                 'id':    alert_id,
-#             })
+#             """), {'notes': body.notes, 'id': alert_id})
 #             row = result.fetchone()
 #             conn.commit()
 
 #         if row:
-#             return {
-#                 'success':        True,
-#                 'alert_id':       alert_id,
-#                 'status':         'acknowledged',
-#                 'rejected_count': int(row[2] or 0),
-#                 'message':        (
-#                     'Resolution rejected. Alert returned to acknowledged state. '
-#                     'Field operator must re-submit when ready.'
-#                 ),
-#             }
-#         return {
-#             'success': False,
-#             'error':   'Alert not found or not in resolve_requested state.',
-#         }
+#             return {'success': True, 'alert_id': alert_id, 'status': 'acknowledged',
+#                     'rejected_count': int(row[2] or 0),
+#                     'message': 'Resolution rejected. Alert returned to acknowledged state.'}
+#         return {'success': False, 'error': 'Alert not found or not in resolve_requested state.'}
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
 
-# # ══════════════════════════════════════════════════════════════════════════════
-# #  POST /alerts/{id}/resolve
-# #  BACKWARD COMPATIBILITY — kept so existing engineer_dashboard.html
-# #  and index.html continue to work without changes (Bible M1 constraint).
-# #  Maps to accept-resolution logic. Works from acknowledged OR resolve_requested.
-# # ══════════════════════════════════════════════════════════════════════════════
+# # ══════════════════════════════════════════════════════════════════
+# #  POST /alerts/{id}/resolve   (backward-compat alias, engineer only)
+# # ══════════════════════════════════════════════════════════════════
 
-# @router.post(
-#     "/alerts/{alert_id}/resolve",
-#     summary="Resolve alert — backward-compat alias (engineer only)"
-# )
+# @router.post("/alerts/{alert_id}/resolve",
+#              summary="Resolve alert — backward-compat alias (engineer only)")
 # def resolve_alert_compat(
 #     alert_id: int,
 #     body: AlertActionRequest = AlertActionRequest(),
@@ -568,10 +383,7 @@
 # ):
 #     role = current_user.get('role', '')
 #     if role not in ('engineer',):
-#         raise HTTPException(
-#             status_code=403,
-#             detail="engineer role required."
-#         )
+#         raise HTTPException(status_code=403, detail="engineer role required.")
 
 #     try:
 #         with engine.connect() as conn:
@@ -583,39 +395,46 @@
 #                 WHERE alert_id = :id
 #                   AND status IN ('acknowledged', 'resolve_requested')
 #                 RETURNING alert_id, status
-#             """), {
-#                 'ts':    datetime.utcnow(),
-#                 'notes': body.notes,
-#                 'id':    alert_id,
-#             })
+#             """), {'ts': datetime.utcnow(), 'notes': body.notes, 'id': alert_id})
 #             row = result.fetchone()
 #             conn.commit()
 
 #         if row:
 #             return {'success': True, 'alert_id': alert_id, 'status': 'resolved'}
-#         return {
-#             'success': False,
-#             'error':   'Alert not found or not in resolvable state.',
-#         }
+#         return {'success': False, 'error': 'Alert not found or not in resolvable state.'}
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
+
 """
-Hydro-Equity Engine / Dhara — Phase 4b + M1 + M3
+Hydro-Equity Engine / Dhara — Phase 4b + M1 + M3 + N2
 backend/routers/alerts.py
 
-M3 CHANGE: Branch B of get_active_alerts() now reads v5_alerts.json
-           via data_provider.get_alerts() instead of opening the file directly.
-           All other logic is identical to M1.
+N2 CHANGES (Person A deliverables):
+  Task 1 — No caching in GET /alerts/active. Branch B reads v5_alerts.json
+            via data_provider on every single request. No persistent dicts.
 
-ENDPOINTS IN THIS FILE:
-  GET  /alerts/active?scenario=<baseline|leak|valve|surge>
-                      &status=<new|acknowledged|resolve_requested|resolved>
-  POST /alerts/{id}/acknowledge          (engineer only)
-  POST /alerts/{id}/request-resolution   (field_operator only)
-  POST /alerts/{id}/accept-resolution    (engineer only)
-  POST /alerts/{id}/reject-resolution    (engineer only)
-  POST /alerts/{id}/resolve              (backward-compat alias, engineer only)
+  Task 2 — All 4 state-change POST endpoints now return the full updated
+            alert object in their response.
+            Return shape: {success: true, alert: {alert_id, zone_id, status,
+            clps, dominant_signal, acknowledged_at, acknowledged_by,
+            resolution_report, resolved_at, ...}}
+
+  Task 3 — New GET /alerts/{id} single-alert endpoint added.
+            Returns one alert by alert_id. All authenticated roles.
+            ward_officer is restricted to their own zone_id only.
+
+ROUTE ORDER (critical for FastAPI path matching):
+  GET  /alerts/active        — literal path, registered FIRST
+  GET  /alerts/{alert_id}    — path param, registered SECOND
+  POST /alerts/{id}/acknowledge
+  POST /alerts/{id}/request-resolution
+  POST /alerts/{id}/accept-resolution
+  POST /alerts/{id}/reject-resolution
+  POST /alerts/{id}/resolve  (backward-compat alias)
 """
 
 import os
@@ -671,12 +490,65 @@ class ResolutionRequest(BaseModel):
 
 
 # ══════════════════════════════════════════════════════════════════
+#  INTERNAL HELPER — N2 Task 2 + Task 3
+#  Fetches a single alert row from DB and returns it as a clean dict.
+#  Used by all POST endpoints (Task 2) and the new GET endpoint (Task 3).
+#  Called INSIDE an already-open connection so the conn is passed in.
+# ══════════════════════════════════════════════════════════════════
+
+def _fetch_alert_by_id(conn, alert_id: int) -> Optional[dict]:
+    """
+    Fetches one alert row by alert_id using an existing DB connection.
+    Returns a dict with all relevant fields, or None if not found.
+    """
+    row = conn.execute(text("""
+        SELECT alert_id,
+               zone_id,
+               clps,
+               severity,
+               dominant_signal,
+               status,
+               acknowledged_at,
+               acknowledged_by,
+               resolution_report,
+               resolved_at,
+               notes,
+               created_at
+        FROM   alerts
+        WHERE  alert_id = :aid
+    """), {"aid": alert_id}).fetchone()
+
+    if not row:
+        return None
+
+    return {
+        "alert_id":          row[0],
+        "zone_id":           str(row[1] or ""),
+        "clps":              round(float(row[2] or 0), 3),
+        "severity":          str(row[3] or "moderate"),
+        "dominant_signal":   str(row[4] or ""),
+        "status":            str(row[5] or "new"),
+        "acknowledged_at":   row[6].isoformat()  if row[6]  else None,
+        "acknowledged_by":   str(row[7])          if row[7]  else None,
+        "resolution_report": str(row[8])          if row[8]  else None,
+        "resolved_at":       row[9].isoformat()   if row[9]  else None,
+        "notes":             str(row[10])          if row[10] else None,
+        "created_at":        row[11].isoformat()  if row[11] else None,
+    }
+
+
+# ══════════════════════════════════════════════════════════════════
 #  GET /alerts/active
+#  REGISTERED FIRST — must come before GET /alerts/{alert_id}
+#
+#  N2 Task 1: No caching. Branch B calls data_provider.get_alerts()
+#  on every request — that function opens and reads v5_alerts.json
+#  fresh each time. No module-level dict, no persistent state.
 # ══════════════════════════════════════════════════════════════════
 
 @router.get(
     "/alerts/active",
-    summary="Active Alerts — with optional state filter (M1)",
+    summary="Active Alerts — with optional state filter (M1 + N2)",
 )
 def get_active_alerts(
     scenario: str = Query(default='baseline'),
@@ -760,7 +632,8 @@ def get_active_alerts(
             }
 
     # ── Branch B: no status filter → read from v5_alerts.json via data_provider ──
-    # M3 CHANGE: replaced direct open() + json.load() with data_provider.get_alerts()
+    # N2 Task 1: data_provider.get_alerts() opens the file fresh on every call.
+    # There is NO caching — no module-level variable, no persistent dict.
     raw = data_provider.get_alerts(scenario)
 
     if raw is None:
@@ -777,16 +650,30 @@ def get_active_alerts(
 
     # Look up db_alert_ids from PostgreSQL (for Ack/Resolve buttons)
     db_ids: dict = {}
+    db_statuses: dict = {}
     try:
         with engine.connect() as conn:
             rows = conn.execute(
-                text("SELECT alert_id, zone_id FROM alerts WHERE scenario = :scen"),
+                text("""
+                    SELECT alert_id, zone_id, status,
+                           acknowledged_by, resolution_report,
+                           acknowledged_at, resolved_at
+                    FROM alerts
+                    WHERE scenario = :scen
+                """),
                 {'scen': scenario}
             ).fetchall()
             for row in rows:
                 db_ids[row[1]] = row[0]
+                db_statuses[row[1]] = {
+                    'status':            str(row[2] or 'new'),
+                    'acknowledged_by':   str(row[3]) if row[3] else None,
+                    'resolution_report': str(row[4]) if row[4] else None,
+                    'acknowledged_at':   row[5].isoformat() if row[5] else None,
+                    'resolved_at':       row[6].isoformat() if row[6] else None,
+                }
     except Exception:
-        pass  # PostgreSQL not available — fallback to 0
+        pass  # PostgreSQL not available — fallback to defaults
 
     suffix = SCENARIO_SUFFIX.get(scenario, 'Alert')
     formatted = []
@@ -800,18 +687,26 @@ def get_active_alerts(
         lvl  = str(a.get('severity', 'moderate') or 'moderate')
         clps = float(a.get('clps', 0) or 0)
 
+        # Merge real lifecycle status from DB (N2: no more hardcoded 'new')
+        db_info = db_statuses.get(zid, {})
+
         formatted.append({
-            'title':           f"{zm['nm']} · {sig} {suffix}",
-            'body':            SIGNAL_BODY.get(sig, f"Anomaly detected: dominant signal {sig}."),
-            'level':           lvl,
-            'zone':            zm['nm'],
-            'zone_id_short':   zm['short'],
-            'zone_id':         zid,
-            'clps':            round(clps, 3),
-            'dominant_signal': sig,
-            'probable_nodes':  a.get('probable_node_ids', []),
-            'db_alert_id':     db_ids.get(zid, 0),
-            'status':          'new',
+            'title':             f"{zm['nm']} · {sig} {suffix}",
+            'body':              SIGNAL_BODY.get(sig, f"Anomaly detected: dominant signal {sig}."),
+            'level':             lvl,
+            'zone':              zm['nm'],
+            'zone_id_short':     zm['short'],
+            'zone_id':           zid,
+            'clps':              round(clps, 3),
+            'dominant_signal':   sig,
+            'probable_nodes':    a.get('probable_node_ids', []),
+            'db_alert_id':       db_ids.get(zid, 0),
+            # N2: status comes from DB, not hardcoded 'new'
+            'status':            db_info.get('status', 'new'),
+            'acknowledged_by':   db_info.get('acknowledged_by'),
+            'resolution_report': db_info.get('resolution_report'),
+            'acknowledged_at':   db_info.get('acknowledged_at'),
+            'resolved_at':       db_info.get('resolved_at'),
         })
 
     formatted.sort(key=lambda x: x['clps'], reverse=True)
@@ -824,10 +719,59 @@ def get_active_alerts(
 
 
 # ══════════════════════════════════════════════════════════════════
-#  POST /alerts/{id}/acknowledge   (engineer only)
+#  GET /alerts/{alert_id}   — N2 Task 3 (NEW)
+#  REGISTERED SECOND — after /alerts/active
+#
+#  Returns a single alert by ID. All authenticated roles.
+#  ward_officer: restricted to their own zone_id only.
 # ══════════════════════════════════════════════════════════════════
 
-@router.post("/alerts/{alert_id}/acknowledge", summary="Acknowledge alert — engineer only (M1)")
+@router.get(
+    "/alerts/{alert_id}",
+    summary="Get single alert by ID — all authenticated roles (N2 Task 3)"
+)
+def get_alert_by_id(
+    alert_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Returns the full alert object for a given alert_id.
+    All authenticated roles. ward_officer restricted to own zone.
+    """
+    try:
+        with engine.connect() as conn:
+            alert = _fetch_alert_by_id(conn, alert_id)
+
+        if not alert:
+            raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found.")
+
+        role         = current_user.get('role', '')
+        user_zone_id = current_user.get('zone_id')
+        if role == 'ward_officer' and user_zone_id:
+            if alert['zone_id'] != str(user_zone_id):
+                raise HTTPException(
+                    status_code=403,
+                    detail=(
+                        f"Access denied. Alert {alert_id} belongs to zone "
+                        f"'{alert['zone_id']}', but your zone is '{user_zone_id}'."
+                    )
+                )
+
+        return {"alert": alert}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB error fetching alert {alert_id}: {e}")
+
+
+# ══════════════════════════════════════════════════════════════════
+#  POST /alerts/{id}/acknowledge   (engineer only)
+#  N2 Task 2: Returns full updated alert object after state change.
+# ══════════════════════════════════════════════════════════════════
+
+@router.post("/alerts/{alert_id}/acknowledge",
+             summary="Acknowledge alert — engineer only (M1 + N2)")
 def acknowledge_alert(
     alert_id: int,
     body: AlertActionRequest = AlertActionRequest(),
@@ -843,31 +787,48 @@ def acknowledge_alert(
         with engine.connect() as conn:
             result = conn.execute(text("""
                 UPDATE alerts
-                SET status           = 'acknowledged',
-                    acknowledged_at  = :ts,
-                    acknowledged_by  = :by,
-                    notes            = COALESCE(:notes, notes)
+                SET status          = 'acknowledged',
+                    acknowledged_at = :ts,
+                    acknowledged_by = :by,
+                    notes           = COALESCE(:notes, notes)
                 WHERE alert_id = :id
                   AND status IN ('new', 'fired')
-                RETURNING alert_id, zone_id, status
-            """), {'ts': datetime.utcnow(), 'by': username, 'notes': body.notes, 'id': alert_id})
+                RETURNING alert_id
+            """), {
+                'ts':    datetime.utcnow(),
+                'by':    username,
+                'notes': body.notes,
+                'id':    alert_id,
+            })
             row = result.fetchone()
             conn.commit()
 
-        if row:
-            return {'success': True, 'alert_id': alert_id, 'status': 'acknowledged',
-                    'acknowledged_by': username}
-        return {'success': False, 'error': 'Alert not found or not in new/fired state.'}
+            if not row:
+                return {'success': False, 'error': 'Alert not found or not in new/fired state.'}
+
+            # N2 Task 2: fetch full updated alert object
+            alert = _fetch_alert_by_id(conn, alert_id)
+
+        return {
+            'success':         True,
+            'status':          'acknowledged',
+            'acknowledged_by': username,
+            'alert':           alert,   # ← N2: full object for frontend card update
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # ══════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/request-resolution   (field_operator only)
+#  N2 Task 2: Returns full updated alert object after state change.
 # ══════════════════════════════════════════════════════════════════
 
 @router.post("/alerts/{alert_id}/request-resolution",
-             summary="Field operator files resolution report (M1)")
+             summary="Field operator files resolution report (M1 + N2)")
 def request_resolution(
     alert_id: int,
     body: ResolutionRequest = ResolutionRequest(),
@@ -886,25 +847,37 @@ def request_resolution(
                 SET status            = 'resolve_requested',
                     resolution_report = :report,
                     notes             = COALESCE(:notes, notes)
-                WHERE alert_id = :id AND status = 'acknowledged'
-                RETURNING alert_id, status
+                WHERE alert_id = :id
+                  AND status   = 'acknowledged'
+                RETURNING alert_id
             """), {'report': report_text, 'notes': body.notes, 'id': alert_id})
             row = result.fetchone()
             conn.commit()
 
-        if row:
-            return {'success': True, 'alert_id': alert_id, 'status': 'resolve_requested'}
-        return {'success': False, 'error': 'Alert not found or not in acknowledged state.'}
+            if not row:
+                return {'success': False, 'error': 'Alert not found or not in acknowledged state.'}
+
+            alert = _fetch_alert_by_id(conn, alert_id)
+
+        return {
+            'success': True,
+            'status':  'resolve_requested',
+            'alert':   alert,   # ← N2: full object
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # ══════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/accept-resolution   (engineer only)
+#  N2 Task 2: Returns full updated alert object after state change.
 # ══════════════════════════════════════════════════════════════════
 
 @router.post("/alerts/{alert_id}/accept-resolution",
-             summary="Engineer accepts field resolution (M1)")
+             summary="Engineer accepts field resolution (M1 + N2)")
 def accept_resolution(
     alert_id: int,
     body: AlertActionRequest = AlertActionRequest(),
@@ -921,25 +894,37 @@ def accept_resolution(
                 SET status      = 'resolved',
                     resolved_at = :ts,
                     notes       = COALESCE(:notes, notes)
-                WHERE alert_id = :id AND status = 'resolve_requested'
-                RETURNING alert_id, status
+                WHERE alert_id = :id
+                  AND status   = 'resolve_requested'
+                RETURNING alert_id
             """), {'ts': datetime.utcnow(), 'notes': body.notes, 'id': alert_id})
             row = result.fetchone()
             conn.commit()
 
-        if row:
-            return {'success': True, 'alert_id': alert_id, 'status': 'resolved'}
-        return {'success': False, 'error': 'Alert not found or not in resolve_requested state.'}
+            if not row:
+                return {'success': False, 'error': 'Alert not found or not in resolve_requested state.'}
+
+            alert = _fetch_alert_by_id(conn, alert_id)
+
+        return {
+            'success': True,
+            'status':  'resolved',
+            'alert':   alert,   # ← N2: full object
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # ══════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/reject-resolution   (engineer only)
+#  N2 Task 2: Returns full updated alert object after state change.
 # ══════════════════════════════════════════════════════════════════
 
 @router.post("/alerts/{alert_id}/reject-resolution",
-             summary="Engineer rejects field resolution — sends back (M1)")
+             summary="Engineer rejects field resolution — sends back (M1 + N2)")
 def reject_resolution(
     alert_id: int,
     body: AlertActionRequest = AlertActionRequest(),
@@ -957,27 +942,41 @@ def reject_resolution(
                     resolution_report = NULL,
                     rejected_count    = COALESCE(rejected_count, 0) + 1,
                     notes             = COALESCE(:notes, notes)
-                WHERE alert_id = :id AND status = 'resolve_requested'
-                RETURNING alert_id, status, rejected_count
+                WHERE alert_id = :id
+                  AND status   = 'resolve_requested'
+                RETURNING alert_id, rejected_count
             """), {'notes': body.notes, 'id': alert_id})
             row = result.fetchone()
             conn.commit()
 
-        if row:
-            return {'success': True, 'alert_id': alert_id, 'status': 'acknowledged',
-                    'rejected_count': int(row[2] or 0),
-                    'message': 'Resolution rejected. Alert returned to acknowledged state.'}
-        return {'success': False, 'error': 'Alert not found or not in resolve_requested state.'}
+            if not row:
+                return {'success': False, 'error': 'Alert not found or not in resolve_requested state.'}
+
+            rejected_count = int(row[1] or 0)
+            alert = _fetch_alert_by_id(conn, alert_id)
+
+        return {
+            'success':        True,
+            'status':         'acknowledged',
+            'rejected_count': rejected_count,
+            'message': 'Resolution rejected. Alert returned to acknowledged state.',
+            'alert':          alert,   # ← N2: full object
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # ══════════════════════════════════════════════════════════════════
 #  POST /alerts/{id}/resolve   (backward-compat alias, engineer only)
+#  N2 Task 2: Returns full updated alert object after state change.
+#  Kept so existing dashboards that call /resolve continue to work.
 # ══════════════════════════════════════════════════════════════════
 
 @router.post("/alerts/{alert_id}/resolve",
-             summary="Resolve alert — backward-compat alias (engineer only)")
+             summary="Resolve alert — backward-compat alias (engineer only, M1 + N2)")
 def resolve_alert_compat(
     alert_id: int,
     body: AlertActionRequest = AlertActionRequest(),
@@ -996,13 +995,23 @@ def resolve_alert_compat(
                     notes       = COALESCE(:notes, notes)
                 WHERE alert_id = :id
                   AND status IN ('acknowledged', 'resolve_requested')
-                RETURNING alert_id, status
+                RETURNING alert_id
             """), {'ts': datetime.utcnow(), 'notes': body.notes, 'id': alert_id})
             row = result.fetchone()
             conn.commit()
 
-        if row:
-            return {'success': True, 'alert_id': alert_id, 'status': 'resolved'}
-        return {'success': False, 'error': 'Alert not found or not in resolvable state.'}
+            if not row:
+                return {'success': False, 'error': 'Alert not found or not in resolvable state.'}
+
+            alert = _fetch_alert_by_id(conn, alert_id)
+
+        return {
+            'success': True,
+            'status':  'resolved',
+            'alert':   alert,   # ← N2: full object
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
