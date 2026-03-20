@@ -62,5 +62,18 @@ Impact on B/C: None. No endpoints, DB schema, or shared files changed.
 Status: Done and tested.
 
 
-
 Person: A | N4 | No deviations — all changes match Bible spec exactly.
+
+Person: C | N4 | Part 1
+Bible says: "NRW percentage must come from API, not hardcoded string"
+I did: Added public GET /nrw endpoint to infrastructure.py that reads
+       from outputs/v4_equity_minimal.json with fallback to '18% (baseline estimate)'.
+       Fixed commissioner_dashboard.html to fetch NRW via loadNrw() called in
+       loadAll() before parallel data fetch. Replaced both hardcoded '18%' strings
+       with _nrwValue variable. Also fixed engineer_dashboard.html (Person B file)
+       same way — replaced scenario-based hardcoded calculation with _nrwValue.
+Files changed outside my column: engineer_dashboard.html (Person B file) — NRW fix only,
+       no other logic touched.
+Impact on A/B: None. /nrw is a new public endpoint, does not change any existing
+       endpoint response shapes. B's alert/recommendation logic untouched.
+Status: Done.

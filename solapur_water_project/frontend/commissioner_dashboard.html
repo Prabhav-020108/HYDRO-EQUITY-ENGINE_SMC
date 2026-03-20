@@ -889,6 +889,7 @@
 
     const BACK = 'http://localhost:8000';
     const MC = [17.68, 75.908];
+    let _nrwValue = '18%';
 
     const ZONES = [
       { id: 'z1', apiId: 'zone_1', nm: 'Zone 1', lat: 17.7038, lon: 75.9065 },
@@ -921,6 +922,18 @@
         catch (e) { return null; }
       }
     };
+
+    async function loadNrw() {
+  try {
+    const r = await fetch(BACK + '/nrw');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d && d.nrw) { _nrwValue = d.nrw; }
+  } catch(e) {
+    console.warn('[NRW] Could not fetch NRW:', e.message);
+    _nrwValue = '18%';
+  }
+}
 
     function heiCol(h) { if (h > 1.30) return '#6A1B9A'; if (h >= 0.85) return '#2E7D32'; if (h >= 0.70) return '#E65100'; return '#D32F2F' }
     function heiLbl(h) { if (h > 1.30) return ['Over-P', 'sov']; if (h >= 0.85) return ['Equitable', 'seq']; if (h >= 0.70) return ['Moderate', 'smo']; return ['Severe', 'ssv'] }
@@ -1004,7 +1017,7 @@
 
       document.getElementById('scw').textContent = pct + '%';
       document.getElementById('sSv').textContent = sev;
-      document.getElementById('sNrw').textContent = '18%';
+      document.getElementById('sNrw').textContent = _nrwValue;
       const col = heiCol(cwei);
       document.getElementById('cwsc').textContent = pct + '%';
       document.getElementById('cwsc').style.color = col;
@@ -1015,7 +1028,7 @@
       de.textContent = lbls[st]; de.style.color = col; de.style.background = bgs[st];
       document.getElementById('wz').textContent = sorted[0] ? sorted[0].nm : '—';
       document.getElementById('bz').textContent = sorted[sorted.length - 1] ? sorted[sorted.length - 1].nm : '—';
-      document.getElementById('nrw').textContent = '18%';
+      document.getElementById('nrw').textContent  = _nrwValue;
       document.getElementById('st1').textContent = zoneData.length;
       document.getElementById('st2').textContent = eq;
       document.getElementById('st3').textContent = mod;
@@ -1245,10 +1258,10 @@
 }
 
     async function loadAll(){
-      // M4: loadStatusCounts() added — fetches NEW/ACK/PENDING/RESOLVED counts on page load
-      await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),renderRecommendations(),loadStatusCounts()]);
-      setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
-    }
+  await loadNrw();   // ← ADD THIS LINE FIRST
+  await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),renderRecommendations(),loadStatusCounts()]);
+  setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
+}
     window.addEventListener('load', () => setTimeout(loadAll, 400));
     // M4: Added loadStatusCounts() to the 60-second refresh cycle
     setInterval(() => { loadStatusCounts(); }, 30000);
