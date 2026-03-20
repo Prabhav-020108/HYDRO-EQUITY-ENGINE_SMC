@@ -44,3 +44,19 @@ I did: Added <div id="pendingBanner"> in HTML above #albody.
 Impact on A/C: None. Banner div is inside engAlertBody which is
        Person B's panel only.
 Status: Done.
+
+Person: A | N3
+Bible says: "All values must come from data_provider.py functions"
+I did: All 5 data sources now go through data_provider:
+       get_zone_status(), get_alerts("baseline"), get_burst_top10().
+       NRW read from v4_equity_minimal.json via _read_nrw() helper.
+       datetime.now() for report timestamp.
+       Graceful empty-table fallback when output files are missing
+       (Bible says "PDF generates even if files missing" — I used
+       empty table rows with run-command notes instead of crashing).
+Files changed outside my column: No.
+Impact on B/C: None. No endpoints, DB schema, or shared files changed.
+       B and C call GET /reports/weekly — response shape unchanged
+       (still returns a PDF binary). They will now get real data
+       instead of an error.
+Status: Done and tested.
