@@ -10,7 +10,7 @@ Falls back gracefully if file not found (map just skips infra markers).
 """
 
 import os, csv
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 import json as _json
 
 router = APIRouter(tags=["Public"])
@@ -148,28 +148,62 @@ def is_point_in_polygon(point: list, polygon: list) -> bool:
 
 @router.post("/citizen/locate")
 def locate_citizen(req: CitizenLocateRequest):
-    closest_zone = {"zone_id": "zone_1", "zone_name": "Zone 1", "detection_method": "nearest_centroid"}
+    # ── Solapur Municipal Corporation bounding box ──────────────────────
+    # Any GPS fix outside these bounds cannot be reliably matched to a zone.
+    SOLAPUR_LAT_MIN, SOLAPUR_LAT_MAX = 17.580, 17.760
+    SOLAPUR_LON_MIN, SOLAPUR_LON_MAX = 75.820, 75.990
+
+    if not (SOLAPUR_LAT_MIN <= req.lat <= SOLAPUR_LAT_MAX and
+            SOLAPUR_LON_MIN <= req.lon <= SOLAPUR_LON_MAX):
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code":    "OUTSIDE_SOLAPUR",
+                "message": (
+                    "Your GPS location is outside the Solapur Municipal Corporation area. "
+                    "Automatic zone detection is not available at your current location. "
+                    "Please select your zone manually."
+                )
+            }
+        )
+
+    # ── Zone matching (polygon first, centroid fallback) ────────────────
+    closest_zone = {
+        "zone_id":          "zone_1",
+        "zone_name":        "Zone 1",
+        "detection_method": "nearest_centroid"
+    }
+
     try:
-        min_dist = float('inf')
+        min_dist      = float('inf')
         matched_zones = []
 
         with engine.connect() as conn:
-            rows = conn.execute(text("SELECT zone_id, polygon_coords, centroid_lat, centroid_lon FROM zone_polygons")).fetchall()
+            rows = conn.execute(
+                text("""
+                    SELECT zone_id, polygon_coords, centroid_lat, centroid_lon
+                    FROM zone_polygons
+                """)
+            ).fetchall()
 
         for r in rows:
-            z_id = str(r[0])
-            z_name = z_id.replace('zone_', 'Zone ').title() if z_id.startswith('zone_') else z_id
-            coords_str = r[1]
-            c_lat = float(r[2] or 0)
-            c_lon = float(r[3] or 0)
+            z_id   = str(r[0])
+            z_name = "Zone {}".format(z_id.replace("zone_", "")) \
+                     if z_id.startswith("zone_") else z_id
+            c_lat  = float(r[2] or 0)
+            c_lon  = float(r[3] or 0)
 
             dist = math.hypot(req.lat - c_lat, req.lon - c_lon)
             if dist < min_dist:
-                min_dist = dist
-                closest_zone = {"zone_id": z_id, "zone_name": z_name, "detection_method": "nearest_centroid"}
+                min_dist     = dist
+                closest_zone = {
+                    "zone_id":          z_id,
+                    "zone_name":        z_name,
+                    "detection_method": "nearest_centroid"
+                }
 
-            if coords_str:
-                polygon = _json.loads(coords_str)
+            if r[1]:  # polygon_coords exists
+                polygon = _json.loads(r[1])
                 if is_point_in_polygon([req.lon, req.lat], polygon):
                     matched_zones.append({"zone_id": z_id, "zone_name": z_name})
 
@@ -179,5 +213,8 @@ def locate_citizen(req: CitizenLocateRequest):
             return z
 
         return closest_zone
+
+    except HTTPException:
+        raise
     except Exception:
         return closest_zone

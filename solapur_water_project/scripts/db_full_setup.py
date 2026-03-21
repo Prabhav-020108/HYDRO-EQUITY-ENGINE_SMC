@@ -301,6 +301,26 @@ NEW_COLUMNS = [
         "citizen_complaints.updated_at",
         "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP"
     ),
+    (
+        "citizen_complaints.acknowledged_at",
+        "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS acknowledged_at TIMESTAMP"
+    ),
+    (
+        "citizen_complaints.acknowledged_by",
+        "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS acknowledged_by TEXT"
+    ),
+    (
+        "citizen_complaints.resolved_at",
+        "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP"
+    ),
+    (
+        "citizen_complaints.disputed_at",
+        "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS disputed_at TIMESTAMP"
+    ),
+    (
+        "citizen_complaints.expiry_notified",
+        "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS expiry_notified BOOLEAN DEFAULT FALSE"
+    ),
 ]
 
 
@@ -314,8 +334,24 @@ POST_MIGRATIONS = [
         "ALTER TABLE alerts ALTER COLUMN status SET DEFAULT 'new'"
     ),
     (
-        "alerts: migrate 'fired' rows → 'new'",
+        "alerts: migrate 'fired' rows -> 'new'",
         "UPDATE alerts SET status = 'new' WHERE status = 'fired'"
+    ),
+    (
+        "citizen_complaints: allow not_resolved and expired status values",
+        """
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name='citizen_complaints' AND column_name='status'
+            AND data_type='text'
+          ) THEN
+            NULL;
+          END IF;
+        END$$;
+        UPDATE citizen_complaints SET status = status;
+        """
     ),
 ]
 
@@ -340,7 +376,7 @@ def _run(conn, label: str, sql: str, expect_rows: bool = False):
 
 def setup():
     print("=" * 62)
-    print("  db_full_setup.py — Dhara Full Database Setup")
+    print("  db_full_setup.py - Dhara Full Database Setup")
     print("=" * 62)
 
     with engine.connect() as conn:
@@ -361,7 +397,7 @@ def setup():
             _run(conn, label, sql, expect_rows=True)
 
     print("\n" + "=" * 62)
-    print("  ✅  db_full_setup.py complete.")
+    print("  [OK] db_full_setup.py complete.")
     print("  Next: python scripts/seed_users.py")
     print("=" * 62)
 

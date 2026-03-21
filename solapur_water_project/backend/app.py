@@ -726,6 +726,7 @@ from backend.routers.pipeline       import router as pipeline_router
 from backend.routers.mobile         import router as mobile_router
 from backend.routers.ward_complaints import router as ward_complaints_router
 from backend.routers.admin          import router as admin_router
+from backend.routers.complaints     import router as complaints_router
 
 logger = logging.getLogger(__name__)
 
@@ -812,6 +813,7 @@ app.include_router(infrastructure_router) # /infrastructure
 app.include_router(pipeline_router)       # /pipeline
 app.include_router(mobile_router)         # /mobile/*
 app.include_router(ward_complaints_router)
+app.include_router(complaints_router)
 app.include_router(admin_router)
 
 
