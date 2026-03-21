@@ -19,6 +19,8 @@ class ComplaintStatusUpdate(BaseModel):
 def get_ward_complaints(current_user: dict = Depends(get_current_user)):
     _require_ward_officer(current_user)
     zone_id = current_user.get("zone_id")
+    if zone_id:
+        zone_id = zone_id.lower().strip()       # on query (from JWT)
     try:
         with engine.connect() as conn:
             rows = conn.execute(

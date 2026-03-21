@@ -613,7 +613,7 @@ def get_active_alerts(
                     'rejected_count':    int(r[12] or 0),
                     'notes':             str(r[13]) if r[13] else None,
                     'probable_nodes':    [],
-                    'scenario':          scen,
+                    'scenario':          str(r[6] or 'baseline'),
                     'created_at':        r[14].isoformat() if r[14] else None,
                     'resolved_by':       str(r[15]) if r[15] else None,
                 })
@@ -894,17 +894,18 @@ def accept_resolution(
     if role not in ('engineer',):
         raise HTTPException(status_code=403, detail="engineer role required.")
 
+    username = current_user.get("sub", "engineer")
     try:
         with engine.connect() as conn:
             result = conn.execute(text("""
                 UPDATE alerts
                 SET status      = 'resolved',
-                    resolved_at = :ts,
+                    resolved_at = NOW(),
                     notes       = COALESCE(:notes, notes)
                 WHERE alert_id = :id
                   AND status   = 'resolve_requested'
                 RETURNING alert_id
-            """), {'ts': datetime.utcnow(), 'notes': body.notes, 'id': alert_id})
+            """), {'notes': body.notes, 'id': alert_id})
             row = result.fetchone()
             conn.commit()
 

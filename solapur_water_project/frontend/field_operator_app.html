@@ -880,13 +880,17 @@
   }
 
   // ── Polling ──────────────────────────────────────────────────────
+  let _workInterval = null;
+
   function startAlertPolling() {
     if (_pollInterval) return;
     _pollInterval = setInterval(_pollAlerts, 5000);
+    _workInterval = setInterval(() => { loadValveChecklist(); loadWorkHistory(); }, 10000);
   }
 
   function stopAlertPolling() {
     if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
+    if (_workInterval) { clearInterval(_workInterval); _workInterval = null; }
   }
 
   async function _pollAlerts() {
@@ -1014,6 +1018,13 @@
     reenable();
   }
 
+  function fmtTs(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${String(d.getDate()).padStart(2,'0')} ${mn[d.getMonth()]} ${String(d.getFullYear()).slice(2)}, ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
   // ══════════════════════════════════════════════════════════════════
   // F2 Feature 3: Work History
   // ══════════════════════════════════════════════════════════════════
@@ -1034,9 +1045,7 @@
       }
 
       container.innerHTML = history.map(h => {
-        const dateStr = h.resolved_at
-          ? new Date(h.resolved_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-          : '—';
+        const dateStr = fmtTs(h.resolved_at);
         const zoneNum = (h.zone_id || '').replace('zone_', '');
         return '<div class="history-row">'
           + '<span class="history-zone">Zone ' + zoneNum + '</span>'
