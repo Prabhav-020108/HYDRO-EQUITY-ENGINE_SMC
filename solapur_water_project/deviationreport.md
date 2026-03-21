@@ -356,3 +356,7 @@ if (!match) {
 | Final status | All 17 PASS |
 
 Person: C | Bug Fixes | Bible says: Add a new endpoint: GET /ward/field-history ... In frontend/ward_dashboard.html, add a "Field Work Log" section ... Fetches GET /ward/field-history on load | I did: Added the endpoint inside backend/routers/ward_complaints.py as @router.get("/field-history"). Because this router file defines a prefix="/ward/complaints", the endpoint exposed is actually /ward/complaints/field-history. I updated the frontend fetch call in ward_dashboard.html to fetch from /ward/complaints/field-history instead, maintaining backend prefix cleanly. | Impact on A/B/D: None.
+
+Person: C | Post-F4 | Bible says: Add Valve Status panel to left sidebar below Zone Equity list. | I did: Wrapped the Valve Status panel in its own psec and removed the hard max-height to let the left panel scroll naturally, preventing list clipping. | Impact on A/B/D: None | Status: Done.
+
+Person: C | Post-F4 | Bible says: In resolution accept/reject panel: if a.resolution_photo is truthy, render img element (src = "data:image/jpeg;base64," + photo, max-height:160px) above field report text. | I did: Rendered a "View Photo" button that opens a fullscreen photo overlay instead of an inline image to improve UX and prevent layout breakage. | Impact on A/B/D: None | Status: Done.
