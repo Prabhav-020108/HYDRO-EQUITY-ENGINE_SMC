@@ -1,0 +1,50 @@
+[
+  {
+    "zone_id": "zone_1",
+    "hei": 0.9411,
+    "status": "equitable",
+    "color": "#10B981"
+  },
+  {
+    "zone_id": "zone_2",
+    "hei": 0.8978,
+    "status": "equitable",
+    "color": "#10B981"
+  },
+  {
+    "zone_id": "zone_3",
+    "hei": 0.5569,
+    "status": "severe",
+    "color": "#EF4444"
+  },
+  {
+    "zone_id": "zone_4",
+    "hei": 1.0533,
+    "status": "equitable",
+    "color": "#10B981"
+  },
+  {
+    "zone_id": "zone_5",
+    "hei": 0.7829,
+    "status": "moderate",
+    "color": "#F59E0B"
+  },
+  {
+    "zone_id": "zone_6",
+    "hei": 1.2221,
+    "status": "over",
+    "color": "#3B82F6"
+  },
+  {
+    "zone_id": "zone_7",
+    "hei": 0.9588,
+    "status": "equitable",
+    "color": "#10B981"
+  },
+  {
+    "zone_id": "zone_8",
+    "hei": 0.4826,
+    "status": "severe",
+    "color": "#EF4444"
+  }
+]

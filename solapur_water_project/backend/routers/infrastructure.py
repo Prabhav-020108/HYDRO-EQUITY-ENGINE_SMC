@@ -117,3 +117,67 @@ def get_nrw():
         pass
 
     return {"nrw": "18% (baseline estimate)", "source": "fallback"}
+
+from pydantic import BaseModel
+from sqlalchemy import text
+from backend.database import engine
+import math
+
+class CitizenLocateRequest(BaseModel):
+    lat: float
+    lon: float
+
+def is_point_in_polygon(point: list, polygon: list) -> bool:
+    x, y = point[0], point[1]
+    inside = False
+    n = len(polygon)
+    if n == 0:
+        return False
+    p1x, p1y = polygon[0]
+    for i in range(1, n + 1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xints = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xints:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+    return inside
+
+@router.post("/citizen/locate")
+def locate_citizen(req: CitizenLocateRequest):
+    closest_zone = {"zone_id": "zone_1", "zone_name": "Zone 1", "detection_method": "nearest_centroid"}
+    try:
+        min_dist = float('inf')
+        matched_zones = []
+
+        with engine.connect() as conn:
+            rows = conn.execute(text("SELECT zone_id, polygon_coords, centroid_lat, centroid_lon FROM zone_polygons")).fetchall()
+
+        for r in rows:
+            z_id = str(r[0])
+            z_name = z_id.replace('zone_', 'Zone ').title() if z_id.startswith('zone_') else z_id
+            coords_str = r[1]
+            c_lat = float(r[2] or 0)
+            c_lon = float(r[3] or 0)
+
+            dist = math.hypot(req.lat - c_lat, req.lon - c_lon)
+            if dist < min_dist:
+                min_dist = dist
+                closest_zone = {"zone_id": z_id, "zone_name": z_name, "detection_method": "nearest_centroid"}
+
+            if coords_str:
+                polygon = _json.loads(coords_str)
+                if is_point_in_polygon([req.lon, req.lat], polygon):
+                    matched_zones.append({"zone_id": z_id, "zone_name": z_name})
+
+        if len(matched_zones) == 1:
+            z = matched_zones[0]
+            z["detection_method"] = "polygon"
+            return z
+
+        return closest_zone
+    except Exception:
+        return closest_zone

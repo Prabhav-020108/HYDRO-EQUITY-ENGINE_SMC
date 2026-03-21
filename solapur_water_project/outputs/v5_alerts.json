@@ -1,0 +1,394 @@
+{
+  "baseline": [
+    {
+      "zone_id": "zone_1",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N0",
+        "N1",
+        "N2"
+      ]
+    },
+    {
+      "zone_id": "zone_2",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N3734",
+        "N3789",
+        "N3805"
+      ]
+    },
+    {
+      "zone_id": "zone_3",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N5725",
+        "N5783",
+        "N5784"
+      ]
+    },
+    {
+      "zone_id": "zone_4",
+      "timestamp_index": 24,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N8079",
+        "N8158",
+        "N8267"
+      ]
+    },
+    {
+      "zone_id": "zone_5",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N30",
+        "N51",
+        "N52"
+      ]
+    },
+    {
+      "zone_id": "zone_6",
+      "timestamp_index": 24,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N4",
+        "N5",
+        "N6"
+      ]
+    },
+    {
+      "zone_id": "zone_7",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N3010",
+        "N3051",
+        "N3108"
+      ]
+    },
+    {
+      "zone_id": "zone_8",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N4846",
+        "N4931",
+        "N5149"
+      ]
+    }
+  ],
+  "leak": [
+    {
+      "zone_id": "zone_1",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N0",
+        "N1",
+        "N2"
+      ]
+    },
+    {
+      "zone_id": "zone_2",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N3734",
+        "N3789",
+        "N3805"
+      ]
+    },
+    {
+      "zone_id": "zone_3",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N5725",
+        "N5783",
+        "N5784"
+      ]
+    },
+    {
+      "zone_id": "zone_4",
+      "timestamp_index": 24,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N8079",
+        "N8158",
+        "N8267"
+      ]
+    },
+    {
+      "zone_id": "zone_5",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N30",
+        "N51",
+        "N52"
+      ]
+    },
+    {
+      "zone_id": "zone_6",
+      "timestamp_index": 24,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N4",
+        "N5",
+        "N6"
+      ]
+    },
+    {
+      "zone_id": "zone_7",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N3010",
+        "N3051",
+        "N3108"
+      ]
+    },
+    {
+      "zone_id": "zone_8",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N4846",
+        "N4931",
+        "N5149"
+      ]
+    }
+  ],
+  "valve": [
+    {
+      "zone_id": "zone_1",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N0",
+        "N1",
+        "N2"
+      ]
+    },
+    {
+      "zone_id": "zone_2",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N3734",
+        "N3789",
+        "N3805"
+      ]
+    },
+    {
+      "zone_id": "zone_3",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N5725",
+        "N5783",
+        "N5784"
+      ]
+    },
+    {
+      "zone_id": "zone_4",
+      "timestamp_index": 24,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N8079",
+        "N8158",
+        "N8267"
+      ]
+    },
+    {
+      "zone_id": "zone_5",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N30",
+        "N51",
+        "N52"
+      ]
+    },
+    {
+      "zone_id": "zone_6",
+      "timestamp_index": 24,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N4",
+        "N5",
+        "N6"
+      ]
+    },
+    {
+      "zone_id": "zone_7",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N3010",
+        "N3051",
+        "N3108"
+      ]
+    },
+    {
+      "zone_id": "zone_8",
+      "timestamp_index": 0,
+      "clps": 0.15,
+      "severity": "moderate",
+      "dominant_signal": "DDI",
+      "probable_node_ids": [
+        "N4846",
+        "N4931",
+        "N5149"
+      ]
+    }
+  ],
+  "surge": [
+    {
+      "zone_id": "zone_7",
+      "timestamp_index": 0,
+      "clps": 0.879,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N3010",
+        "N3051",
+        "N3108"
+      ]
+    },
+    {
+      "zone_id": "zone_8",
+      "timestamp_index": 0,
+      "clps": 0.85,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N4846",
+        "N4931",
+        "N5149"
+      ]
+    },
+    {
+      "zone_id": "zone_1",
+      "timestamp_index": 0,
+      "clps": 0.813,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N0",
+        "N1",
+        "N2"
+      ]
+    },
+    {
+      "zone_id": "zone_2",
+      "timestamp_index": 0,
+      "clps": 0.796,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N3734",
+        "N3789",
+        "N3805"
+      ]
+    },
+    {
+      "zone_id": "zone_3",
+      "timestamp_index": 0,
+      "clps": 0.738,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N5725",
+        "N5783",
+        "N5784"
+      ]
+    },
+    {
+      "zone_id": "zone_5",
+      "timestamp_index": 0,
+      "clps": 0.693,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N30",
+        "N51",
+        "N52"
+      ]
+    },
+    {
+      "zone_id": "zone_6",
+      "timestamp_index": 0,
+      "clps": 0.61,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N4",
+        "N5",
+        "N6"
+      ]
+    },
+    {
+      "zone_id": "zone_4",
+      "timestamp_index": 24,
+      "clps": 0.609,
+      "severity": "HIGH",
+      "dominant_signal": "PDR_n",
+      "probable_node_ids": [
+        "N8079",
+        "N8158",
+        "N8267"
+      ]
+    }
+  ]
+}

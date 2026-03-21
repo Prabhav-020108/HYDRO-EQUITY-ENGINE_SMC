@@ -1,0 +1,129 @@
+{
+  "zones": [
+    {
+      "zone_id": "zone_1",
+      "current_hei": 0.9411,
+      "status": "equitable",
+      "daily_zes": 0.9411,
+      "trend_7d": [
+        0.9411,
+        0.9623,
+        1.0021,
+        0.9923,
+        0.9645,
+        1.0037,
+        0.9856
+      ]
+    },
+    {
+      "zone_id": "zone_2",
+      "current_hei": 0.8978,
+      "status": "equitable",
+      "daily_zes": 0.8978,
+      "trend_7d": [
+        0.8978,
+        0.8637,
+        0.8761,
+        0.8576,
+        0.8773,
+        0.9159,
+        0.8912
+      ]
+    },
+    {
+      "zone_id": "zone_3",
+      "current_hei": 0.5569,
+      "status": "severe",
+      "daily_zes": 0.5569,
+      "trend_7d": [
+        0.5569,
+        0.5305,
+        0.5066,
+        0.506,
+        0.5021,
+        0.5139,
+        0.506
+      ]
+    },
+    {
+      "zone_id": "zone_4",
+      "current_hei": 1.0533,
+      "status": "equitable",
+      "daily_zes": 1.0533,
+      "trend_7d": [
+        1.0533,
+        1.0584,
+        1.0591,
+        1.0531,
+        1.0139,
+        0.9812,
+        0.9511
+      ]
+    },
+    {
+      "zone_id": "zone_5",
+      "current_hei": 0.7829,
+      "status": "moderate",
+      "daily_zes": 0.7829,
+      "trend_7d": [
+        0.7829,
+        0.7494,
+        0.7827,
+        0.7562,
+        0.7296,
+        0.7451,
+        0.7585
+      ]
+    },
+    {
+      "zone_id": "zone_6",
+      "current_hei": 1.2221,
+      "status": "over",
+      "daily_zes": 1.2221,
+      "trend_7d": [
+        1.2221,
+        1.2738,
+        1.2569,
+        1.2766,
+        1.2235,
+        1.2807,
+        1.3195
+      ]
+    },
+    {
+      "zone_id": "zone_7",
+      "current_hei": 0.9588,
+      "status": "equitable",
+      "daily_zes": 0.9588,
+      "trend_7d": [
+        0.9588,
+        0.9229,
+        0.9398,
+        0.911,
+        0.8701,
+        0.8912,
+        0.9018
+      ]
+    },
+    {
+      "zone_id": "zone_8",
+      "current_hei": 0.4826,
+      "status": "severe",
+      "daily_zes": 0.4826,
+      "trend_7d": [
+        0.4826,
+        0.5064,
+        0.4991,
+        0.5062,
+        0.5179,
+        0.4925,
+        0.4789
+      ]
+    }
+  ],
+  "city": {
+    "cwei": 0.8619,
+    "worst_zone": "zone_8",
+    "best_zone": "zone_6"
+  }
+}

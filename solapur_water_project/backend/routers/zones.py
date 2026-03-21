@@ -45,3 +45,32 @@ def get_zones(current_user: dict = Depends(get_current_user)):
 
     # All other roles: full data
     return data
+
+
+from fastapi import HTTPException
+from sqlalchemy import text
+from backend.database import engine
+
+@router.get("/engineer/valves")
+def get_engineer_valves(current_user: dict = Depends(get_current_user)):
+    role = current_user.get("role", "")
+    if role != "engineer":
+        raise HTTPException(status_code=403, detail="Engineer role required.")
+        
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT * FROM valve_checks ORDER BY zone_id, valve_id"))
+            rows = result.fetchall()
+            keys = list(result.keys())
+            
+            valves = []
+            for r in rows:
+                d = dict(zip(keys, r))
+                if 'checked_at' in d and d['checked_at'] is not None:
+                    d['checked_at'] = d['checked_at'].isoformat()
+                valves.append(d)
+        return valves
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

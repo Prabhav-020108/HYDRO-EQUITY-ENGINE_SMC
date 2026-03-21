@@ -49,6 +49,7 @@ class StartWorkRequest(BaseModel):
 class MobileResolveRequest(BaseModel):
     report: Optional[str] = None
     notes:  Optional[str] = None
+    photo_b64: Optional[str] = None
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
@@ -306,11 +307,12 @@ def mobile_resolve_alert(
                 text("""
                     UPDATE alerts
                     SET status            = 'resolve_requested',
-                        resolution_report = :report
+                        resolution_report = :report,
+                        resolution_photo  = :photo
                     WHERE alert_id = :aid AND status = 'acknowledged'
                     RETURNING alert_id, status
                 """),
-                {"report": report_text, "aid": alert_id},
+                {"report": report_text, "aid": alert_id, "photo": body.photo_b64},
             )
             row = result.fetchone()
             conn.commit()
@@ -422,3 +424,115 @@ def get_zone_status(
         "hei":                round(hei, 4),
         "active_alert_count": active_alert_count,
     }
+
+
+class ValveCheckRequest(BaseModel):
+    reported_state: str
+    notes: Optional[str] = None
+
+@router.get("/valves")
+def get_mobile_valves(current_user: dict = Depends(get_current_user)):
+    _require_field_operator(current_user)
+    zone_id = current_user.get("zone_id")
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("SELECT valve_id, zone_id, reported_state, checked_by, checked_at, notes FROM valve_checks WHERE zone_id = :zone_id ORDER BY valve_id"),
+                {"zone_id": zone_id}
+            ).fetchall()
+            
+        valves = []
+        for r in rows:
+            valves.append({
+                "valve_id": str(r[0]),
+                "zone_id": str(r[1]),
+                "reported_state": str(r[2]),
+                "checked_by": str(r[3]),
+                "checked_at": r[4].isoformat() if r[4] else None,
+                "notes": str(r[5]) if r[5] else None
+            })
+        return valves
+    except Exception as e:
+        logger.warning(f"Failed to fetch mobile valves: {e}")
+        return []
+
+@router.post("/valves/{valve_id}/check")
+def post_mobile_valve_check(
+    valve_id: str,
+    body: ValveCheckRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    _require_field_operator(current_user)
+    if body.reported_state not in ["open", "closed", "unknown"]:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid reported_state")
+    
+    zone_id = current_user.get("zone_id")
+    username = current_user.get("sub")
+    
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text("""
+                    INSERT INTO valve_checks (zone_id, valve_id, reported_state, checked_by, notes, checked_at)
+                    VALUES (:zone_id, :valve_id, :state, :checked_by, :notes, NOW())
+                    ON CONFLICT (zone_id, valve_id) DO UPDATE 
+                    SET reported_state=EXCLUDED.reported_state, 
+                        checked_by=EXCLUDED.checked_by, 
+                        notes=EXCLUDED.notes, 
+                        checked_at=NOW()
+                """),
+                {
+                    "zone_id": zone_id,
+                    "valve_id": valve_id,
+                    "state": body.reported_state,
+                    "checked_by": username,
+                    "notes": body.notes
+                }
+            )
+            conn.commit()
+            
+            # Fetch the updated row to return checked_at
+            row = conn.execute(
+                text("SELECT checked_at FROM valve_checks WHERE zone_id = :zone_id AND valve_id = :valve_id"),
+                {"zone_id": zone_id, "valve_id": valve_id}
+            ).fetchone()
+            
+        return {
+            "success": True,
+            "valve_id": valve_id,
+            "reported_state": body.reported_state,
+            "checked_at": row[0].isoformat() if (row and row[0]) else None
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {e}")
+
+@router.get("/history")
+def get_mobile_history(current_user: dict = Depends(get_current_user)):
+    _require_field_operator(current_user)
+    username = current_user.get("sub")
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("""
+                    SELECT alert_id, zone_id, dominant_signal, status, resolved_at 
+                    FROM alerts 
+                    WHERE acknowledged_by = :username AND status = 'resolved' 
+                    ORDER BY resolved_at DESC LIMIT 10
+                """),
+                {"username": username}
+            ).fetchall()
+            
+        history = []
+        for r in rows:
+            history.append({
+                "alert_id": r[0],
+                "zone_id": str(r[1]),
+                "dominant_signal": str(r[2] or ""),
+                "status": str(r[3]),
+                "resolved_at": r[4].isoformat() if r[4] else None
+            })
+        return history
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {e}")

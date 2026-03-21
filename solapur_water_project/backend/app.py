@@ -724,6 +724,8 @@ from backend.routers.reports        import router as reports_router
 from backend.routers.infrastructure import router as infrastructure_router
 from backend.routers.pipeline       import router as pipeline_router
 from backend.routers.mobile         import router as mobile_router
+from backend.routers.ward_complaints import router as ward_complaints_router
+from backend.routers.admin          import router as admin_router
 
 logger = logging.getLogger(__name__)
 
@@ -809,6 +811,8 @@ app.include_router(reports_router)        # /reports/weekly, /reports/alert-log
 app.include_router(infrastructure_router) # /infrastructure
 app.include_router(pipeline_router)       # /pipeline
 app.include_router(mobile_router)         # /mobile/*
+app.include_router(ward_complaints_router)
+app.include_router(admin_router)
 
 
 # ── Health check (PUBLIC — no auth required) ──────────────────────
@@ -862,6 +866,7 @@ class ComplaintRequest(BaseModel):
     landmark:     Optional[str] = None
     description:  Optional[str] = None
     contact:      Optional[str] = None
+    photo_b64:    Optional[str] = None
 
 @app.post("/citizen/complaint", tags=["Public"])
 def submit_complaint(req: ComplaintRequest):
@@ -870,20 +875,50 @@ def submit_complaint(req: ComplaintRequest):
     from backend.database import engine
     try:
         with engine.connect() as conn:
-            conn.execute(text("""
+            row = conn.execute(text("""
                 INSERT INTO citizen_complaints
-                    (zone_id, problem_type, landmark, description, contact)
-                VALUES (:z, :pt, :lm, :desc, :con)
+                    (zone_id, problem_type, landmark, description, contact, photo_b64)
+                VALUES (:z, :pt, :lm, :desc, :con, :photo)
+                RETURNING complaint_id
             """), {
-                "z":    req.zone_id,
-                "pt":   req.problem_type,
-                "lm":   req.landmark or "",
-                "desc": req.description or "",
-                "con":  req.contact or "",
-            })
+                "z":     req.zone_id,
+                "pt":    req.problem_type,
+                "lm":    req.landmark or "",
+                "desc":  req.description or "",
+                "con":   req.contact or "",
+                "photo": req.photo_b64,
+            }).fetchone()
             conn.commit()
-        return {"success": True, "message": "Complaint submitted. SMC will respond within 24 hours."}
+            new_id = row[0] if row else None
+        return {"success": True, "complaint_id": new_id, "message": "Complaint submitted. SMC will respond within 24 hours."}
     except Exception as e:
         # Non-fatal: log and return success anyway so the form UX doesn't break
         logger.warning("[complaint] DB write failed (non-fatal): %s", e)
-        return {"success": True, "message": "Complaint received. (Note: DB offline — contact SMC directly.)"}
+        return {"success": True, "complaint_id": None, "message": "Complaint received. (Note: DB offline — contact SMC directly.)"}
+
+from fastapi import HTTPException
+@app.get("/citizen/complaint/{complaint_id}/status", tags=["Public"])
+def get_citizen_complaint_status(complaint_id: str):
+    from sqlalchemy import text
+    from backend.database import engine
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(
+                text("SELECT complaint_id, problem_type, status, created_at, updated_at FROM citizen_complaints WHERE complaint_id = :id"),
+                {"id": complaint_id}
+            ).fetchone()
+            
+            if not row:
+                raise HTTPException(status_code=404, detail="Complaint not found")
+                
+            return {
+                "complaint_id": str(row[0]),
+                "problem_type": str(row[1]),
+                "status":       str(row[2]),
+                "created_at":   row[3].isoformat() if row[3] else None,
+                "updated_at":   row[4].isoformat() if row[4] else None
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
