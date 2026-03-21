@@ -1,15 +1,6 @@
 {
   "engineer_recs": [
     {
-      "zone_id": "zone_4",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 4 is within equitable range (HEI = 1.053). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE4",
-      "pipe_id": "7732",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
       "zone_id": "",
       "trigger_type": "C_burst",
       "action_text": "HIGH BURST RISK: Pipe Segment #5666 (PSS = 0.757). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
@@ -19,47 +10,47 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_6",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 6 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6917 and verify meter readings.",
-      "valve_id": "V-ZONE6",
-      "pipe_id": "6917",
-      "urgency": "MODERATE",
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #3056 (PSS = 0.760). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "3056",
+      "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_5",
+      "zone_id": "zone_8",
       "trigger_type": "A_equity",
-      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
-      "valve_id": "V-ZONE5",
-      "pipe_id": "6929",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.08
+      "action_text": "SEVERE inequity detected in Zone 8 (HEI = 0.483). Increase ESR outlet pressure by 12\u201315% on Control Pipe #6912. Tail-end nodes receiving < 70% of zone average pressure. Estimated HEI improvement: 0.483 \u2192 0.703 after adjustment.",
+      "valve_id": "V-ZONE8",
+      "pipe_id": "6912",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.22
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5633 (PSS = 0.750). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5633",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
     },
     {
       "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 7 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7088 and verify meter readings.",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 7 is within equitable range (HEI = 0.959). No pressure adjustment required. Continue routine monitoring.",
       "valve_id": "V-ZONE7",
       "pipe_id": "7088",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_6",
-      "trigger_type": "A_equity",
-      "action_text": "Over-pressurization in Zone 6 (HEI = 1.222). Throttle Control Pipe #6917 by 10\u201315% to reduce excess pressure. Risk of pipe burst \u2014 immediate valve adjustment recommended.",
-      "valve_id": "V-ZONE6",
-      "pipe_id": "6917",
-      "urgency": "HIGH",
+      "urgency": "LOW",
       "estimated_hei_gain": 0.0
     },
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5615 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
-      "pipe_id": "5651",
+      "pipe_id": "5615",
       "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
@@ -73,12 +64,102 @@
       "estimated_hei_gain": 0.0
     },
     {
+      "zone_id": "zone_1",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 1 is within equitable range (HEI = 0.941). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE1",
+      "pipe_id": "10142",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 is within equitable range (HEI = 1.053). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE4",
+      "pipe_id": "7732",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 2 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6772 and verify meter readings.",
+      "valve_id": "V-ZONE2",
+      "pipe_id": "6772",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 2 is within equitable range (HEI = 0.898). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE2",
+      "pipe_id": "6772",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "MODERATE BURST RISK: Pipe Segment #3486 (PSS = 0.747). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
+      "action_text": "MODERATE BURST RISK: Pipe Segment #3048 (PSS = 0.746). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
       "valve_id": "",
-      "pipe_id": "3486",
+      "pipe_id": "3048",
       "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_6",
+      "trigger_type": "A_equity",
+      "action_text": "Over-pressurization in Zone 6 (HEI = 1.222). Throttle Control Pipe #6917 by 10\u201315% to reduce excess pressure. Risk of pipe burst \u2014 immediate valve adjustment recommended.",
+      "valve_id": "V-ZONE6",
+      "pipe_id": "6917",
+      "urgency": "HIGH",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 1 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #10142 and verify meter readings.",
+      "valve_id": "V-ZONE1",
+      "pipe_id": "10142",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 4 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7732 and verify meter readings.",
+      "valve_id": "V-ZONE4",
+      "pipe_id": "7732",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5651",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 5 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6929 and verify meter readings.",
+      "valve_id": "V-ZONE5",
+      "pipe_id": "6929",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #3025 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "3025",
+      "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
     {
@@ -102,24 +183,6 @@
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #3025 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "3025",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5633 (PSS = 0.750). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5633",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
       "action_text": "HIGH BURST RISK: Pipe Segment #5667 (PSS = 0.753). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
       "pipe_id": "5667",
@@ -127,49 +190,40 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_5",
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "MODERATE BURST RISK: Pipe Segment #3486 (PSS = 0.747). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
+      "valve_id": "",
+      "pipe_id": "3486",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_7",
       "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 5 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6929 and verify meter readings.",
+      "action_text": "DEMAND DEVIATION in Zone 7 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7088 and verify meter readings.",
+      "valve_id": "V-ZONE7",
+      "pipe_id": "7088",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "A_equity",
+      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
       "valve_id": "V-ZONE5",
       "pipe_id": "6929",
       "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
+      "estimated_hei_gain": 0.08
     },
     {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5615 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5615",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 is within equitable range (HEI = 0.941). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE1",
-      "pipe_id": "10142",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_2",
+      "zone_id": "zone_6",
       "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 2 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6772 and verify meter readings.",
-      "valve_id": "V-ZONE2",
-      "pipe_id": "6772",
+      "action_text": "DEMAND DEVIATION in Zone 6 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6917 and verify meter readings.",
+      "valve_id": "V-ZONE6",
+      "pipe_id": "6917",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "A_equity",
-      "action_text": "SEVERE inequity detected in Zone 8 (HEI = 0.483). Increase ESR outlet pressure by 12\u201315% on Control Pipe #6912. Tail-end nodes receiving < 70% of zone average pressure. Estimated HEI improvement: 0.483 \u2192 0.703 after adjustment.",
-      "valve_id": "V-ZONE8",
-      "pipe_id": "6912",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.22
     },
     {
       "zone_id": "zone_8",
@@ -183,46 +237,10 @@
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "MODERATE BURST RISK: Pipe Segment #3048 (PSS = 0.746). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5615 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
-      "pipe_id": "3048",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 4 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7732 and verify meter readings.",
-      "valve_id": "V-ZONE4",
-      "pipe_id": "7732",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 2 is within equitable range (HEI = 0.898). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE2",
-      "pipe_id": "6772",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 7 is within equitable range (HEI = 0.959). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE7",
-      "pipe_id": "7088",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 1 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #10142 and verify meter readings.",
-      "valve_id": "V-ZONE1",
-      "pipe_id": "10142",
-      "urgency": "MODERATE",
+      "pipe_id": "5615",
+      "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
     {
@@ -237,9 +255,36 @@
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "MODERATE BURST RISK: Pipe Segment #3048 (PSS = 0.746). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
+      "action_text": "HIGH BURST RISK: Pipe Segment #3025 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
-      "pipe_id": "3048",
+      "pipe_id": "3025",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 2 is within equitable range (HEI = 0.898). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE2",
+      "pipe_id": "6772",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 7 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7088 and verify meter readings.",
+      "valve_id": "V-ZONE7",
+      "pipe_id": "7088",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 2 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6772 and verify meter readings.",
+      "valve_id": "V-ZONE2",
+      "pipe_id": "6772",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
@@ -253,84 +298,21 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #3059 (PSS = 0.754). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "3059",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "MODERATE BURST RISK: Pipe Segment #3486 (PSS = 0.747). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
-      "valve_id": "",
-      "pipe_id": "3486",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5633 (PSS = 0.750). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5633",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5667 (PSS = 0.753). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5667",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_4",
+      "zone_id": "zone_6",
       "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 4 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7732 and verify meter readings.",
-      "valve_id": "V-ZONE4",
-      "pipe_id": "7732",
+      "action_text": "DEMAND DEVIATION in Zone 6 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6917 and verify meter readings.",
+      "valve_id": "V-ZONE6",
+      "pipe_id": "6917",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_3",
+      "zone_id": "zone_8",
       "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 3 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6777 and verify meter readings.",
-      "valve_id": "V-ZONE3",
-      "pipe_id": "6777",
+      "action_text": "DEMAND DEVIATION in Zone 8 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6912 and verify meter readings.",
+      "valve_id": "V-ZONE8",
+      "pipe_id": "6912",
       "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 1 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #10142 and verify meter readings.",
-      "valve_id": "V-ZONE1",
-      "pipe_id": "10142",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "A_equity",
-      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
-      "valve_id": "V-ZONE5",
-      "pipe_id": "6929",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.08
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 2 is within equitable range (HEI = 0.898). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE2",
-      "pipe_id": "6772",
-      "urgency": "LOW",
       "estimated_hei_gain": 0.0
     },
     {
@@ -343,6 +325,15 @@
       "estimated_hei_gain": 0.22
     },
     {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5651",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
       "zone_id": "zone_8",
       "trigger_type": "A_equity",
       "action_text": "SEVERE inequity detected in Zone 8 (HEI = 0.483). Increase ESR outlet pressure by 12\u201315% on Control Pipe #6912. Tail-end nodes receiving < 70% of zone average pressure. Estimated HEI improvement: 0.483 \u2192 0.703 after adjustment.",
@@ -352,20 +343,38 @@
       "estimated_hei_gain": 0.22
     },
     {
+      "zone_id": "zone_1",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 1 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #10142 and verify meter readings.",
+      "valve_id": "V-ZONE1",
+      "pipe_id": "10142",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 1 is within equitable range (HEI = 0.941). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE1",
+      "pipe_id": "10142",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #3059 (PSS = 0.754). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "3059",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
       "zone_id": "zone_4",
       "trigger_type": "A_equity",
       "action_text": "Zone 4 is within equitable range (HEI = 1.053). No pressure adjustment required. Continue routine monitoring.",
       "valve_id": "V-ZONE4",
       "pipe_id": "7732",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 7 is within equitable range (HEI = 0.959). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE7",
-      "pipe_id": "7088",
       "urgency": "LOW",
       "estimated_hei_gain": 0.0
     },
@@ -380,6 +389,51 @@
     },
     {
       "zone_id": "zone_5",
+      "trigger_type": "A_equity",
+      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
+      "valve_id": "V-ZONE5",
+      "pipe_id": "6929",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.08
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 7 is within equitable range (HEI = 0.959). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE7",
+      "pipe_id": "7088",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 4 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7732 and verify meter readings.",
+      "valve_id": "V-ZONE4",
+      "pipe_id": "7732",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5667 (PSS = 0.753). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5667",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5633 (PSS = 0.750). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5633",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_5",
       "trigger_type": "B_leak",
       "action_text": "DEMAND DEVIATION in Zone 5 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6929 and verify meter readings.",
       "valve_id": "V-ZONE5",
@@ -388,21 +442,30 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_2",
+      "zone_id": "zone_3",
       "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 2 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6772 and verify meter readings.",
-      "valve_id": "V-ZONE2",
-      "pipe_id": "6772",
+      "action_text": "DEMAND DEVIATION in Zone 3 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6777 and verify meter readings.",
+      "valve_id": "V-ZONE3",
+      "pipe_id": "6777",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "action_text": "MODERATE BURST RISK: Pipe Segment #3048 (PSS = 0.746). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
       "valve_id": "",
-      "pipe_id": "5651",
-      "urgency": "URGENT",
+      "pipe_id": "3048",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "MODERATE BURST RISK: Pipe Segment #3486 (PSS = 0.747). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
+      "valve_id": "",
+      "pipe_id": "3486",
+      "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
     {
@@ -412,33 +475,6 @@
       "valve_id": "",
       "pipe_id": "3056",
       "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 8 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6912 and verify meter readings.",
-      "valve_id": "V-ZONE8",
-      "pipe_id": "6912",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5615 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5615",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 7 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7088 and verify meter readings.",
-      "valve_id": "V-ZONE7",
-      "pipe_id": "7088",
-      "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
     {
@@ -451,74 +487,11 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 is within equitable range (HEI = 0.941). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE1",
-      "pipe_id": "10142",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_6",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 6 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6917 and verify meter readings.",
-      "valve_id": "V-ZONE6",
-      "pipe_id": "6917",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #3056 (PSS = 0.760). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "3056",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5666 (PSS = 0.757). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5666",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
       "zone_id": "",
       "trigger_type": "C_burst",
       "action_text": "HIGH BURST RISK: Pipe Segment #5615 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
       "pipe_id": "5615",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 8 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6912 and verify meter readings.",
-      "valve_id": "V-ZONE8",
-      "pipe_id": "6912",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5651",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #3059 (PSS = 0.754). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "3059",
       "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
@@ -537,6 +510,15 @@
       "action_text": "DEMAND DEVIATION in Zone 7 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7088 and verify meter readings.",
       "valve_id": "V-ZONE7",
       "pipe_id": "7088",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 8 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6912 and verify meter readings.",
+      "valve_id": "V-ZONE8",
+      "pipe_id": "6912",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
@@ -561,19 +543,28 @@
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #3025 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5666 (PSS = 0.757). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
-      "pipe_id": "3025",
+      "pipe_id": "5666",
       "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_6",
-      "trigger_type": "A_equity",
-      "action_text": "Over-pressurization in Zone 6 (HEI = 1.222). Throttle Control Pipe #6917 by 10\u201315% to reduce excess pressure. Risk of pipe burst \u2014 immediate valve adjustment recommended.",
-      "valve_id": "V-ZONE6",
-      "pipe_id": "6917",
-      "urgency": "HIGH",
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5651",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "MODERATE BURST RISK: Pipe Segment #3048 (PSS = 0.746). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
+      "valve_id": "",
+      "pipe_id": "3048",
+      "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
     {
@@ -586,33 +577,6 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_3",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 3 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6777 and verify meter readings.",
-      "valve_id": "V-ZONE3",
-      "pipe_id": "6777",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "A_equity",
-      "action_text": "SEVERE inequity detected in Zone 8 (HEI = 0.483). Increase ESR outlet pressure by 12\u201315% on Control Pipe #6912. Tail-end nodes receiving < 70% of zone average pressure. Estimated HEI improvement: 0.483 \u2192 0.703 after adjustment.",
-      "valve_id": "V-ZONE8",
-      "pipe_id": "6912",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.22
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "A_equity",
-      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
-      "valve_id": "V-ZONE5",
-      "pipe_id": "6929",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.08
-    },
-    {
       "zone_id": "",
       "trigger_type": "C_burst",
       "action_text": "MODERATE BURST RISK: Pipe Segment #3486 (PSS = 0.747). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
@@ -620,33 +584,6 @@
       "pipe_id": "3486",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 is within equitable range (HEI = 0.941). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE1",
-      "pipe_id": "10142",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 2 is within equitable range (HEI = 0.898). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE2",
-      "pipe_id": "6772",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_3",
-      "trigger_type": "A_equity",
-      "action_text": "SEVERE inequity detected in Zone 3 (HEI = 0.557). Increase ESR outlet pressure by 12\u201315% on Control Pipe #6777. Tail-end nodes receiving < 70% of zone average pressure. Estimated HEI improvement: 0.557 \u2192 0.777 after adjustment.",
-      "valve_id": "V-ZONE3",
-      "pipe_id": "6777",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.22
     },
     {
       "zone_id": "zone_2",
@@ -658,12 +595,12 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_4",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 4 is within equitable range (HEI = 1.053). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE4",
-      "pipe_id": "7732",
-      "urgency": "LOW",
+      "zone_id": "zone_1",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 1 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #10142 and verify meter readings.",
+      "valve_id": "V-ZONE1",
+      "pipe_id": "10142",
+      "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
     {
@@ -685,30 +622,66 @@
       "estimated_hei_gain": 0.0
     },
     {
+      "zone_id": "zone_3",
+      "trigger_type": "A_equity",
+      "action_text": "SEVERE inequity detected in Zone 3 (HEI = 0.557). Increase ESR outlet pressure by 12\u201315% on Control Pipe #6777. Tail-end nodes receiving < 70% of zone average pressure. Estimated HEI improvement: 0.557 \u2192 0.777 after adjustment.",
+      "valve_id": "V-ZONE3",
+      "pipe_id": "6777",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.22
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 is within equitable range (HEI = 1.053). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE4",
+      "pipe_id": "7732",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 2 is within equitable range (HEI = 0.898). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE2",
+      "pipe_id": "6772",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "A_equity",
+      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
+      "valve_id": "V-ZONE5",
+      "pipe_id": "6929",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.08
+    },
+    {
       "zone_id": "zone_1",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 1 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #10142 and verify meter readings.",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 1 is within equitable range (HEI = 0.941). No pressure adjustment required. Continue routine monitoring.",
       "valve_id": "V-ZONE1",
       "pipe_id": "10142",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 3 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6777 and verify meter readings.",
+      "valve_id": "V-ZONE3",
+      "pipe_id": "6777",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
     },
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "MODERATE BURST RISK: Pipe Segment #3048 (PSS = 0.746). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
+      "action_text": "HIGH BURST RISK: Pipe Segment #3059 (PSS = 0.754). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
-      "pipe_id": "3048",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 2 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6772 and verify meter readings.",
-      "valve_id": "V-ZONE2",
-      "pipe_id": "6772",
-      "urgency": "MODERATE",
+      "pipe_id": "3059",
+      "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
     {
@@ -721,6 +694,96 @@
       "estimated_hei_gain": 0.0
     },
     {
+      "zone_id": "zone_8",
+      "trigger_type": "A_equity",
+      "action_text": "SEVERE inequity detected in Zone 8 (HEI = 0.483). Increase ESR outlet pressure by 12\u201315% on Control Pipe #6912. Tail-end nodes receiving < 70% of zone average pressure. Estimated HEI improvement: 0.483 \u2192 0.703 after adjustment.",
+      "valve_id": "V-ZONE8",
+      "pipe_id": "6912",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.22
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #3025 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "3025",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5615 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5615",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #3056 (PSS = 0.760). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "3056",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5666 (PSS = 0.757). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5666",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "",
+      "trigger_type": "C_burst",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "valve_id": "",
+      "pipe_id": "5651",
+      "urgency": "URGENT",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 4 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7732 and verify meter readings.",
+      "valve_id": "V-ZONE4",
+      "pipe_id": "7732",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 5 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6929 and verify meter readings.",
+      "valve_id": "V-ZONE5",
+      "pipe_id": "6929",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_6",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 6 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6917 and verify meter readings.",
+      "valve_id": "V-ZONE6",
+      "pipe_id": "6917",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 7 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7088 and verify meter readings.",
+      "valve_id": "V-ZONE7",
+      "pipe_id": "7088",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.0
+    },
+    {
       "zone_id": "zone_7",
       "trigger_type": "A_equity",
       "action_text": "Zone 7 is within equitable range (HEI = 0.959). No pressure adjustment required. Continue routine monitoring.",
@@ -728,24 +791,6 @@
       "pipe_id": "7088",
       "urgency": "LOW",
       "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 4 is within equitable range (HEI = 1.053). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE4",
-      "pipe_id": "7732",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "A_equity",
-      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
-      "valve_id": "V-ZONE5",
-      "pipe_id": "6929",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.08
     },
     {
       "zone_id": "zone_8",
@@ -766,12 +811,12 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "zone_3",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 3 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6777 and verify meter readings.",
-      "valve_id": "V-ZONE3",
-      "pipe_id": "6777",
-      "urgency": "MODERATE",
+      "zone_id": "zone_6",
+      "trigger_type": "A_equity",
+      "action_text": "Over-pressurization in Zone 6 (HEI = 1.222). Throttle Control Pipe #6917 by 10\u201315% to reduce excess pressure. Risk of pipe burst \u2014 immediate valve adjustment recommended.",
+      "valve_id": "V-ZONE6",
+      "pipe_id": "6917",
+      "urgency": "HIGH",
       "estimated_hei_gain": 0.0
     },
     {
@@ -784,15 +829,6 @@
       "estimated_hei_gain": 0.22
     },
     {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 is within equitable range (HEI = 0.941). No pressure adjustment required. Continue routine monitoring.",
-      "valve_id": "V-ZONE1",
-      "pipe_id": "10142",
-      "urgency": "LOW",
-      "estimated_hei_gain": 0.0
-    },
-    {
       "zone_id": "zone_2",
       "trigger_type": "A_equity",
       "action_text": "Zone 2 is within equitable range (HEI = 0.898). No pressure adjustment required. Continue routine monitoring.",
@@ -802,13 +838,31 @@
       "estimated_hei_gain": 0.0
     },
     {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "MODERATE BURST RISK: Pipe Segment #3486 (PSS = 0.747). Material: CI, Age: ~35.0 years. Dominant factor: CFF_n. Schedule maintenance inspection within 60\u201390 days.",
-      "valve_id": "",
-      "pipe_id": "3486",
+      "zone_id": "zone_4",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 is within equitable range (HEI = 1.053). No pressure adjustment required. Continue routine monitoring.",
+      "valve_id": "V-ZONE4",
+      "pipe_id": "7732",
+      "urgency": "LOW",
+      "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "DEMAND DEVIATION in Zone 2 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6772 and verify meter readings.",
+      "valve_id": "V-ZONE2",
+      "pipe_id": "6772",
       "urgency": "MODERATE",
       "estimated_hei_gain": 0.0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "A_equity",
+      "action_text": "Moderate imbalance in Zone 5 (HEI = 0.783). Review valve settings on Control Pipe #6929. Consider 5\u20138% pressure increase at ESR outlet. Estimated improvement: 0.783 \u2192 0.850.",
+      "valve_id": "V-ZONE5",
+      "pipe_id": "6929",
+      "urgency": "MODERATE",
+      "estimated_hei_gain": 0.08
     },
     {
       "zone_id": "",
@@ -822,27 +876,18 @@
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5666 (PSS = 0.757). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5667 (PSS = 0.753). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
-      "pipe_id": "5666",
+      "pipe_id": "5667",
       "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
     {
       "zone_id": "",
       "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #3056 (PSS = 0.760). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
+      "action_text": "HIGH BURST RISK: Pipe Segment #5633 (PSS = 0.750). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
-      "pipe_id": "3056",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5615 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5615",
+      "pipe_id": "5633",
       "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     },
@@ -852,268 +897,15 @@
       "action_text": "HIGH BURST RISK: Pipe Segment #3059 (PSS = 0.754). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
       "valve_id": "",
       "pipe_id": "3059",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 8 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #6912 and verify meter readings.",
-      "valve_id": "V-ZONE8",
-      "pipe_id": "6912",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "DEMAND DEVIATION in Zone 7 (CLPS=0.150). DDI signal dominant \u2014 actual consumption deviates 8% from expected pattern. Check valve status on Pipe #7088 and verify meter readings.",
-      "valve_id": "V-ZONE7",
-      "pipe_id": "7088",
-      "urgency": "MODERATE",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5651 (PSS = 0.774). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5651",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #3025 (PSS = 0.762). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "3025",
-      "urgency": "URGENT",
-      "estimated_hei_gain": 0.0
-    },
-    {
-      "zone_id": "",
-      "trigger_type": "C_burst",
-      "action_text": "HIGH BURST RISK: Pipe Segment #5667 (PSS = 0.753). Material: CI, Age: ~35.0 years. Dominant stress factor: CFF_n. URGENT: Schedule inspection and consider pre-emptive replacement. Failure probability elevated \u2014 do not delay beyond 30 days.",
-      "valve_id": "",
-      "pipe_id": "5667",
       "urgency": "URGENT",
       "estimated_hei_gain": 0.0
     }
   ],
   "ward_recs": [
     {
-      "zone_id": "zone_8",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
-      "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
-      "complaint_count": 0
-    },
-    {
       "zone_id": "zone_7",
       "trigger_type": "B_leak",
       "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 5 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 1
-    },
-    {
-      "zone_id": "zone_3",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_3",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
-      "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_6",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 6 supply pressure is above normal levels (HEI = 1.222). Engineering team is managing pressure reduction. Monitor for complaints.",
-      "escalation_flag": false,
-      "service_reliability_note": "High pressure \u2014 watch for burst pipe complaints",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
-      "escalation_flag": true,
-      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 1
-    },
-    {
-      "zone_id": "zone_6",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 1
-    },
-    {
-      "zone_id": "zone_3",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
-      "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
-      "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
-      "escalation_flag": true,
-      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 1
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
       "complaint_count": 0
@@ -1127,11 +919,11 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_6",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "zone_id": "zone_2",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
       "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
       "complaint_count": 0
     },
     {
@@ -1140,30 +932,6 @@
       "action_text": "Zone 6 supply pressure is above normal levels (HEI = 1.222). Engineering team is managing pressure reduction. Monitor for complaints.",
       "escalation_flag": false,
       "service_reliability_note": "High pressure \u2014 watch for burst pipe complaints",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 5 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
       "complaint_count": 0
     },
     {
@@ -1175,99 +943,11 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 1
-    },
-    {
-      "zone_id": "zone_3",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
-      "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
-      "complaint_count": 0
-    },
-    {
       "zone_id": "zone_5",
       "trigger_type": "B_leak",
       "action_text": "A demand deviation anomaly has been detected in Zone 5 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_6",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
-      "escalation_flag": true,
-      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 1
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_6",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 6 supply pressure is above normal levels (HEI = 1.222). Engineering team is managing pressure reduction. Monitor for complaints.",
-      "escalation_flag": false,
-      "service_reliability_note": "High pressure \u2014 watch for burst pipe complaints",
       "complaint_count": 0
     },
     {
@@ -1287,14 +967,6 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_2",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
       "zone_id": "zone_8",
       "trigger_type": "A_equity",
       "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
@@ -1303,27 +975,11 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_3",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
-      "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
       "zone_id": "zone_6",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 6 supply pressure is above normal levels (HEI = 1.222). Engineering team is managing pressure reduction. Monitor for complaints.",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
-      "service_reliability_note": "High pressure \u2014 watch for burst pipe complaints",
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
       "complaint_count": 0
     },
     {
@@ -1335,19 +991,67 @@
       "complaint_count": 1
     },
     {
-      "zone_id": "zone_4",
+      "zone_id": "zone_5",
       "trigger_type": "A_equity",
-      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
+      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
+      "escalation_flag": true,
+      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
       "escalation_flag": false,
       "service_reliability_note": "Good \u2014 pressure within acceptable range",
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_8",
+      "zone_id": "zone_4",
       "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 5 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
+      "escalation_flag": true,
+      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
       "complaint_count": 0
     },
     {
@@ -1367,6 +1071,102 @@
       "complaint_count": 1
     },
     {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_6",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_6",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 6 supply pressure is above normal levels (HEI = 1.222). Engineering team is managing pressure reduction. Monitor for complaints.",
+      "escalation_flag": false,
+      "service_reliability_note": "High pressure \u2014 watch for burst pipe complaints",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
       "zone_id": "zone_5",
       "trigger_type": "B_leak",
       "action_text": "A demand deviation anomaly has been detected in Zone 5 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
@@ -1384,24 +1184,64 @@
     },
     {
       "zone_id": "zone_4",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
       "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
       "complaint_count": 0
     },
     {
       "zone_id": "zone_2",
       "trigger_type": "B_leak",
       "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
       "complaint_count": 0
@@ -1415,12 +1255,108 @@
       "complaint_count": 0
     },
     {
+      "zone_id": "zone_4",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
       "zone_id": "zone_1",
       "trigger_type": "A_equity",
       "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
       "escalation_flag": false,
       "service_reliability_note": "Good \u2014 pressure within acceptable range",
       "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_6",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 6 supply pressure is above normal levels (HEI = 1.222). Engineering team is managing pressure reduction. Monitor for complaints.",
+      "escalation_flag": false,
+      "service_reliability_note": "High pressure \u2014 watch for burst pipe complaints",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_6",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
     },
     {
       "zone_id": "zone_2",
@@ -1447,19 +1383,11 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_4",
+      "zone_id": "zone_5",
       "trigger_type": "A_equity",
-      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
+      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
       "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
       "complaint_count": 0
     },
     {
@@ -1471,11 +1399,83 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_6",
+      "zone_id": "zone_1",
       "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 8 water supply is critically below acceptable levels (HEI = 0.483). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_6",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 6 supply pressure is above normal levels (HEI = 1.222). Engineering team is managing pressure reduction. Monitor for complaints.",
+      "escalation_flag": false,
+      "service_reliability_note": "High pressure \u2014 watch for burst pipe complaints",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_5",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
+      "escalation_flag": true,
+      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
       "complaint_count": 0
     },
     {
@@ -1504,86 +1504,6 @@
     },
     {
       "zone_id": "zone_2",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_3",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_5",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
-      "escalation_flag": true,
-      "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_3",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
-      "escalation_flag": true,
-      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_7",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_8",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_4",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_1",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
-      "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
-      "complaint_count": 1
-    },
-    {
-      "zone_id": "zone_2",
       "trigger_type": "A_equity",
       "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
       "escalation_flag": false,
@@ -1591,25 +1511,17 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_3",
+      "zone_id": "zone_6",
       "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_4",
+      "zone_id": "zone_7",
       "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
-      "escalation_flag": false,
-      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 0
-    },
-    {
-      "zone_id": "zone_2",
-      "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
       "complaint_count": 0
@@ -1623,12 +1535,36 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_1",
+      "zone_id": "zone_8",
       "trigger_type": "B_leak",
-      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
-      "complaint_count": 1
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 7 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_8",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 8 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_7",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 0
     },
     {
       "zone_id": "zone_5",
@@ -1636,6 +1572,14 @@
       "action_text": "Zone 5 supply is experiencing moderate pressure imbalance (HEI = 0.783). Notify engineering team for review during next maintenance window.",
       "escalation_flag": true,
       "service_reliability_note": "Moderate \u2014 some tail-end households may have reduced supply",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 4 supply is operating normally (HEI = 1.053). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
       "complaint_count": 0
     },
     {
@@ -1655,11 +1599,11 @@
       "complaint_count": 0
     },
     {
-      "zone_id": "zone_7",
-      "trigger_type": "A_equity",
-      "action_text": "Zone 7 supply is operating normally (HEI = 0.959). No action required. Continue routine complaint monitoring.",
+      "zone_id": "zone_5",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 5 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
-      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
       "complaint_count": 0
     },
     {
@@ -1668,6 +1612,62 @@
       "action_text": "A demand deviation anomaly has been detected in Zone 6 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
       "escalation_flag": false,
       "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 3 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_4",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 4 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 1 supply is operating normally (HEI = 0.941). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_1",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 1 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 1
+    },
+    {
+      "zone_id": "zone_3",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 3 water supply is critically below acceptable levels (HEI = 0.557). Escalate to engineering team immediately for valve adjustment.",
+      "escalation_flag": true,
+      "service_reliability_note": "Critical \u2014 pressure below minimum service threshold",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "B_leak",
+      "action_text": "A demand deviation anomaly has been detected in Zone 2 (anomaly score: 0.150). Actual water consumption is significantly different from the expected pattern. Check for valve misalignment, meter issues, or unusual consumption in the ward. If citizens are reporting low or no water, escalate to the engineering control room.",
+      "escalation_flag": false,
+      "service_reliability_note": "Demand deviation \u2014 CLPS: 0.150. Check valve status and meters.",
+      "complaint_count": 0
+    },
+    {
+      "zone_id": "zone_2",
+      "trigger_type": "A_equity",
+      "action_text": "Zone 2 supply is operating normally (HEI = 0.898). No action required. Continue routine complaint monitoring.",
+      "escalation_flag": false,
+      "service_reliability_note": "Good \u2014 pressure within acceptable range",
       "complaint_count": 0
     },
     {
@@ -1705,20 +1705,6 @@
   ],
   "commissioner_recs": [
     {
-      "city_summary": "Infrastructure risk assessment complete. 8 pipe segment(s) at HIGH burst risk. 2 at MODERATE risk. Total segments requiring attention: 10.",
-      "worst_zones": [
-        "#5651 (CI, PSS=0.77)",
-        "#3025 (CI, PSS=0.76)",
-        "#5615 (CI, PSS=0.76)",
-        "#3056 (CI, PSS=0.76)",
-        "#5666 (CI, PSS=0.76)"
-      ],
-      "budget_flag": true,
-      "theft_summary": "No theft data \u2014 V13 (Phase 4c)",
-      "resolution_rate": 0.0,
-      "trigger_type": "C_burst"
-    },
-    {
       "city_summary": "City-Wide Equity Index (CWEI): 0.862 \u2014 EQUITABLE. Monitoring 8 zones. 2 zone(s) in SEVERE inequity, 1 in MODERATE imbalance, 1 over-pressurized. Estimated NRW: 18% (baseline). City equity status requires immediate attention. Priority zones: Zone 8 (HEI=0.483), Zone 3 (HEI=0.557), Zone 5 (HEI=0.783). URGENT: allocate field teams to 2 severe zone(s).",
       "worst_zones": [
         "zone_8",
@@ -1745,18 +1731,6 @@
       "trigger_type": "C_burst"
     },
     {
-      "city_summary": "City-Wide Equity Index (CWEI): 0.862 \u2014 EQUITABLE. Monitoring 8 zones. 2 zone(s) in SEVERE inequity, 1 in MODERATE imbalance, 1 over-pressurized. Estimated NRW: 18% (baseline). City equity status requires immediate attention. Priority zones: Zone 8 (HEI=0.483), Zone 3 (HEI=0.557), Zone 5 (HEI=0.783). URGENT: allocate field teams to 2 severe zone(s).",
-      "worst_zones": [
-        "zone_8",
-        "zone_3",
-        "zone_5"
-      ],
-      "budget_flag": true,
-      "theft_summary": "Theft detection (V13) coming in Phase 4c.",
-      "resolution_rate": 0.0,
-      "trigger_type": "A_equity"
-    },
-    {
       "city_summary": "Infrastructure risk assessment complete. 8 pipe segment(s) at HIGH burst risk. 2 at MODERATE risk. Total segments requiring attention: 10.",
       "worst_zones": [
         "#5651 (CI, PSS=0.77)",
@@ -1781,32 +1755,6 @@
       "theft_summary": "Theft detection (V13) coming in Phase 4c.",
       "resolution_rate": 0.0,
       "trigger_type": "A_equity"
-    },
-    {
-      "city_summary": "City-Wide Equity Index (CWEI): 0.862 \u2014 EQUITABLE. Monitoring 8 zones. 2 zone(s) in SEVERE inequity, 1 in MODERATE imbalance, 1 over-pressurized. Estimated NRW: 18% (baseline). City equity status requires immediate attention. Priority zones: Zone 8 (HEI=0.483), Zone 3 (HEI=0.557), Zone 5 (HEI=0.783). URGENT: allocate field teams to 2 severe zone(s).",
-      "worst_zones": [
-        "zone_8",
-        "zone_3",
-        "zone_5"
-      ],
-      "budget_flag": true,
-      "theft_summary": "Theft detection (V13) coming in Phase 4c.",
-      "resolution_rate": 0.0,
-      "trigger_type": "A_equity"
-    },
-    {
-      "city_summary": "Infrastructure risk assessment complete. 8 pipe segment(s) at HIGH burst risk. 2 at MODERATE risk. Total segments requiring attention: 10.",
-      "worst_zones": [
-        "#5651 (CI, PSS=0.77)",
-        "#3025 (CI, PSS=0.76)",
-        "#5615 (CI, PSS=0.76)",
-        "#3056 (CI, PSS=0.76)",
-        "#5666 (CI, PSS=0.76)"
-      ],
-      "budget_flag": true,
-      "theft_summary": "No theft data \u2014 V13 (Phase 4c)",
-      "resolution_rate": 0.0,
-      "trigger_type": "C_burst"
     },
     {
       "city_summary": "City-Wide Equity Index (CWEI): 0.862 \u2014 EQUITABLE. Monitoring 8 zones. 2 zone(s) in SEVERE inequity, 1 in MODERATE imbalance, 1 over-pressurized. Estimated NRW: 18% (baseline). City equity status requires immediate attention. Priority zones: Zone 8 (HEI=0.483), Zone 3 (HEI=0.557), Zone 5 (HEI=0.783). URGENT: allocate field teams to 2 severe zone(s).",
@@ -1885,6 +1833,58 @@
       "theft_summary": "No theft data \u2014 V13 (Phase 4c)",
       "resolution_rate": 0.0,
       "trigger_type": "C_burst"
+    },
+    {
+      "city_summary": "City-Wide Equity Index (CWEI): 0.862 \u2014 EQUITABLE. Monitoring 8 zones. 2 zone(s) in SEVERE inequity, 1 in MODERATE imbalance, 1 over-pressurized. Estimated NRW: 18% (baseline). City equity status requires immediate attention. Priority zones: Zone 8 (HEI=0.483), Zone 3 (HEI=0.557), Zone 5 (HEI=0.783). URGENT: allocate field teams to 2 severe zone(s).",
+      "worst_zones": [
+        "zone_8",
+        "zone_3",
+        "zone_5"
+      ],
+      "budget_flag": true,
+      "theft_summary": "Theft detection (V13) coming in Phase 4c.",
+      "resolution_rate": 0.0,
+      "trigger_type": "A_equity"
+    },
+    {
+      "city_summary": "Infrastructure risk assessment complete. 8 pipe segment(s) at HIGH burst risk. 2 at MODERATE risk. Total segments requiring attention: 10.",
+      "worst_zones": [
+        "#5651 (CI, PSS=0.77)",
+        "#3025 (CI, PSS=0.76)",
+        "#5615 (CI, PSS=0.76)",
+        "#3056 (CI, PSS=0.76)",
+        "#5666 (CI, PSS=0.76)"
+      ],
+      "budget_flag": true,
+      "theft_summary": "No theft data \u2014 V13 (Phase 4c)",
+      "resolution_rate": 0.0,
+      "trigger_type": "C_burst"
+    },
+    {
+      "city_summary": "Infrastructure risk assessment complete. 8 pipe segment(s) at HIGH burst risk. 2 at MODERATE risk. Total segments requiring attention: 10.",
+      "worst_zones": [
+        "#5651 (CI, PSS=0.77)",
+        "#3025 (CI, PSS=0.76)",
+        "#5615 (CI, PSS=0.76)",
+        "#3056 (CI, PSS=0.76)",
+        "#5666 (CI, PSS=0.76)"
+      ],
+      "budget_flag": true,
+      "theft_summary": "No theft data \u2014 V13 (Phase 4c)",
+      "resolution_rate": 0.0,
+      "trigger_type": "C_burst"
+    },
+    {
+      "city_summary": "City-Wide Equity Index (CWEI): 0.862 \u2014 EQUITABLE. Monitoring 8 zones. 2 zone(s) in SEVERE inequity, 1 in MODERATE imbalance, 1 over-pressurized. Estimated NRW: 18% (baseline). City equity status requires immediate attention. Priority zones: Zone 8 (HEI=0.483), Zone 3 (HEI=0.557), Zone 5 (HEI=0.783). URGENT: allocate field teams to 2 severe zone(s).",
+      "worst_zones": [
+        "zone_8",
+        "zone_3",
+        "zone_5"
+      ],
+      "budget_flag": true,
+      "theft_summary": "Theft detection (V13) coming in Phase 4c.",
+      "resolution_rate": 0.0,
+      "trigger_type": "A_equity"
     },
     {
       "city_summary": "City-Wide Equity Index (CWEI): 0.862 \u2014 EQUITABLE. Monitoring 8 zones. 2 zone(s) in SEVERE inequity, 1 in MODERATE imbalance, 1 over-pressurized. Estimated NRW: 18% (baseline). City equity status requires immediate attention. Priority zones: Zone 8 (HEI=0.483), Zone 3 (HEI=0.557), Zone 5 (HEI=0.783). URGENT: allocate field teams to 2 severe zone(s).",
@@ -2367,5 +2367,5 @@
       "estimated_restoration": "No disruption \u2014 normal operation"
     }
   ],
-  "updated_at": "2026-03-21T20:09:50.556890"
+  "updated_at": "2026-03-21T22:35:26.447234"
 }
