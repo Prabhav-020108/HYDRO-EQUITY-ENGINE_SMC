@@ -2350,9 +2350,10 @@
   transition: box-shadow .15s;
 }
 .ecp-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.11); }
-.ecp-card.status-open         { border-left-color: #D32F2F; }
-.ecp-card.status-acknowledged { border-left-color: #1976D2; }
-.ecp-card.status-resolved     { border-left-color: #2E7D32; opacity: .75; }
+.ecp-card.status-open           { border-left-color: #D32F2F; }
+.ecp-card.status-acknowledged   { border-left-color: #1976D2; }
+.ecp-card.status-resolved       { border-left-color: #2E7D32; opacity: .75; }
+.ecp-card.status-not_resolved   { border-left-color: #FF6F00; }
 
 .ecp-card-top {
   display: flex; align-items: center; justify-content: space-between;
@@ -2363,9 +2364,10 @@
   font-size: 10px; font-weight: 700; padding: 2px 8px;
   border-radius: 10px; letter-spacing:.04em;
 }
-.pill-open         { background: #FFEBEE; color: #D32F2F; }
-.pill-acknowledged { background: #EBF3FB; color: #1565C0; }
-.pill-resolved     { background: #E8F5E9; color: #2E7D32; }
+.pill-open           { background: #FFEBEE; color: #D32F2F; }
+.pill-acknowledged   { background: #EBF3FB; color: #1565C0; }
+.pill-resolved       { background: #E8F5E9; color: #2E7D32; }
+.pill-not_resolved   { background: #FFF3E0; color: #E65100; }
 
 .ecp-card-zone { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
 .ecp-card-desc {
@@ -2435,14 +2437,7 @@
     </div>
   </div>
 
-  <div class="ecp-tabs">
-    <button class="ecp-tab active" id="ecp-tab-active" onclick="ecpSwitchTab('active')">
-      Active
-    </button>
-    <button class="ecp-tab" id="ecp-tab-audit" onclick="ecpSwitchTab('audit')">
-      Resolved Log
-    </button>
-  </div>
+  <!-- Audit log tab removed per Phase 3 requirements -->
 
   <div class="ecp-body" id="ecp-body">
     <div class="ecp-state">Loading complaints...</div>
@@ -2501,17 +2496,8 @@
     }
   };
 
-  window.ecpSwitchTab = function(tab) {
-    ecpCurrentTab = tab;
-    document.getElementById('ecp-tab-active').classList.toggle('active', tab === 'active');
-    document.getElementById('ecp-tab-audit').classList.toggle('active', tab === 'audit');
-    if (tab === 'active') ecpLoadActive();
-    else ecpLoadAudit();
-  };
-
   window.ecpApplyFilter = function() {
-    if (ecpCurrentTab === 'active') ecpRenderActive();
-    else ecpRenderAudit();
+    ecpRenderActive();
   };
 
   // ── Load data ──────────────────────────────────────────
@@ -2527,17 +2513,7 @@
     }
   }
 
-  async function ecpLoadAudit() {
-    try {
-      const res = await ecpAuthFetch('/complaints/audit');
-      if (!res.ok) { ecpShowState('Unable to load audit log.'); return; }
-      const data = await res.json();
-      ecpAuditComplaints = data.complaints || [];
-      ecpRenderAudit();
-    } catch(e) {
-      ecpShowState('Connection error loading audit log.');
-    }
-  }
+  // ecpLoadAudit removed — audit log tab removed per Phase 3
 
   function ecpShowState(msg) {
     document.getElementById('ecp-body').innerHTML =
@@ -2561,18 +2537,35 @@
       const pillClass   = 'pill-' + c.status;
       const statusLabel = c.status === 'acknowledged' ? 'ACKNOWLEDGED'
                         : c.status === 'resolved'     ? 'RESOLVED'
+                        : c.status === 'not_resolved'  ? '⚠ DISPUTED'
                         : 'NEW';
       const typeLabel   = TYPE_LABELS[c.problem_type] || c.problem_type || '—';
 
       const ackBtn = (c.status === 'open')
         ? `<button class="ecp-btn ecp-btn-ack" onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g,'&quot;')})">✓ Acknowledge</button>`
         : '';
+
+      // Disputed: show Re-Acknowledge button
+      const reAckBtn = (c.status === 'not_resolved')
+        ? `<button class="ecp-btn" style="background:#FFF3E0;color:#E65100;border-color:#FFB74D;"
+             onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g,'&quot;')})">↺ Re-Acknowledge</button>`
+        : '';
+
       const resBtn = (c.status === 'acknowledged')
         ? `<span style="font-size:10px;color:#1565C0;font-style:italic;
                         padding:4px 0;display:inline-block;">
              ⏳ Awaiting citizen verification to resolve
            </span>`
         : '';
+
+      // Disputed note banner
+      const disputedBanner = (c.status === 'not_resolved')
+        ? `<div style="margin-top:6px;padding:8px 10px;background:#FFF3E0;border-radius:6px;
+                       border-left:3px solid #FF6F00;font-size:11px;color:#E65100;">
+             ⚠ Citizen has disputed this complaint. Please re-examine and re-acknowledge.
+           </div>`
+        : '';
+
       const printBtn = `<button class="ecp-btn ecp-btn-print" onclick="ecpPrintReport(${JSON.stringify(c).replace(/"/g,'&quot;')})">⎙ Print</button>`;
 
       const by = c.acknowledged_by ? `<span style="color:var(--blue);font-size:10px">· acked by ${c.acknowledged_by}</span>` : '';
@@ -2584,33 +2577,14 @@
         </div>
         <div class="ecp-card-zone">📍 ${c.zone_name || c.zone_id} ${by}</div>
         <div class="ecp-card-desc">${c.description || '<em style="color:var(--text3)">No description provided</em>'}</div>
+        ${disputedBanner}
         <div class="ecp-card-time">Submitted: ${ecpFmt(c.created_at)}</div>
-        <div class="ecp-card-actions">${ackBtn}${resBtn}${printBtn}</div>
+        <div class="ecp-card-actions">${ackBtn}${reAckBtn}${resBtn}${printBtn}</div>
       </div>`;
     }).join('');
   }
 
-  // ── Render audit log ───────────────────────────────────
-  function ecpRenderAudit() {
-    const zoneFilter = document.getElementById('ecp-zone-filter').value;
-    let list = ecpAuditComplaints;
-    if (zoneFilter) list = list.filter(c => c.zone_id === zoneFilter);
-
-    if (!list.length) {
-      ecpShowState(zoneFilter ? 'No resolved complaints for this zone.' : 'No resolved complaints yet.');
-      return;
-    }
-
-    const body = document.getElementById('ecp-body');
-    body.innerHTML = '<div style="padding:4px 0">' + list.map(c => {
-      const typeLabel = TYPE_LABELS[c.problem_type] || c.problem_type || '—';
-      return `<div class="ecp-audit-row">
-        <span class="ecp-audit-zone">${c.zone_name || c.zone_id}</span>
-        <span class="ecp-audit-type">🟢 ${typeLabel}</span>
-        <span class="ecp-audit-time">${ecpFmt(c.resolved_at || c.updated_at)}</span>
-      </div>`;
-    }).join('') + '</div>';
-  }
+  // ecpRenderAudit removed — audit log tab removed per Phase 3
 
   // ── Actions ────────────────────────────────────────────
   window.ecpAcknowledge = async function(id, btn, c_obj) {
@@ -2935,8 +2909,7 @@
   function ecpStartPolling() {
     ecpStopPolling();
     ecpPollTimer = setInterval(() => {
-      if (ecpCurrentTab === 'active') ecpLoadActive();
-      else ecpLoadAudit();
+      ecpLoadActive();
     }, 15000);
   }
 
