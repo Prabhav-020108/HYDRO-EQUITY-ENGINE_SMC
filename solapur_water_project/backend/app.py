@@ -762,8 +762,7 @@ def _start_scheduler():
 async def lifespan(app: FastAPI):
     # Startup
     _start_scheduler()
-    logger.info("[Dhara] Backend started. AUTH_DEV_MODE=%s",
-                os.getenv("AUTH_DEV_MODE", "0"))
+    logger.info("[Dhara] Backend started.")
     yield
     # Shutdown
     if _scheduler and _scheduler.running:
@@ -783,11 +782,18 @@ app = FastAPI(
 )
 
 # ── CORS ──────────────────────────────────────────────────────────
-# Allow all origins so Leaflet frontend (Live Server on :5500) and
-# any local dev server can reach the backend on :8000.
+# Origins read from ALLOWED_ORIGINS env var (comma-separated).
+# Default: localhost:5500 (Live Server) and localhost:8000 (backend).
+# On Render, set ALLOWED_ORIGINS to your frontend domain(s).
+_raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5500,http://localhost:8000"
+)
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

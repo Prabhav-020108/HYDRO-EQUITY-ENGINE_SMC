@@ -323,6 +323,7 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
 // ── Auth guard ────────────────────────────────────────────────────
 const TOKEN    = sessionStorage.getItem('hydro_token');
@@ -346,7 +347,7 @@ function toggleAcc(bodyId, arrowId) {
 function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
 
 // ── API config ────────────────────────────────────────────────────
-const BACK = 'http://localhost:8000';
+const BACK = API_BASE;
 const MC   = [17.68, 75.908];
 let _nrwValue = '18%';
 let scen = 'baseline', hr = 6, tlChart = null, tick = null;
@@ -440,7 +441,7 @@ function cweiInfo(c){
 
 // ── Map init ──────────────────────────────────────────────────────
 const map = L.map('mapc',{center:MC,zoom:13,zoomControl:false,preferCanvas:true});
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap contributors & CARTO',maxZoom:19}).addTo(map);
 L.control.zoom({position:'bottomright'}).addTo(map);
 pLG=L.layerGroup().addTo(map);nLG=L.layerGroup();lLG=L.layerGroup().addTo(map);
 zLG=L.layerGroup();eLG=L.layerGroup().addTo(map);sLG=L.layerGroup().addTo(map);bLG=L.layerGroup();

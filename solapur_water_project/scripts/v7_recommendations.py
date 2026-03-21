@@ -2905,7 +2905,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import pandas as pd
 from datetime import datetime
 from sqlalchemy import text
-from backend.database import engine
+
 
 ROOT    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA    = os.path.join(ROOT, 'Data')
@@ -3649,6 +3649,8 @@ def run_v7():
     eng_total = ward_total = comm_total = cit_total = 0
 
     try:
+        # Import engine lazily so module import doesn't crash if DB is unavailable
+        from backend.database import engine
         with engine.connect() as conn:
             # Clear records older than 24h
             clear_old_recs(conn)

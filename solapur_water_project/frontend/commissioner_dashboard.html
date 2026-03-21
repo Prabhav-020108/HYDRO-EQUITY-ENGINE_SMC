@@ -869,6 +869,7 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script>
     // ── Auth ──────────────────────────────────────────────────────────
     const TOKEN = sessionStorage.getItem('hydro_token');
@@ -887,7 +888,7 @@
       if (arrow) arrow.classList.toggle('open', !isOpen);
     }
 
-    const BACK = 'http://localhost:8000';
+    const BACK = API_BASE;
     const MC = [17.68, 75.908];
     let _nrwValue = '18%';
 
@@ -940,7 +941,7 @@
 
     // ── Map init ──────────────────────────────────────────────────────
     const map = L.map('mapc', { center: MC, zoom: 13, zoomControl: false, preferCanvas: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap contributors & CARTO', maxZoom: 19 }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     const pLG = L.layerGroup().addTo(map), eLG = L.layerGroup().addTo(map), zLG = L.layerGroup().addTo(map);
 

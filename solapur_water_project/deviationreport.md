@@ -111,3 +111,7 @@ I did: Added 3 N4-C test sections to integration_test.sh:
 Files changed outside my column: None. Only scripts/integration_test.sh.
 Impact on A/B: None. No backend or frontend code changed.
 Status: Done and tested.
+
+Deviation Report: Person:C | F0 | Bible says:Replace every occurrence of 'http://localhost:8000' with API_BASE in fetch calls... remove locally defined API_BASE constant | I did:Replaced const BACK = 'http://localhost:8000' with const BACK = API_BASE (fetch calls already used BACK as the base URL), and did not find any locally defined API_BASE constant to remove | Impact on A/B/D:None. The existing fetch architecture was preserved, simply swapping the hardcoded base for the dynamic config.js variable.
+
+Deviation Report: Person:D | F0 | Bible says:Replace every occurrence of 'http://localhost:8000' with API_BASE in fetch calls... remove const BACK = '...' | I did:Replaced const BACK = 'http://localhost:8000' with const BACK = API_BASE (since the fetch calls already used BACK as their base URL) | Impact on A/B/C:None. The existing API fetching architecture using the 'api' helper object was preserved, just swapping the hardcoded URL string for the dynamic environment variable.

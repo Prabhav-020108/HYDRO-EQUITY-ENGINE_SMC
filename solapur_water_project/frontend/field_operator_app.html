@@ -563,8 +563,11 @@
   <!-- Toast -->
   <div id="toast"></div>
 
+  <!-- config.js MUST be first: defines API_BASE (localhost → dev, else → Render) -->
+  <script src="config.js"></script>
+
   <script>
-    const API = 'http://localhost:8000';
+    const API = API_BASE;
 
     // ─── Auth helpers ──────────────────────────────────────────────
     function getToken() { return sessionStorage.getItem('fo_token'); }

@@ -577,6 +577,7 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script>
     // ── Auth ──────────────────────────────────────────────────────────
     const TOKEN = sessionStorage.getItem('hydro_token');
@@ -588,7 +589,7 @@
 
     function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
 
-    const BACK = 'http://localhost:8000';
+    const BACK = API_BASE;
     const MC = [17.68, 75.908];
 
     // Zone grid: 3-row x 3-col minus NW corner = 8 zones
@@ -643,7 +644,7 @@
     // ── Map init ──────────────────────────────────────────────────────
     const myZone = ZONES.find(z => z.apiId === ZONE_ID) || ZONES[0];
     const map = L.map('mapc', { center: [myZone.lat, myZone.lon], zoom: 15, zoomControl: false, preferCanvas: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap contributors & CARTO', maxZoom: 19 }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     const pLG = L.layerGroup().addTo(map), eLG = L.layerGroup().addTo(map), lLG = L.layerGroup().addTo(map);
 
