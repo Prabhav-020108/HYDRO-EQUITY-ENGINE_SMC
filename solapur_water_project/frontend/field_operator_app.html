@@ -25,11 +25,7 @@
       --shad: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       height: 100%;
@@ -39,7 +35,6 @@
       font-size: 14px;
     }
 
-    /* ── Wrapper ── */
     .app {
       max-width: 480px;
       margin: 0 auto;
@@ -49,11 +44,10 @@
       background: var(--bg);
     }
 
-    /* ── Screen toggles ── */
     .screen { display: none; flex-direction: column; flex: 1; }
     .screen.active { display: flex; }
 
-    /* ── Header ── */
+    /* ── Topbar ── */
     .topbar {
       background: var(--blue);
       color: #fff;
@@ -65,16 +59,30 @@
       flex-shrink: 0;
     }
 
-    .topbar-title {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: .03em;
+    .topbar-title { font-size: 15px; font-weight: 600; letter-spacing: .03em; }
+    .topbar-sub { font-size: 11px; opacity: .7; margin-top: 2px; }
+
+    /* F2 Feature 4: Offline badge */
+    .offline-badge {
+      display: none;
+      background: var(--orange);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      padding: 0 5px;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-left: 4px;
     }
 
-    .topbar-sub {
-      font-size: 11px;
-      opacity: .7;
-      margin-top: 2px;
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .logout-btn {
@@ -89,7 +97,6 @@
       white-space: nowrap;
       transition: background .15s;
     }
-
     .logout-btn:hover { background: rgba(255,255,255,.22); }
 
     /* ── Login screen ── */
@@ -107,100 +114,45 @@
       width: 100%;
     }
 
-    .login-logo {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .login-logo .brand {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--blue);
-      letter-spacing: .04em;
-    }
-
+    .login-logo { text-align: center; margin-bottom: 24px; }
+    .login-logo .brand { font-size: 18px; font-weight: 600; color: var(--blue); letter-spacing: .04em; }
     .login-logo .brand span { color: var(--text3); }
-
     .login-logo .role-badge {
-      display: inline-block;
-      margin-top: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      background: var(--bluel);
-      color: var(--blue);
-      padding: 3px 12px;
-      border-radius: 12px;
-      letter-spacing: .05em;
-      text-transform: uppercase;
+      display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 600;
+      background: var(--bluel); color: var(--blue); padding: 3px 12px;
+      border-radius: 12px; letter-spacing: .05em; text-transform: uppercase;
     }
 
-    .form-group {
-      margin-bottom: 16px;
-    }
-
+    .form-group { margin-bottom: 16px; }
     .form-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text2);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
+      display: block; font-size: 12px; font-weight: 600; color: var(--text2);
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em;
     }
-
     .form-group input {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 14px;
-      color: var(--text);
-      background: var(--bg);
-      outline: none;
-      transition: border-color .15s;
+      width: 100%; padding: 11px 14px; border: 1px solid var(--border);
+      border-radius: 8px; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--bg); outline: none; transition: border-color .15s;
     }
-
-    .form-group input:focus {
-      border-color: var(--blue2);
-      background: #fff;
-    }
+    .form-group input:focus { border-color: var(--blue2); background: #fff; }
 
     .login-btn {
-      width: 100%;
-      padding: 13px;
-      background: var(--blue);
-      color: #fff;
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      letter-spacing: .03em;
-      transition: background .15s, transform .1s;
-      margin-top: 4px;
+      width: 100%; padding: 13px; background: var(--blue); color: #fff;
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 600;
+      border: none; border-radius: 8px; cursor: pointer; letter-spacing: .03em;
+      transition: background .15s, transform .1s; margin-top: 4px;
     }
-
     .login-btn:hover { background: var(--blue2); }
     .login-btn:active { transform: scale(.98); }
     .login-btn:disabled { opacity: .6; cursor: not-allowed; }
 
     .login-err {
-      margin-top: 12px;
-      padding: 10px 14px;
-      background: #FFEBEE;
-      border: 1px solid #FFCDD2;
-      border-radius: 8px;
-      color: var(--red);
-      font-size: 13px;
-      display: none;
+      margin-top: 12px; padding: 10px 14px; background: #FFEBEE;
+      border: 1px solid #FFCDD2; border-radius: 8px; color: var(--red);
+      font-size: 13px; display: none;
     }
 
     /* ── Home screen ── */
-    #screen-home {
-      padding-bottom: 16px;
-    }
+    #screen-home { padding-bottom: 24px; }
 
     .zone-status-bar {
       background: var(--surface);
@@ -213,711 +165,896 @@
     }
 
     .hei-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: var(--bluel);
-      border: 1px solid #BBDEFB;
-      border-radius: 8px;
-      padding: 8px 14px;
-      min-width: 80px;
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--bluel); border: 1px solid #BBDEFB;
+      border-radius: 8px; padding: 8px 14px; min-width: 80px;
     }
-
     .hei-badge .hei-val {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--blue);
-      line-height: 1;
+      font-family: 'IBM Plex Mono', monospace; font-size: 22px;
+      font-weight: 600; color: var(--blue); line-height: 1;
     }
-
     .hei-badge .hei-lbl {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--text3);
-      margin-top: 3px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--text3); margin-top: 3px;
     }
 
     .alert-count-chip {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #FFEBEE;
-      border: 1px solid #FFCDD2;
-      border-radius: 8px;
-      padding: 8px 14px;
-      min-width: 80px;
+      display: flex; flex-direction: column; align-items: center;
+      background: #FFEBEE; border: 1px solid #FFCDD2;
+      border-radius: 8px; padding: 8px 14px; min-width: 80px;
     }
-
     .alert-count-chip .ac-val {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--red);
-      line-height: 1;
+      font-family: 'IBM Plex Mono', monospace; font-size: 22px;
+      font-weight: 600; color: var(--red); line-height: 1;
     }
-
     .alert-count-chip .ac-lbl {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--text3);
-      margin-top: 3px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--text3); margin-top: 3px;
     }
 
     .section-title {
       padding: 14px 16px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--text3);
-      flex-shrink: 0;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text3); flex-shrink: 0;
     }
 
     /* ── Alert Cards ── */
-    #alerts-list {
-      padding: 0 12px;
-      flex: 1;
-      overflow-y: auto;
-    }
+    #alerts-list { padding: 0 12px; overflow-y: auto; }
 
     .alert-card {
-      background: var(--surface);
-      border-radius: 10px;
-      border-left: 4px solid var(--border);
-      box-shadow: var(--shad);
-      padding: 14px;
-      margin-bottom: 12px;
+      background: var(--surface); border-radius: 10px;
+      border-left: 4px solid var(--border); box-shadow: var(--shad);
+      padding: 14px; margin-bottom: 12px;
     }
-
-    .alert-card.severity-high { border-left-color: var(--red); }
+    .alert-card.severity-high   { border-left-color: var(--red); }
     .alert-card.severity-moderate { border-left-color: var(--orange); }
-    .alert-card.severity-low { border-left-color: var(--yellow); }
+    .alert-card.severity-low    { border-left-color: var(--yellow); }
 
     .card-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 6px;
     }
-
-    .card-zone {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--blue);
-    }
+    .card-zone { font-size: 13px; font-weight: 600; color: var(--blue); }
 
     .status-badge {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 9px;
-      border-radius: 10px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
+      font-size: 10px; font-weight: 600; padding: 2px 9px;
+      border-radius: 10px; text-transform: uppercase; letter-spacing: .05em;
     }
-
-    .status-badge.new { background: #F3F4F6; color: var(--text3); }
+    .status-badge.new         { background: #F3F4F6; color: var(--text3); }
     .status-badge.in_progress { background: var(--bluel); color: var(--blue2); }
-    .status-badge.resolved { background: #E8F5E9; color: var(--green); }
+    .status-badge.resolved    { background: #E8F5E9; color: var(--green); }
 
     .card-meta {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
-      color: var(--text2);
-      margin-bottom: 4px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      color: var(--text2); margin-bottom: 4px;
     }
+    .card-meta span { color: var(--text3); font-size: 11px; }
+    .card-signal { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
 
-    .card-meta span {
-      color: var(--text3);
-      font-size: 11px;
-    }
-
-    .card-signal {
-      font-size: 12px;
-      color: var(--text2);
-      margin-bottom: 10px;
-    }
-
-    .card-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .card-actions { display: flex; gap: 8px; }
 
     .btn-start {
-      flex: 1;
-      padding: 9px 12px;
-      background: var(--blue);
-      color: #fff;
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      transition: background .15s;
+      flex: 1; padding: 9px 12px; background: var(--blue); color: #fff;
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500;
+      border: none; border-radius: 7px; cursor: pointer; transition: background .15s;
     }
-
     .btn-start:hover { background: var(--blue2); }
     .btn-start:disabled { opacity: .5; cursor: not-allowed; }
 
-    .btn-resolve {
-      flex: 1;
-      padding: 9px 12px;
-      background: #E8F5E9;
-      color: var(--green);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      border: 1px solid #C8E6C9;
-      border-radius: 7px;
-      cursor: pointer;
-      transition: background .15s;
+    .btn-fixed-it {
+      flex: 1; padding: 9px 12px; background: var(--green); color: #fff;
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 600;
+      border: none; border-radius: 7px; cursor: pointer; transition: background .15s;
     }
+    .btn-fixed-it:hover:not(:disabled) { background: #1B5E20; }
+    .btn-fixed-it:disabled { opacity: .5; cursor: not-allowed; }
 
-    .btn-resolve:hover { background: #C8E6C9; }
-    .btn-resolve:disabled { opacity: .5; cursor: not-allowed; }
-
-    /* Resolve form (inline) */
-    .resolve-form {
-      margin-top: 10px;
-      display: none;
-    }
-
+    /* Resolve form */
+    .resolve-form { margin-top: 10px; display: none; }
     .resolve-form.open { display: block; }
 
     .resolve-form textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 13px;
-      color: var(--text);
-      resize: vertical;
-      min-height: 72px;
-      outline: none;
-      background: var(--bg);
-      transition: border-color .15s;
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 7px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+      color: var(--text); resize: vertical; min-height: 72px; outline: none;
+      background: var(--bg); transition: border-color .15s;
+    }
+    .resolve-form textarea:focus { border-color: var(--blue2); background: #fff; }
+
+    /* F2 Feature 2: Photo label inside resolve form */
+    .photo-label {
+      display: block; margin-top: 10px; font-size: 12px;
+      color: var(--text3); font-weight: 500;
+    }
+    .photo-input {
+      margin-top: 4px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif;
+      color: var(--text2); width: 100%;
+    }
+    .photo-preview {
+      display: none; max-height: 80px; border-radius: 6px;
+      margin-top: 6px; border: 1px solid var(--border); object-fit: cover;
     }
 
-    .resolve-form textarea:focus {
-      border-color: var(--blue2);
-      background: #fff;
-    }
-
-    .resolve-form-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
+    .resolve-form-actions { display: flex; gap: 8px; margin-top: 10px; }
 
     .btn-submit {
-      flex: 1;
-      padding: 9px 12px;
-      background: var(--green);
-      color: #fff;
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      transition: background .15s;
+      flex: 1; padding: 9px 12px; background: var(--green); color: #fff;
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 500;
+      border: none; border-radius: 7px; cursor: pointer; transition: background .15s;
     }
-
     .btn-submit:hover { background: #1B5E20; }
     .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
 
     .btn-cancel {
-      padding: 9px 14px;
-      background: transparent;
-      color: var(--text3);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 13px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      cursor: pointer;
+      padding: 9px 14px; background: transparent; color: var(--text3);
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+      border: 1px solid var(--border); border-radius: 7px; cursor: pointer;
     }
 
-    .btn-fixed-it {
-  flex: 1;
-  padding: 9px 12px;
-  background: var(--green);
-  color: #fff;
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  border: none;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: background .15s;
-  }
-  .btn-fixed-it:hover:not(:disabled) { background: #1B5E20; }
-  .btn-fixed-it:disabled { opacity: .5; cursor: not-allowed; }
+    .alert-card.card-resolved {
+      opacity: 0.55; pointer-events: none; background: #F8F9FA;
+      border-left-color: #A5D6A7 !important;
+    }
 
-  .alert-card.card-resolved {
-   opacity: 0.55;
-   pointer-events: none;
-   background: #F8F9FA;
-   border-left-color: #A5D6A7 !important;
-}
+    /* F2 Feature 1: Valve card styles */
+    .section-container {
+      background: var(--surface); margin: 0 12px 12px;
+      border-radius: 10px; padding: 14px; box-shadow: var(--shad);
+    }
+
+    .valve-card {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 14px; margin-bottom: 10px; background: var(--bg);
+    }
+    .valve-card:last-child { margin-bottom: 0; }
+
+    .valve-card-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 5px;
+    }
+    .valve-id-label {
+      font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 13px;
+      color: var(--text);
+    }
+    .valve-state-badge {
+      font-size: 10px; font-weight: 700; padding: 2px 10px;
+      border-radius: 10px; letter-spacing: .05em; color: #fff;
+    }
+    .valve-checked-info {
+      font-size: 11px; color: var(--text3); margin-bottom: 9px; line-height: 1.4;
+    }
+    .valve-actions { display: flex; gap: 8px; }
+
+    .btn-valve {
+      flex: 1; padding: 7px 10px; font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 12px; font-weight: 600; border-radius: 6px;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-valve:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-valve-open  {
+      background: #E8F5E9; color: var(--green); border: 1px solid #C8E6C9;
+    }
+    .btn-valve-open:hover:not(:disabled)   { background: #C8E6C9; }
+    .btn-valve-close {
+      background: #FFEBEE; color: var(--red); border: 1px solid #FFCDD2;
+    }
+    .btn-valve-close:hover:not(:disabled)  { background: #FFCDD2; }
+
+    /* F2 Feature 3: Work history styles */
+    .history-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+    }
+    .history-row:last-child { border-bottom: none; }
+    .history-zone  { font-weight: 600; color: var(--blue); min-width: 56px; }
+    .history-signal {
+      flex: 1; color: var(--text2); padding: 0 8px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    }
+    .history-date  { color: var(--text3); font-size: 11px; white-space: nowrap; }
 
     /* Empty / loading states */
-    .state-msg {
-      text-align: center;
-      padding: 32px 16px;
-      color: var(--text3);
-      font-size: 13px;
-    }
+    .state-msg { text-align: center; padding: 24px 16px; color: var(--text3); font-size: 13px; }
+    .empty-msg  { color: var(--text3); font-size: 13px; padding: 6px 0; }
 
     /* Toast */
     #toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: #1A2332;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      z-index: 9999;
-      transition: transform .3s ease;
-      pointer-events: none;
-      white-space: nowrap;
-      max-width: 90vw;
+      background: #1A2332; color: #fff; padding: 10px 20px;
+      border-radius: 8px; font-size: 13px; z-index: 9999;
+      transition: transform .3s ease; pointer-events: none;
+      white-space: nowrap; max-width: 90vw;
     }
-
-    #toast.show { transform: translateX(-50%) translateY(0); }
-    #toast.green { background: var(--green); }
-    #toast.red { background: var(--red); }
+    #toast.show   { transform: translateX(-50%) translateY(0); }
+    #toast.green  { background: var(--green); }
+    #toast.red    { background: var(--red); }
+    #toast.orange { background: var(--orange); }
   </style>
 </head>
 
 <body>
+<div class="app">
 
-  <div class="app">
-
-    <!-- ═══════════ SCREEN 1: LOGIN ═══════════ -->
-    <div id="screen-login" class="screen active">
-      <div class="login-box">
-        <div class="login-logo">
-          <div class="brand">HYDRO-EQUITY <span>ENGINE</span></div>
-          <div class="role-badge">⚙ Field Operator</div>
-        </div>
-
-        <div class="form-group">
-          <label for="inp-username">Username</label>
-          <input id="inp-username" type="text" placeholder="Enter username" autocomplete="username">
-        </div>
-
-        <div class="form-group">
-          <label for="inp-password">Password</label>
-          <input id="inp-password" type="password" placeholder="Enter password" autocomplete="current-password">
-        </div>
-
-        <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
-
-        <div class="login-err" id="login-err"></div>
+  <!-- ════ SCREEN 1: LOGIN ════ -->
+  <div id="screen-login" class="screen active">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="brand">HYDRO-EQUITY <span>ENGINE</span></div>
+        <div class="role-badge">⚙ Field Operator</div>
       </div>
+      <div class="form-group">
+        <label for="inp-username">Username</label>
+        <input id="inp-username" type="text" placeholder="Enter username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="inp-password">Password</label>
+        <input id="inp-password" type="password" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="login-err" id="login-err"></div>
     </div>
-
-    <!-- ═══════════ SCREEN 2: HOME ═══════════ -->
-    <div id="screen-home" class="screen">
-
-      <!-- Top bar -->
-      <div class="topbar">
-        <div>
-          <div class="topbar-title" id="zone-title">My Zone</div>
-          <div class="topbar-sub" id="user-display">Field Operator</div>
-        </div>
-        <button class="logout-btn" onclick="doLogout()">Sign Out</button>
-      </div>
-
-      <!-- Zone status: HEI + alert count -->
-      <div class="zone-status-bar">
-        <div class="hei-badge">
-          <div class="hei-val" id="hei-val">—</div>
-          <div class="hei-lbl">HEI Score</div>
-        </div>
-        <div class="alert-count-chip">
-          <div class="ac-val" id="active-alert-count">—</div>
-          <div class="ac-lbl">Active Alerts</div>
-        </div>
-      </div>
-
-      <!-- Alerts list -->
-      <div class="section-title">Active Alerts</div>
-      <div id="alerts-list">
-        <div class="state-msg" id="alerts-state">Loading alerts…</div>
-      </div>
-
-    </div>
-
   </div>
 
-  <!-- Toast -->
-  <div id="toast"></div>
+  <!-- ════ SCREEN 2: HOME ════ -->
+  <div id="screen-home" class="screen">
 
-  <!-- config.js MUST be first: defines API_BASE (localhost → dev, else → Render) -->
-  <script src="config.js"></script>
+    <!-- Top bar -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="zone-title">My Zone</div>
+        <div class="topbar-sub"  id="user-display">Field Operator</div>
+      </div>
+      <!-- F2 Feature 4: Offline badge -->
+      <div class="topbar-right">
+        <span id="offline-badge" class="offline-badge">0</span>
+        <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
 
-  <script>
-    const API = API_BASE;
+    <!-- Zone status: HEI + alert count -->
+    <div class="zone-status-bar">
+      <div class="hei-badge">
+        <div class="hei-val" id="hei-val">—</div>
+        <div class="hei-lbl">HEI Score</div>
+      </div>
+      <div class="alert-count-chip">
+        <div class="ac-val" id="active-alert-count">—</div>
+        <div class="ac-lbl">Active Alerts</div>
+      </div>
+    </div>
 
-    // ─── Auth helpers ──────────────────────────────────────────────
-    function getToken() { return sessionStorage.getItem('fo_token'); }
-    function setToken(t) { sessionStorage.setItem('fo_token', t); }
-    function clearToken() { sessionStorage.removeItem('fo_token'); }
-    function getUser() { return JSON.parse(sessionStorage.getItem('fo_user') || 'null'); }
-    function setUser(u) { sessionStorage.setItem('fo_user', JSON.stringify(u)); }
+    <!-- ── Active Alerts ── -->
+    <div class="section-title">Active Alerts</div>
+    <div id="alerts-list">
+      <div class="state-msg" id="alerts-state">Loading alerts…</div>
+    </div>
 
-    function authHeaders() {
-      return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() };
+    <!-- ── F2 Feature 1: Valve Checklist ── -->
+    <div class="section-title">Valve Checklist</div>
+    <div class="section-container">
+      <div id="valve-list">
+        <p class="empty-msg">Loading valves…</p>
+      </div>
+    </div>
+
+    <!-- ── F2 Feature 3: Work History ── -->
+    <div class="section-title">My Work History</div>
+    <div class="section-container">
+      <div id="history-list">
+        <p class="empty-msg">Loading history…</p>
+      </div>
+    </div>
+
+  </div><!-- end screen-home -->
+
+</div><!-- end .app -->
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- config.js MUST be first: defines API_BASE -->
+<script src="config.js"></script>
+
+<script>
+  const API = API_BASE;
+
+  // ── Auth helpers ─────────────────────────────────────────────────
+  function getToken()  { return sessionStorage.getItem('fo_token'); }
+  function setToken(t) { sessionStorage.setItem('fo_token', t); }
+  function clearToken(){ sessionStorage.removeItem('fo_token'); }
+  function getUser()   { return JSON.parse(sessionStorage.getItem('fo_user') || 'null'); }
+  function setUser(u)  { sessionStorage.setItem('fo_user', JSON.stringify(u)); }
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() };
+  }
+
+  // ── Screen navigation ────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── Toast ────────────────────────────────────────────────────────
+  let _toastTimer = null;
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = 'show ' + (type || '');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+  }
+
+  // ── Globals ──────────────────────────────────────────────────────
+  let _knownAlertIds    = new Set();
+  let _firstPoll        = true;
+  let _pollInterval     = null;
+  let notificationsGranted = false;  // F2 Feature 5
+  let _photoBase64      = {};        // F2 Feature 2: {alert_id: base64String}
+
+  // ══════════════════════════════════════════════════════════════════
+  // F2 Feature 4: Offline Queue helpers
+  // ══════════════════════════════════════════════════════════════════
+
+  /**
+   * callOrQueue — if online, calls fetch; if offline, queues to localStorage.
+   * Returns the fetch Response (or null if queued).
+   */
+  async function callOrQueue(endpoint, method, body) {
+    if (navigator.onLine) {
+      return fetch(API + endpoint, {
+        method:  method,
+        headers: authHeaders(),
+        body:    JSON.stringify(body)
+      });
     }
+    // OFFLINE — queue it
+    let queue = [];
+    try { queue = JSON.parse(localStorage.getItem('dhara_offline_queue') || '[]'); }
+    catch(e) { queue = []; }
+    queue.push({ endpoint, method, body, queuedAt: new Date().toISOString() });
+    localStorage.setItem('dhara_offline_queue', JSON.stringify(queue));
+    updateOfflineBadge();
+    showToast('Action saved — will sync when back online', 'orange');
+    return null;
+  }
 
-    // ─── Screen navigation ─────────────────────────────────────────
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+  /** Flush all queued actions when the browser comes back online. */
+  async function flushOfflineQueue() {
+    let queue = [];
+    try { queue = JSON.parse(localStorage.getItem('dhara_offline_queue') || '[]'); }
+    catch(e) { return; }
+    if (!queue.length) return;
+
+    const remaining = [];
+    let synced = 0;
+    for (const item of queue) {
+      try {
+        const res = await fetch(API + item.endpoint, {
+          method:  item.method,
+          headers: authHeaders(),
+          body:    JSON.stringify(item.body)
+        });
+        if (res.ok) synced++;
+        else remaining.push(item);
+      } catch(e) {
+        remaining.push(item);
+      }
     }
+    localStorage.setItem('dhara_offline_queue', JSON.stringify(remaining));
+    updateOfflineBadge();
+    if (synced > 0) showToast(synced + ' action(s) synced successfully', 'green');
+  }
 
-    // ─── Toast ─────────────────────────────────────────────────────
-    let toastTimer = null;
-    function showToast(msg, type) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = 'show ' + (type || '');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { t.className = ''; }, 2800);
-    }
+  /** Update the orange badge in the header showing queued item count. */
+  function updateOfflineBadge() {
+    let queue = [];
+    try { queue = JSON.parse(localStorage.getItem('dhara_offline_queue') || '[]'); }
+    catch(e) { queue = []; }
+    const badge = document.getElementById('offline-badge');
+    if (!badge) return;
+    badge.textContent = queue.length;
+    badge.style.display = queue.length > 0 ? 'inline-flex' : 'none';
+  }
 
-    // ─── Login ─────────────────────────────────────────────────────
+  // Flush queue whenever the device comes back online
+  window.addEventListener('online', flushOfflineQueue);
+
+  // ── Login ────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inp-password').addEventListener('keydown', e => {
       if (e.key === 'Enter') doLogin();
     });
     document.getElementById('inp-username').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('inp-password').focus();
     });
+  });
 
-    async function doLogin() {
-      const username = document.getElementById('inp-username').value.trim();
-      const password = document.getElementById('inp-password').value;
-      const errEl = document.getElementById('login-err');
-      const btn = document.getElementById('login-btn');
+  async function doLogin() {
+    const username = document.getElementById('inp-username').value.trim();
+    const password = document.getElementById('inp-password').value;
+    const errEl    = document.getElementById('login-err');
+    const btn      = document.getElementById('login-btn');
 
-      errEl.style.display = 'none';
-      if (!username || !password) {
-        errEl.textContent = 'Please enter username and password.';
-        errEl.style.display = 'block';
+    errEl.style.display = 'none';
+    if (!username || !password) {
+      errEl.textContent = 'Please enter username and password.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Signing in…';
+
+    try {
+      const res = await fetch(API + '/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ username, password })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || 'Login failed. Check your credentials.');
+      }
+      const data = await res.json();
+      setToken(data.access_token);
+      setUser({ username: data.username || username, zone_id: data.zone_id || null });
+      onLoginSuccess();
+    } catch(err) {
+      errEl.textContent   = err.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Sign In';
+    }
+  }
+
+  function onLoginSuccess() {
+    const user   = getUser();
+    const zoneId = user.zone_id || 'Unknown';
+    document.getElementById('zone-title').textContent   = 'My Zone — ' + zoneId;
+    document.getElementById('user-display').textContent = user.username;
+    showScreen('screen-home');
+
+    // Reset offline badge
+    updateOfflineBadge();
+
+    // F2 Feature 5: Request push notification permission
+    if ('Notification' in window) {
+      Notification.requestPermission().then(perm => {
+        notificationsGranted = perm === 'granted';
+      });
+    }
+
+    // Load all sections
+    loadZoneStatus();
+    loadAlerts();
+    loadValveChecklist();   // F2 Feature 1
+    loadWorkHistory();      // F2 Feature 3
+    startAlertPolling();
+  }
+
+  function doLogout() {
+    stopAlertPolling();
+    _knownAlertIds       = new Set();
+    _firstPoll           = true;
+    _photoBase64         = {};
+    notificationsGranted = false;
+    clearToken();
+    sessionStorage.removeItem('fo_user');
+    document.getElementById('inp-username').value   = '';
+    document.getElementById('inp-password').value   = '';
+    document.getElementById('login-err').style.display = 'none';
+    showScreen('screen-login');
+  }
+
+  // ── Zone status ──────────────────────────────────────────────────
+  async function loadZoneStatus() {
+    try {
+      const res = await fetch(API + '/mobile/zone-status', { headers: authHeaders() });
+      if (!res.ok) throw new Error('zone-status failed');
+      const d = await res.json();
+      document.getElementById('hei-val').textContent           = d.hei != null ? parseFloat(d.hei).toFixed(2) : '—';
+      document.getElementById('active-alert-count').textContent = d.active_alert_count != null ? d.active_alert_count : '—';
+    } catch(e) {
+      document.getElementById('hei-val').textContent           = '—';
+      document.getElementById('active-alert-count').textContent = '—';
+    }
+  }
+
+  // ── Alerts ───────────────────────────────────────────────────────
+  async function loadAlerts() {
+    const listEl  = document.getElementById('alerts-list');
+    const stateEl = document.getElementById('alerts-state');
+
+    stateEl.style.display = 'block';
+    stateEl.textContent   = 'Loading alerts…';
+    listEl.querySelectorAll('.alert-card').forEach(c => c.remove());
+
+    try {
+      const res = await fetch(API + '/mobile/alerts', { headers: authHeaders() });
+      if (!res.ok) throw new Error('alerts fetch failed');
+      const raw    = await res.json();
+      // Backend returns {alerts:[...], total:N, ...} — handle both dict and plain array
+      const alerts = Array.isArray(raw) ? raw : (raw.alerts || []);
+
+      // Seed known IDs so first poll does NOT trigger false toasts/notifications
+      _knownAlertIds = new Set(alerts.map(a => a.alert_id));
+      _firstPoll     = false;
+      _renderAlertList(alerts);
+    } catch(e) {
+      stateEl.textContent = 'Could not load alerts. Tap to retry.';
+      stateEl.onclick     = loadAlerts;
+    }
+  }
+
+  // ── Build a single alert card ─────────────────────────────────────
+  function buildCard(a) {
+    const severityClass = a.severity === 'HIGH'     ? 'severity-high'
+                        : a.severity === 'MODERATE' ? 'severity-moderate'
+                        : 'severity-low';
+
+    const statusKey   = (a.status || 'new').toLowerCase();
+    const statusLabel = statusKey === 'in_progress' ? 'In Progress'
+      : statusKey.charAt(0).toUpperCase() + statusKey.slice(1);
+    const statusClassMap = { new: 'new', in_progress: 'in_progress', resolved: 'resolved' };
+
+    // Bug fix: backend returns 'clps', not 'clps_score'
+    const clps    = (a.clps != null) ? parseFloat(a.clps).toFixed(3) : '—';
+    const signal  = a.dominant_signal || '—';
+    // Bug fix: strip 'zone_' prefix so "zone_3" shows as "Zone 3" not "Zone zone_3"
+    const rawZone = a.zone_id || a.zone || '—';
+    const zone    = rawZone.replace(/^zone_/i, '');
+
+    const card    = document.createElement('div');
+    card.className = 'alert-card ' + severityClass;
+    card.id        = 'card-' + a.alert_id;
+
+    card.innerHTML = `
+      <div class="card-row">
+        <div class="card-zone">Zone ${zone}</div>
+        <span class="status-badge ${statusClassMap[statusKey] || 'new'}">${statusLabel}</span>
+      </div>
+      <div class="card-meta">CLPS <span>score</span> ${clps}</div>
+      <div class="card-signal">⚡ ${signal}</div>
+      <div class="card-actions">
+        <button class="btn-start" id="btn-start-${a.alert_id}"
+                onclick="startWork(${a.alert_id})"
+                ${(statusKey !== 'new' && statusKey !== 'acknowledged') ? 'disabled' : ''}>
+          Start Work
+        </button>
+        <button class="btn-fixed-it" id="btn-fixedit-${a.alert_id}"
+                onclick="openFixedIt(${a.alert_id})"
+                ${statusKey === 'resolved' || statusKey === 'resolve_requested' ? 'disabled' : ''}>
+          Fixed It
+        </button>
+      </div>
+      <div class="resolve-form" id="resolve-form-${a.alert_id}">
+        <textarea id="resolve-report-${a.alert_id}"
+                  placeholder="Brief report — what did you fix?"></textarea>
+
+        <!-- F2 Feature 2: Photo attachment -->
+        <label class="photo-label">Attach photo (optional)</label>
+        <input type="file" id="photo-input-${a.alert_id}" accept="image/*"
+               class="photo-input"
+               onchange="handlePhotoSelect(${a.alert_id}, this)">
+        <img id="photo-preview-${a.alert_id}" class="photo-preview" alt="Preview">
+        <!-- end F2 Feature 2 -->
+
+        <div class="resolve-form-actions">
+          <button class="btn-submit" onclick="submitFixedIt(${a.alert_id})">Submit</button>
+          <button class="btn-cancel" onclick="closeFixedIt(${a.alert_id})">Cancel</button>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  // ── Start Work ───────────────────────────────────────────────────
+  async function startWork(id) {
+    const btn = document.getElementById('btn-start-' + id);
+    btn.disabled    = true;
+    btn.textContent = 'Starting…';
+
+    // F2 Feature 4: use callOrQueue instead of fetch
+    const res = await callOrQueue('/mobile/alerts/' + id + '/start', 'POST', {});
+
+    if (res === null) {
+      // Queued offline
+      btn.textContent = 'Queued ✓';
+      return;
+    }
+
+    try {
+      if (!res.ok) throw new Error(((await res.json().catch(() => ({}))).detail) || 'Failed to start');
+      showToast('Work started on alert #' + id, 'green');
+      const card  = document.getElementById('card-' + id);
+      if (card) {
+        const badge = card.querySelector('.status-badge');
+        if (badge) { badge.className = 'status-badge in_progress'; badge.textContent = 'In Progress'; }
+      }
+      btn.textContent = 'In Progress';
+    } catch(e) {
+      showToast(e.message, 'red');
+      btn.disabled    = false;
+      btn.textContent = 'Start Work';
+    }
+  }
+
+  // ── Fixed It form ────────────────────────────────────────────────
+  function openFixedIt(id) {
+    document.getElementById('resolve-form-' + id).classList.add('open');
+    document.getElementById('resolve-report-' + id).focus();
+  }
+
+  function closeFixedIt(id) {
+    document.getElementById('resolve-form-' + id).classList.remove('open');
+  }
+
+  // F2 Feature 2: Handle photo file selection
+  function handlePhotoSelect(id, inputEl) {
+    const file = inputEl.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      // Strip "data:image/...;base64," prefix to get pure base64
+      _photoBase64[id] = dataUrl.split(',')[1];
+      // Show thumbnail preview
+      const preview = document.getElementById('photo-preview-' + id);
+      if (preview) { preview.src = dataUrl; preview.style.display = 'block'; }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function submitFixedIt(id) {
+    const report = document.getElementById('resolve-report-' + id).value.trim();
+    const btn    = document.querySelector('#resolve-form-' + id + ' .btn-submit');
+
+    if (!report) { showToast('Please enter a brief report.', 'red'); return; }
+
+    btn.disabled    = true;
+    btn.textContent = 'Sending…';
+
+    // F2 Feature 2: include photo_b64 if a photo was selected
+    const body = { report };
+    if (_photoBase64[id]) { body.photo_b64 = _photoBase64[id]; }
+
+    // F2 Feature 4: use callOrQueue instead of fetch
+    const res = await callOrQueue('/mobile/alerts/' + id + '/resolve', 'POST', body);
+
+    if (res === null) {
+      // Queued offline
+      const fixBtn = document.getElementById('btn-fixedit-' + id);
+      if (fixBtn) { fixBtn.textContent = 'Queued ✓'; fixBtn.disabled = true; }
+      closeFixedIt(id);
+      delete _photoBase64[id];
+      const preview = document.getElementById('photo-preview-' + id);
+      if (preview) { preview.src = ''; preview.style.display = 'none'; }
+      return;
+    }
+
+    try {
+      if (!res.ok) throw new Error(((await res.json().catch(() => ({}))).detail) || 'Failed');
+
+      // Success
+      const fixBtn = document.getElementById('btn-fixedit-' + id);
+      if (fixBtn) { fixBtn.textContent = 'Sent ✓'; fixBtn.disabled = true; }
+      const startBtn = document.getElementById('btn-start-' + id);
+      if (startBtn) startBtn.disabled = true;
+
+      closeFixedIt(id);
+
+      // Clear photo state
+      delete _photoBase64[id];
+      const preview = document.getElementById('photo-preview-' + id);
+      if (preview) { preview.src = ''; preview.style.display = 'none'; }
+
+      const card = document.getElementById('card-' + id);
+      if (card) card.classList.add('card-resolved');
+
+      showToast('Report submitted. Waiting for engineer approval.', 'green');
+      loadZoneStatus();
+    } catch(e) {
+      showToast(e.message, 'red');
+      btn.disabled    = false;
+      btn.textContent = 'Submit';
+    }
+  }
+
+  // ── Render alert list ────────────────────────────────────────────
+  function _renderAlertList(alerts) {
+    const listEl  = document.getElementById('alerts-list');
+    const stateEl = document.getElementById('alerts-state');
+    listEl.querySelectorAll('.alert-card').forEach(c => c.remove());
+
+    if (!alerts.length) {
+      stateEl.style.display = 'block';
+      stateEl.textContent   = 'No active alerts for your zone.';
+      stateEl.onclick       = null;
+      return;
+    }
+    stateEl.style.display = 'none';
+    alerts.forEach(a => listEl.appendChild(buildCard(a)));
+  }
+
+  // ── Polling ──────────────────────────────────────────────────────
+  function startAlertPolling() {
+    if (_pollInterval) return;
+    _pollInterval = setInterval(_pollAlerts, 5000);
+  }
+
+  function stopAlertPolling() {
+    if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
+  }
+
+  async function _pollAlerts() {
+    try {
+      const res = await fetch(API + '/mobile/alerts', { headers: authHeaders() });
+      if (!res.ok) return;
+      const raw    = await res.json();
+      // Backend returns {alerts:[...], total:N} — handle both shapes
+      const alerts = Array.isArray(raw) ? raw : (raw.alerts || []);
+
+      const currentIds = new Set(alerts.map(a => a.alert_id));
+
+      if (!_firstPoll) {
+        const newOnes = alerts.filter(a => !_knownAlertIds.has(a.alert_id));
+        if (newOnes.length > 0) {
+          showToast('New task assigned (' + newOnes.length + ' alert' + (newOnes.length > 1 ? 's' : '') + ')', 'green');
+          _renderAlertList(alerts);
+
+          // F2 Feature 5: Fire push notifications for new alerts
+          if (notificationsGranted) {
+            newOnes.forEach(a => {
+              new Notification('New alert assigned', {
+                body: 'Zone: ' + (a.zone_id || '') + ' — ' + (a.dominant_signal || '')
+              });
+            });
+          }
+        }
+      } else {
+        _renderAlertList(alerts);
+        _firstPoll = false;
+      }
+
+      _knownAlertIds = currentIds;
+    } catch(e) {
+      // Silent fail on poll errors
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // F2 Feature 1: Valve Checklist
+  // ══════════════════════════════════════════════════════════════════
+
+  async function loadValveChecklist() {
+    const container = document.getElementById('valve-list');
+    if (!container) return;
+    container.innerHTML = '<p class="empty-msg">Loading valves…</p>';
+
+    try {
+      const res = await fetch(API + '/mobile/valves', { headers: authHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const valves = await res.json();
+
+      if (!Array.isArray(valves) || valves.length === 0) {
+        container.innerHTML = '<p class="empty-msg">No valve checks logged yet.</p>';
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'Signing in…';
+      container.innerHTML = '';
+      valves.forEach(v => {
+        const stateBg    = v.reported_state === 'open'   ? '#2E7D32'
+                         : v.reported_state === 'closed' ? '#D32F2F'
+                         : '#8A96A4';
+        const stateLabel = (v.reported_state || 'unknown').toUpperCase();
+        const checkedInfo = v.checked_by
+          ? 'Checked by <b>' + v.checked_by + '</b> at ' + (v.checked_at ? new Date(v.checked_at).toLocaleString() : '—')
+          : 'Not yet checked';
 
-      try {
-        const res = await fetch(API + '/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
+        const card = document.createElement('div');
+        card.className = 'valve-card';
+        card.id        = 'valve-card-' + v.valve_id;
+        card.innerHTML = `
+          <div class="valve-card-header">
+            <span class="valve-id-label">${v.valve_id}</span>
+            <span class="valve-state-badge" id="valve-badge-${v.valve_id}"
+                  style="background:${stateBg};">${stateLabel}</span>
+          </div>
+          <div class="valve-checked-info">${checkedInfo}</div>
+          <div class="valve-actions">
+            <button class="btn-valve btn-valve-open"
+                    id="btn-open-${v.valve_id}"
+                    onclick="markValve('${v.valve_id}', 'open')">Mark Open</button>
+            <button class="btn-valve btn-valve-close"
+                    id="btn-closed-${v.valve_id}"
+                    onclick="markValve('${v.valve_id}', 'closed')">Mark Closed</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    } catch(e) {
+      container.innerHTML = '<p class="empty-msg" style="color:var(--red);">Could not load valves.</p>';
+    }
+  }
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.detail || 'Login failed. Check your credentials.');
-        }
+  async function markValve(valveId, state) {
+    const openBtn   = document.getElementById('btn-open-'   + valveId);
+    const closedBtn = document.getElementById('btn-closed-' + valveId);
+    if (openBtn)   openBtn.disabled   = true;
+    if (closedBtn) closedBtn.disabled = true;
 
-        const data = await res.json();
-        setToken(data.access_token);
-        setUser({ username: data.username || username, zone_id: data.zone_id || null });
-        onLoginSuccess();
-      } catch (err) {
-        errEl.textContent = err.message;
-        errEl.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
-      }
+    // F2 Feature 4: use callOrQueue
+    const res = await callOrQueue('/mobile/valves/' + valveId + '/check', 'POST', { reported_state: state });
+
+    function reenable() {
+      setTimeout(() => {
+        if (openBtn)   openBtn.disabled   = false;
+        if (closedBtn) closedBtn.disabled = false;
+      }, 2000);
     }
 
-    function onLoginSuccess() {
-  const user   = getUser();
-  const zoneId = user.zone_id || 'Unknown';
-  document.getElementById('zone-title').textContent = 'My Zone — ' + zoneId;
-  document.getElementById('user-display').textContent = user.username;
-  showScreen('screen-home');
-  loadZoneStatus();
-  loadAlerts();
-  startAlertPolling();
-}
+    if (res === null) { reenable(); return; } // queued offline
 
-    function doLogout() {
-  stopAlertPolling();
-  _knownAlertIds = new Set();
-  clearToken();
-  sessionStorage.removeItem('fo_user');
-  document.getElementById('inp-username').value = '';
-  document.getElementById('inp-password').value = '';
-  document.getElementById('login-err').style.display = 'none';
-  showScreen('screen-login');
-}
-
-    // ─── Zone status ───────────────────────────────────────────────
-    async function loadZoneStatus() {
-      try {
-        const res = await fetch(API + '/mobile/zone-status', { headers: authHeaders() });
-        if (!res.ok) throw new Error('zone-status failed');
-        const d = await res.json();
-
-        const heiVal = d.hei != null ? parseFloat(d.hei).toFixed(2) : '—';
-        document.getElementById('hei-val').textContent = heiVal;
-        document.getElementById('active-alert-count').textContent = d.active_alert_count != null ? d.active_alert_count : '—';
-      } catch (e) {
-        document.getElementById('hei-val').textContent = '—';
-        document.getElementById('active-alert-count').textContent = '—';
+    try {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      // Update badge without re-fetching the full list
+      const badge = document.getElementById('valve-badge-' + valveId);
+      if (badge) {
+        badge.textContent      = state.toUpperCase();
+        badge.style.background = state === 'open' ? '#2E7D32' : '#D32F2F';
       }
+      showToast('Valve ' + valveId + ' marked ' + state, 'green');
+    } catch(e) {
+      showToast('Failed to update valve status', 'red');
     }
 
-    // ─── Alerts ────────────────────────────────────────────────────
-    async function loadAlerts() {
-  const listEl  = document.getElementById('alerts-list');
-  const stateEl = document.getElementById('alerts-state');
-
-  stateEl.style.display = 'block';
-  stateEl.textContent   = 'Loading alerts…';
-  listEl.querySelectorAll('.alert-card').forEach(c => c.remove());
-
-  try {
-    const res = await fetch(API + '/mobile/alerts', { headers: authHeaders() });
-    if (!res.ok) throw new Error('alerts fetch failed');
-    const alerts = await res.json();
-    if (!Array.isArray(alerts)) throw new Error('unexpected response');
-
-    // Seed known IDs so the first poll does not trigger a false "new task" toast
-    _knownAlertIds = new Set(alerts.map(a => a.alert_id));
-    _firstPoll     = false;
-
-    _renderAlertList(alerts);
-  } catch (e) {
-    stateEl.textContent = 'Could not load alerts. Tap to retry.';
-    stateEl.onclick     = loadAlerts;
+    reenable();
   }
-}
 
-  function buildCard(a) {
-  const severityClass = a.severity === 'HIGH'     ? 'severity-high'
-                      : a.severity === 'MODERATE' ? 'severity-moderate'
-                      : 'severity-low';
+  // ══════════════════════════════════════════════════════════════════
+  // F2 Feature 3: Work History
+  // ══════════════════════════════════════════════════════════════════
 
-  const statusKey   = (a.status || 'new').toLowerCase();
-  const statusLabel = statusKey === 'in_progress' ? 'In Progress'
-    : statusKey.charAt(0).toUpperCase() + statusKey.slice(1);
+  async function loadWorkHistory() {
+    const container = document.getElementById('history-list');
+    if (!container) return;
+    container.innerHTML = '<p class="empty-msg">Loading history…</p>';
 
-  const statusClassMap = { new: 'new', in_progress: 'in_progress', resolved: 'resolved' };
+    try {
+      const res = await fetch(API + '/mobile/history', { headers: authHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const history = await res.json();
 
-  const clps   = a.clps_score != null ? parseFloat(a.clps_score).toFixed(3) : '—';
-  const signal = a.dominant_signal || '—';
-  const zone   = a.zone_id || a.zone || '—';
-
-  const card    = document.createElement('div');
-  card.className = `alert-card ${severityClass}`;
-  card.id        = `card-${a.alert_id}`;
-
-  card.innerHTML = `
-    <div class="card-row">
-      <div class="card-zone">Zone ${zone}</div>
-      <span class="status-badge ${statusClassMap[statusKey] || 'new'}">${statusLabel}</span>
-    </div>
-    <div class="card-meta">CLPS <span>score</span> ${clps}</div>
-    <div class="card-signal">⚡ ${signal}</div>
-    <div class="card-actions">
-      <button class="btn-start" id="btn-start-${a.alert_id}"
-              onclick="startWork(${a.alert_id})"
-              ${statusKey !== 'new' ? 'disabled' : ''}>
-        Start Work
-      </button>
-      <button class="btn-fixed-it" id="btn-fixedit-${a.alert_id}"
-              onclick="openFixedIt(${a.alert_id})"
-              ${statusKey === 'resolved' || statusKey === 'resolve_requested' ? 'disabled' : ''}>
-        Fixed It
-      </button>
-    </div>
-    <!-- N2: Fixed It inline form — hidden until Fixed It is tapped -->
-    <div class="resolve-form" id="resolve-form-${a.alert_id}">
-      <textarea id="resolve-report-${a.alert_id}"
-                placeholder="Brief report — what did you fix?"></textarea>
-      <div class="resolve-form-actions">
-        <button class="btn-submit" onclick="submitFixedIt(${a.alert_id})">Submit</button>
-        <button class="btn-cancel" onclick="closeFixedIt(${a.alert_id})">Cancel</button>
-      </div>
-    </div>
-  `;
-
-  return card;
-}
-
-    // ─── Start Work ────────────────────────────────────────────────
-    async function startWork(id) {
-      const btn = document.getElementById('btn-start-' + id);
-      btn.disabled = true;
-      btn.textContent = 'Starting…';
-
-      try {
-        const res = await fetch(API + '/mobile/alerts/' + id + '/start', {
-          method: 'POST',
-          headers: authHeaders()
-        });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed to start');
-        showToast('Work started on alert #' + id, 'green');
-
-        // Update status badge
-        const card = document.getElementById('card-' + id);
-        if (card) {
-          const badge = card.querySelector('.status-badge');
-          badge.className = 'status-badge in_progress';
-          badge.textContent = 'In Progress';
-        }
-        btn.textContent = 'In Progress';
-      } catch (e) {
-        showToast(e.message, 'red');
-        btn.disabled = false;
-        btn.textContent = 'Start Work';
+      if (!Array.isArray(history) || history.length === 0) {
+        container.innerHTML = '<p class="empty-msg">No completed work yet.</p>';
+        return;
       }
+
+      container.innerHTML = history.map(h => {
+        const dateStr = h.resolved_at
+          ? new Date(h.resolved_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+          : '—';
+        const zoneNum = (h.zone_id || '').replace('zone_', '');
+        return '<div class="history-row">'
+          + '<span class="history-zone">Zone ' + zoneNum + '</span>'
+          + '<span class="history-signal">' + (h.dominant_signal || '—') + '</span>'
+          + '<span class="history-date">'  + dateStr + '</span>'
+          + '</div>';
+      }).join('');
+    } catch(e) {
+      container.innerHTML = '<p class="empty-msg" style="color:var(--red);">Could not load history.</p>';
     }
-
-    function openFixedIt(id) {
-      document.getElementById(`resolve-form-${id}`).classList.add('open');
-      document.getElementById(`resolve-report-${id}`).focus();
-     }
-
-    function closeFixedIt(id) {
-  document.getElementById(`resolve-form-${id}`).classList.remove('open');
-}
-
-    async function submitFixedIt(id) {
-  const report = document.getElementById(`resolve-report-${id}`).value.trim();
-  const btn    = document.querySelector(`#resolve-form-${id} .btn-submit`);
-
-  if (!report) {
-    showToast('Please enter a brief report.', 'red');
-    return;
   }
 
-  btn.disabled    = true;
-  btn.textContent = 'Sending…';
-
-  try {
-    const res = await fetch(API + '/mobile/alerts/' + id + '/resolve', {
-      method:  'POST',
-      headers: authHeaders(),
-      body:    JSON.stringify({ report })
-    });
-    if (!res.ok) throw new Error(((await res.json().catch(() => ({}))).detail) || 'Failed');
-
-    // N2: success — button → "Sent ✓", card greys out, no further interaction
-    const fixedItBtn = document.getElementById(`btn-fixedit-${id}`);
-    if (fixedItBtn) {
-      fixedItBtn.textContent = 'Sent ✓';
-      fixedItBtn.disabled    = true;
-    }
-    const startBtn = document.getElementById(`btn-start-${id}`);
-    if (startBtn) startBtn.disabled = true;
-
-    closeFixedIt(id);
-
-    // Grey out the entire card (N2 spec)
-    const card = document.getElementById(`card-${id}`);
-    if (card) card.classList.add('card-resolved');
-
-    showToast('Report submitted. Waiting for engineer approval.', 'green');
-    loadZoneStatus(); // refresh the HEI + alert count chip
-
-  } catch (e) {
-    showToast(e.message, 'red');
-    btn.disabled    = false;
-    btn.textContent = 'Submit';
-  }
-}
-
-let _pollInterval    = null;
-let _knownAlertIds   = new Set();
-let _firstPoll       = true;
-
-function startAlertPolling() {
-  if (_pollInterval) return; // already running
-  _pollInterval = setInterval(async () => {
-    await _pollAlerts();
-  }, 5000);
-}
-
-function stopAlertPolling() {
-  if (_pollInterval) {
-    clearInterval(_pollInterval);
-    _pollInterval = null;
-  }
-}
-
-async function _pollAlerts() {
-  try {
-    const res = await fetch(API + '/mobile/alerts', { headers: authHeaders() });
-    if (!res.ok) return; // silent fail — don't disrupt the UI
-    const alerts = await res.json();
-    if (!Array.isArray(alerts)) return;
-
-    const currentIds = new Set(alerts.map(a => a.alert_id));
-
-    if (!_firstPoll) {
-      // Check for any IDs that weren't in the previous set
-      const newOnes = alerts.filter(a => !_knownAlertIds.has(a.alert_id));
-      if (newOnes.length > 0) {
-        showToast(`New task assigned (${newOnes.length} alert${newOnes.length > 1 ? 's' : ''})`, 'green');
-        // Re-render the full list so the new card appears
-        _renderAlertList(alerts);
-      }
-    } else {
-      // First poll: just render the list silently
-      _renderAlertList(alerts);
-      _firstPoll = false;
-    }
-
-    _knownAlertIds = currentIds;
-
-  } catch (e) {
-    // Silent fail on poll errors — don't toast every 5 seconds
-  }
-}
-
-// N2: extracted render logic so both loadAlerts() and _pollAlerts() can share it
-function _renderAlertList(alerts) {
-  const listEl  = document.getElementById('alerts-list');
-  const stateEl = document.getElementById('alerts-state');
-
-  // Remove existing cards (keep the state-msg element)
-  listEl.querySelectorAll('.alert-card').forEach(c => c.remove());
-
-  if (!alerts.length) {
-    stateEl.style.display = 'block';
-    stateEl.textContent   = 'No active alerts for your zone.';
-    stateEl.onclick       = null;
-    return;
-  }
-
-  stateEl.style.display = 'none';
-  alerts.forEach(a => listEl.appendChild(buildCard(a)));
-}
-
-    // ─── Init ──────────────────────────────────────────────────────
-    (function init() {
-      if (getToken()) {
-        onLoginSuccess();
-      }
-    })();
-  </script>
+  // ── Init ─────────────────────────────────────────────────────────
+  (function init() {
+    if (getToken()) { onLoginSuccess(); }
+    updateOfflineBadge(); // Restore badge count from localStorage on page load
+  })();
+</script>
 
 </body>
 </html>

@@ -115,3 +115,76 @@ Status: Done and tested.
 Deviation Report: Person:C | F0 | Bible says:Replace every occurrence of 'http://localhost:8000' with API_BASE in fetch calls... remove locally defined API_BASE constant | I did:Replaced const BACK = 'http://localhost:8000' with const BACK = API_BASE (fetch calls already used BACK as the base URL), and did not find any locally defined API_BASE constant to remove | Impact on A/B/D:None. The existing fetch architecture was preserved, simply swapping the hardcoded base for the dynamic config.js variable.
 
 Deviation Report: Person:D | F0 | Bible says:Replace every occurrence of 'http://localhost:8000' with API_BASE in fetch calls... remove const BACK = '...' | I did:Replaced const BACK = 'http://localhost:8000' with const BACK = API_BASE (since the fetch calls already used BACK as their base URL) | Impact on A/B/C:None. The existing API fetching architecture using the 'api' helper object was preserved, just swapping the hardcoded URL string for the dynamic environment variable.
+
+
+
+
+# Deviation Report — Team Devsters · Dhara Hydro-Equity Engine
+
+---
+
+## Person: C | F0
+**Bible says:** Replace every occurrence of `http://localhost:8000` with `API_BASE` in fetch calls; remove locally defined `API_BASE` constant.
+**I did:** Replaced `const BACK = 'http://localhost:8000'` with `const BACK = API_BASE` since all fetch calls already used `BACK` as base URL. No locally defined `API_BASE` was found to remove.
+**Impact on A/B/D:** None. Existing fetch architecture preserved.
+
+---
+
+## Person: C | F2 | Feature 1 — Valve Checklist
+**Bible says:** After alerts list, add Valve Checklist section. On login call `GET /mobile/valves`. Render valve cards with state badge, checked-by info, Mark Open / Mark Closed buttons. Update badge without re-fetching full list.
+**I did:** Implemented exactly as specified. Used `callOrQueue()` for valve check button clicks so offline queuing works.
+**Impact on A/D:** None. No endpoints changed.
+
+---
+
+## Person: C | F2 | Feature 2 — Photo Attachment
+**Bible says:** Add file input inside resolve form. Use FileReader to read as base64, strip prefix, store in variable. Show thumbnail preview. Include `photo_b64` in POST body on submit. Clear photo state after submit.
+**I did:** Implemented exactly as specified. Used per-alert-id dict `_photoBase64[id]` to store photos independently per card.
+**Impact on A/D:** None. Backend `mobile.py` already accepted `photo_b64` field.
+
+---
+
+## Person: C | F2 | Feature 3 — Work History
+**Bible says:** After valve checklist, add Work History section. On login call `GET /mobile/history`. Render last 10 resolved alerts with zone, signal, date.
+**I did:** Implemented exactly as specified. Date formatted as `"21 Mar 2026"` using `toLocaleDateString`.
+**Impact on A/D:** None.
+
+---
+
+## Person: C | F2 | Feature 4 — Offline Queue
+**Bible says:** Create `callOrQueue(endpoint, method, body)` helper. If offline, push to `localStorage['dhara_offline_queue']`. Show toast. Add badge in header showing queue count. `window.addEventListener('online', flushOfflineQueue)`. Replace `startWork`, `submitFixedIt`, valve check button fetches with `callOrQueue`.
+**I did:** Implemented exactly as specified. Badge hidden when count is 0.
+**Impact on A/D:** None. No backend changes.
+
+---
+
+## Person: C | F2 | Feature 5 — Push Notifications
+**Bible says:** On login call `Notification.requestPermission()`. In 5-second poll, compare alert IDs against `knownAlertIds` Set. Fire `new Notification(...)` for new alerts. Do not fire on first poll — initialise Set from first response.
+**I did:** Implemented exactly as specified. Used `_firstPoll` boolean flag to suppress first-poll notifications. `notificationsGranted` flag cleared on logout.
+**Impact on A/D:** None.
+
+---
+
+## Person: C | F2 | Bug Fixes Applied During Testing
+
+| Bug | Root Cause | Fix |
+|-----|-----------|-----|
+| "Could not load alerts" | Backend returns `{alerts:[...]}` dict; frontend expected raw array | Parse both shapes: `Array.isArray(raw) ? raw : raw.alerts` |
+| "Zone zone_3" display | `zone_id="zone_3"` + `"Zone " + zone_id` = double prefix | Strip `zone_` prefix before prepending "Zone " |
+| CLPS score showing "—" | Code read `a.clps_score`; backend sends `a.clps` | Changed field name to `a.clps` |
+| Start Work always disabled | Condition `!== 'new'` but all mobile alerts have `status='acknowledged'` | Enable for both `new` and `acknowledged` |
+| Submit crash: `column "resolution_photo" does not exist` | `db_setup_alerts.py` does not add this column | Fixed by running `db_full_setup.py` (column now exists) |
+| Resolved alerts still show `!` map marker | `al.forEach` iterated all alerts including resolved | Filter to `status !== 'resolved'` before adding map markers |
+
+---
+
+## Files Changed — F2
+
+| File | Change |
+|------|--------|
+| `frontend/field_operator_app.html` | Full F2 rewrite — all 5 features added |
+| `frontend/engineer_dashboard.html` | Map marker filter: skip resolved alerts |
+| `frontend/ward_dashboard.html` | Map marker filter: skip resolved alerts |
+| `scripts/patch_map_fix.py` | One-time patcher script for map marker fix |
+
+**Files NOT changed:** `backend/routers/mobile.py`, `backend/app.py`, any DB schema files.

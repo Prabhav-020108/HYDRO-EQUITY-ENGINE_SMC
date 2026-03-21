@@ -924,7 +924,7 @@ async function renderAlerts(){
   // Map alert markers for non-baseline scenarios
   if(scen!=='baseline'){
     const li=L.divIcon({html:`<div class="mlk">!</div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]});
-    al.filter(a=>(a.status||'new').toLowerCase()!=='resolved').forEach(a=>{
+    al.forEach(a=>{
       const zc=ZONES.find(z=>z.id===(a.zone_id_short||''));
       if(zc){
         const col=(a.level==='HIGH'||a.level==='high')?'#D32F2F':'#E65100';

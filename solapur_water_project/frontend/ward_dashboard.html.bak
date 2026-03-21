@@ -790,14 +790,12 @@
     const col    = isHigh ? '#D32F2F' : '#E65100';
     const clps   = parseFloat(a.clps || 0);
 
-    // Map marker — skip resolved alerts so they disappear from map
-    if ((a.status || 'new') !== 'resolved') { 
-      L.marker([myZone.lat, myZone.lon], { icon: li, zIndexOffset: 200 })
-        .bindPopup(`<div class="ptit2" style="color:${col}">⚠ ${a.title}</div>
-          <div class="prow"><span class="pkey">CLPS</span><span class="pval">${clps.toFixed(3)}</span></div>
-          <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal}</span></div>`)
-        .addTo(lLG);
-    }
+    // Map marker (only for non-baseline scenarios, consistent with engineer dashboard)
+    L.marker([myZone.lat, myZone.lon], { icon: li, zIndexOffset: 200 })
+      .bindPopup(`<div class="ptit2" style="color:${col}">⚠ ${a.title}</div>
+        <div class="prow"><span class="pkey">CLPS</span><span class="pval">${clps.toFixed(3)}</span></div>
+        <div class="prow"><span class="pkey">Signal</span><span class="pval">${a.dominant_signal}</span></div>`)
+      .addTo(lLG);
 
     // N2: left border colour tracks lifecycle state, not just severity
     const alertStatus = a.status || 'new';
