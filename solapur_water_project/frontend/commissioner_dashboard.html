@@ -877,6 +877,14 @@
     if (!TOKEN) { window.location.href = 'login.html'; }
     document.getElementById('userDisplay').textContent = FULLNAME || 'Commissioner';
     function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+    function _autoDismiss(el) {
+      if (!el) return;
+      setTimeout(() => {
+        el.style.transition = 'opacity 0.6s';
+        el.style.opacity = '0';
+        setTimeout(() => { el.textContent = ''; el.style.opacity = '1'; el.style.transition = ''; }, 700);
+      }, 4000);
+    }
 
     // ── Accordion toggle ──────────────────────────────────────────────
     function toggleAcc(bodyId, arrowId) {
@@ -1079,7 +1087,12 @@
         'resolved':          { label: 'Resolved',       bg: '#E8F5E9', color: '#2E7D32' },
       };
 
-      document.getElementById('albody').innerHTML = al.map(a => {
+      var _activeAl=al.filter(function(a){return (a.status||'new').toLowerCase()!=='resolved';});
+      var _resolvedAl=al.filter(function(a){return (a.status||'new').toLowerCase()==='resolved';});
+      var _resolvedSec=_resolvedAl.length>0?'<div id="resolvedHeader" onclick="toggleResolved()" style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:#F7F9FB;border:1px solid #DDE3EA;border-radius:6px;margin:8px 10px 4px;cursor:pointer;user-select:none;font-size:11px;font-weight:600;color:#4A5568;"><span id="resolvedChevron" style="transition:transform .2s;display:inline-block;font-size:10px">▶</span> ✓ Resolved ('+_resolvedAl.length+')<span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:4px">— click to expand</span></div><div id="resolvedBody" style="max-height:0;overflow:hidden;transition:max-height .3s ease,opacity .2s ease;opacity:0;"></div>':'';
+      document.getElementById('acnt').textContent=al.length;
+      document.getElementById('sAl').textContent=_activeAl.length;
+      document.getElementById('albody').innerHTML = _activeAl.map(a => {
         const isHigh = (a.level === 'HIGH' || a.level === 'high');
         const clps = parseFloat(a.clps || 0);
         const alertStatus = a.status || 'new';
@@ -1110,7 +1123,8 @@
           <div class="ameta">CLPS: <span class="clpsv" style="color:${si.color}">${clps.toFixed(3)}</span></div>
           <div class="clpsbar" style="width:${Math.min(100, clps * 100)}%;background:${si.color}"></div>
         </div>`;
-      }).join('');
+      }).join('')+_resolvedSec;
+      if(_resolvedAl.length>0){var _rb=document.getElementById('resolvedBody');if(_rb)_rb.innerHTML=_resolvedAl.map(function(a){var cl=parseFloat(a.clps||0),c='#2E7D32';return '<div class="acard" style="border-left-color:'+c+';opacity:0.58;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><div class="atit" style="color:'+c+';margin:0">🟢 '+a.zone+'</div><span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;background:#E8F5E9;color:'+c+'">Resolved</span></div><div class="abody">'+(a.dominant_signal||'')+' · '+(a.body||'')+'</div><div class="ameta">CLPS: <span class="clpsv" style="color:'+c+'">'+cl.toFixed(3)+'</span></div><div class="clpsbar" style="width:'+Math.min(100,cl*100)+'%;background:'+c+'"></div></div>';}).join('');}
     }
 
     async function renderRecommendations() {
@@ -1184,9 +1198,11 @@
         URL.revokeObjectURL(url);
         status.textContent = '✅ CSV downloaded successfully.';
         status.style.color = 'var(--green)';
+        _autoDismiss(status);
       } catch(e) {
         status.textContent = `❌ ${e.message}`;
         status.style.color = 'var(--red)';
+        _autoDismiss(status);
       } finally {
         btn.disabled    = false;
         btn.textContent = '📋 Download Alert Log (CSV)';
@@ -1220,9 +1236,11 @@
         URL.revokeObjectURL(url);
         status.textContent = '✅ PDF downloaded successfully.';
         status.style.color = 'var(--green)';
+        _autoDismiss(status);
       } catch (e) {
         status.textContent = `❌ ${e.message}`;
         status.style.color = 'var(--red)';
+        _autoDismiss(status);
         console.warn('[PDF]', e.message);
       } finally {
         btn.disabled = false;
@@ -1257,6 +1275,15 @@
   }
 }
 
+    function toggleResolved() {
+      var body=document.getElementById('resolvedBody');
+      var chev=document.getElementById('resolvedChevron');
+      if(!body) return;
+      var open=body.style.maxHeight!=='0px'&&body.style.maxHeight!=='';
+      body.style.maxHeight=open?'0px':'800px';
+      body.style.opacity=open?'0':'1';
+      if(chev) chev.style.transform=open?'rotate(0deg)':'rotate(90deg)';
+    }
     async function loadAll(){
   await loadNrw();   // ← ADD THIS LINE FIRST
   await Promise.all([loadPipeline(),loadMarkers(),loadEquity(),loadAlerts(),renderRecommendations(),loadStatusCounts()]);
