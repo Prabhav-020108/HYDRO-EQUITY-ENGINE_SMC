@@ -28,7 +28,6 @@
 # import pandas as pd
 # from datetime import datetime
 # from sqlalchemy import text
-# from backend.database import engine
 
 # ROOT    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # DATA    = os.path.join(ROOT, 'Data')
@@ -741,6 +740,7 @@
 # # ══════════════════════════════════════════════════════════════════════
 
 # def run_v7():
+#     from backend.database import engine
 #     """
 #     Main V7 function. Can be called:
 #     - Directly: python scripts/v7_recommendations.py
