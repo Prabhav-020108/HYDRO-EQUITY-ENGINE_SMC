@@ -546,6 +546,15 @@
         </div>
       </div>
 
+      <div class="psec">
+        <div class="ptit">Citizen Complaints
+          <span id="ccnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
+        </div>
+        <div id="complaintBody" style="overflow-y:auto;max-height:220px">
+          <div style="padding:12px 14px;color:var(--text3);font-size:11px">Loading...</div>
+        </div>
+      </div>
+
       <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
         <div class="ptit">Zone Details</div>
         <div id="zoneDetails" style="overflow-y:auto;flex:1">
@@ -862,6 +871,13 @@
       }).join('');
     }
 
+    function fmtTs(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${String(d.getDate()).padStart(2,'0')} ${mn[d.getMonth()]} ${String(d.getFullYear()).slice(2)}, ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
     async function loadFieldHistory() {
       const el = document.getElementById('fwbody');
       const data = await api.get('/ward/complaints/field-history');
@@ -874,12 +890,7 @@
       }
 
       el.innerHTML = alerts.map(a => {
-        let rAt = "—";
-        if (a.resolved_at) {
-          const d = new Date(a.resolved_at);
-          const mn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-          rAt = `${String(d.getDate()).padStart(2, '0')} ${mn[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-        }
+        const rAt = fmtTs(a.resolved_at);
         return `<div class="acard moderate" style="border-left-color:#2E7D32;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
             <div class="atit" style="color:#2E7D32;margin-bottom:0">✅ #${a.alert_id} · ${a.dominant_signal}</div>
@@ -890,8 +901,35 @@
       }).join('');
     }
 
+    async function loadComplaints() {
+      const data = await api.get('/ward/complaints');
+      const el = document.getElementById('complaintBody');
+      const cnt = document.getElementById('ccnt');
+      if (!el) return;
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        el.innerHTML = '<div style="padding:10px 14px;color:var(--text3);font-size:11px;">No complaints for your zone.</div>';
+        if (cnt) cnt.textContent = '0';
+        return;
+      }
+      if (cnt) cnt.textContent = data.length;
+      const typeLabels = { no_water:'No Water', low_pressure:'Low Pressure', dirty_water:'Dirty Water', pipe_leak:'Pipe Leak', billing:'Billing', tanker_request:'Tanker Request' };
+      const statusCol = { open:'#E65100', acknowledged:'#1976D2', resolved:'#2E7D32' };
+      el.innerHTML = data.map(c => {
+        const col = statusCol[c.status] || '#8A96A4';
+        const label = typeLabels[c.problem_type] || c.problem_type;
+        const d = c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '—';
+        return `<div style="padding:7px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text)">${label}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace">${d}</div>
+          </div>
+          <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;background:${col}22;color:${col};white-space:nowrap">${c.status.toUpperCase()}</span>
+        </div>`;
+      }).join('');
+    }
+
     async function loadAll() {
-      await Promise.all([loadPipeline(), loadMarkers(), loadEquity(), loadAlerts(), loadRecs(), loadFieldHistory()]);
+      await Promise.all([loadPipeline(), loadMarkers(), loadEquity(), loadAlerts(), loadRecs(), loadFieldHistory(), loadComplaints()]);
       setTimeout(() => document.getElementById('ld').classList.add('hidden'), 300);
     }
     window.addEventListener('load', () => setTimeout(loadAll, 400));

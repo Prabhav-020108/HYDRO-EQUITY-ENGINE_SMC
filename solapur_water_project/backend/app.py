@@ -789,15 +789,17 @@ app = FastAPI(
 # On Render, set ALLOWED_ORIGINS to your frontend domain(s).
 _raw_origins = os.getenv(
     "ALLOWED_ORIGINS",
-"http://localhost:3000,http://localhost:5500,http://localhost:8000")
+    "http://localhost:5500,http://localhost:8000"
+)
 _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    max_age=3600,
 )
 # ── Include routers ───────────────────────────────────────────────
 app.include_router(auth_router)           # /auth/login, /auth/me
@@ -871,6 +873,7 @@ def submit_complaint(req: ComplaintRequest):
     """Public — citizen complaint submission. Saves to DB if available."""
     from sqlalchemy import text
     from backend.database import engine
+    zone_id = req.zone_id.lower().strip()   # on insert
     try:
         with engine.connect() as conn:
             row = conn.execute(text("""
@@ -879,7 +882,7 @@ def submit_complaint(req: ComplaintRequest):
                 VALUES (:z, :pt, :lm, :desc, :con, :photo)
                 RETURNING complaint_id
             """), {
-                "z":     req.zone_id,
+                "z":     zone_id,
                 "pt":    req.problem_type,
                 "lm":    req.landmark or "",
                 "desc":  req.description or "",
