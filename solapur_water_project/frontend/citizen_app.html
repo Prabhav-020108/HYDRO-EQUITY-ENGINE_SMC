@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dhara — Water Supply · Solapur</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="config.js"></script>
+    <style>
+        :root {
+            --bg: #F0F4F8;
+            --surface: #FFFFFF;
+            --border: #DDE3EA;
+            --text: #1A2332;
+            --text2: #4A5568;
+            --text3: #8A96A4;
+            --blue: #0D5FA8;
+            --green: #2E7D32;
+            --orange: #E65100;
+            --red: #D32F2F;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg);
+            padding: 0;
+            color: var(--text);
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-bottom: 60px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .screen-content {
+            padding: 20px;
+            text-align: center;
+            color: var(--text2);
+        }
+
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 56px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        #bottom-nav button {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text3);
+            cursor: pointer;
+            width: 25%;
+            height: 100%;
+            padding: 0;
+        }
+
+        #bottom-nav button .icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+
+        #bottom-nav button .label {
+            font-size: 10px;
+            line-height: 1;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        #bottom-nav button.active {
+            color: var(--blue);
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width:40px; height:40px; border:3px solid #DDE3EA; border-top-color:#0D5FA8; border-radius:50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+
+        .complaint-card { background:#fff; border:1px solid #DDE3EA; border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+        .cc-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .cc-type { font-size:13px; font-weight:600; color:#1A2332; }
+        .cc-date { font-size:11px; color:#8A96A4; }
+        .cc-badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; line-height:1.2; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div id="screen-detect" class="screen active">
+            <div style="max-width: 360px; margin: 40px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="color: var(--blue); font-weight: 600; font-size: 16px; margin-bottom: 24px; letter-spacing: 0.05em;">DHARA · Solapur Water</div>
+                
+                <div id="gps-spinner">
+                    <div class="spinner"></div>
+                    <div style="color: var(--text3); font-size: 14px;">Detecting your zone...</div>
+                </div>
+
+                <div id="gps-result" style="display: none;">
+                    <div id="detected-zone-name" style="font-size: 28px; font-weight: bold; color: var(--text); margin-bottom: 4px;">—</div>
+                    <div style="font-size: 14px; color: var(--text2); margin-bottom: 12px;">Your water supply zone</div>
+                    <div id="detected-method" style="font-size: 11px; color: var(--text3); margin-bottom: 24px;">Detected via GPS</div>
+                    <button onclick="enterStatusScreen()" style="width: 100%; padding: 12px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">View Zone Status</button>
+                </div>
+
+                <div id="gps-error" style="display: none;">
+                    <div style="font-size: 14px; color: var(--text2); margin-bottom: 12px; font-weight: 500;">GPS unavailable — select your zone</div>
+                    <select id="zone-select" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; background: var(--surface); color: var(--text);">
+                        <option value="zone_1">Zone 1</option>
+                        <option value="zone_2">Zone 2</option>
+                        <option value="zone_3">Zone 3</option>
+                        <option value="zone_4">Zone 4</option>
+                        <option value="zone_5">Zone 5</option>
+                        <option value="zone_6">Zone 6</option>
+                        <option value="zone_7">Zone 7</option>
+                        <option value="zone_8">Zone 8</option>
+                    </select>
+                    <button onclick="useManualZone()" style="width: 100%; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">Use This Zone</button>
+                </div>
+            </div>
+        </div>
+        <div id="screen-status" class="screen">
+            <div style="padding: 24px 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+                    <div>
+                        <div id="status-zone-name" style="font-size: 24px; font-weight: bold; color: var(--blue); margin-bottom: 4px;">Zone Name</div>
+                        <div style="font-size: 14px; color: var(--text2);">Water Supply Status</div>
+                    </div>
+                    <div id="status-badge" style="padding: 6px 12px; border-radius: 16px; font-weight: 600; font-size: 13px; background: #E8F5E9; color: #2E7D32;">Normal</div>
+                </div>
+
+                <div id="status-advisory" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    Loading status...
+                </div>
+
+                <div id="status-restoration-wrap" style="display: none; padding: 12px 16px; background: #FFF3E0; border: 1px solid #FFE0B2; border-radius: 8px; margin-bottom: 16px;">
+                    <div id="status-restoration-text" style="font-size: 13px; font-style: italic; color: var(--orange); font-weight: 500;"></div>
+                </div>
+
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">Supply Hours</div>
+                    <div style="font-size: 14px; color: var(--text); margin-bottom: 8px;">🌅 Morning: 6:00 AM – 8:00 AM</div>
+                    <div style="font-size: 14px; color: var(--text);">🌆 Evening: 5:00 PM – 8:00 PM</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <div style="font-size: 11px; color: var(--text3); margin-bottom: 4px;">Updates every 60 seconds</div>
+                    <div id="status-last-updated" style="font-size: 11px; color: var(--text3);"></div>
+                </div>
+            </div>
+        </div>
+        <div id="screen-report" class="screen">
+            <div style="padding: 24px 20px;">
+                <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 4px;">Report an Issue</div>
+                <div id="report-zone-label" style="font-size: 14px; color: var(--text3); margin-bottom: 24px;">—</div>
+
+                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Problem Type *</label>
+                        <select id="complaint-type" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text);">
+                            <option value="">-- Select a problem --</option>
+                            <option value="no_water">No Water</option>
+                            <option value="low_pressure">Low Pressure</option>
+                            <option value="dirty_water">Dirty Water</option>
+                            <option value="pipe_leak">Pipe Leak Visible</option>
+                            <option value="billing">Billing Issue</option>
+                            <option value="tanker_request">Tanker Request</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Add Photo (optional)</label>
+                        <input type="file" id="photo-input" accept="image/*" style="width: 100%; font-size: 13px; color: var(--text2);">
+                        <div id="photo-preview" style="display: none; margin-top: 8px;"></div>
+                    </div>
+
+                    <div style="margin-bottom: 24px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Additional details (optional)</label>
+                        <textarea id="complaint-desc" maxlength="200" rows="3" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text); resize: none;"></textarea>
+                        <div id="char-counter" style="font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px;">0/200 characters</div>
+                    </div>
+
+                    <div id="submit-error" style="display: none; color: var(--red); font-size: 13px; font-weight: 500; margin-bottom: 16px; padding: 10px; background: #FFEBEE; border-radius: 6px;"></div>
+
+                    <button id="submit-btn" onclick="submitComplaint()" style="width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">Submit Report</button>
+                </div>
+            </div>
+        </div>
+        <div id="screen-complaints" class="screen">
+            <div style="padding: 24px 20px;">
+                <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 4px;">My Complaints</div>
+                <div style="font-size: 14px; color: var(--text3); margin-bottom: 24px;">Submitted from this device</div>
+                
+                <div id="complaints-list"></div>
+            </div>
+        </div>
+        <div id="screen-help" class="screen">
+            <div style="padding: 24px 20px;">
+                <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 24px;">Help & Information</div>
+                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="font-size: 14px; font-weight: 500;">For urgent water issues call SMC: <span style="color: var(--blue); font-weight: 600;">0217-2728888</span></div>
+                </div>
+                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="font-size: 14px; font-weight: 500;">Supply hours: 6–8 AM and 5–8 PM daily</div>
+                </div>
+                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="font-size: 14px; font-weight: 500;">Complaints are tracked — check My Reports tab for updates.</div>
+                </div>
+            </div>
+        </div>
+        
+        <nav id="bottom-nav">
+            <!-- 4 tabs -->
+            <button class="active" onclick="showScreen('screen-status'); loadZoneStatus();">
+                <span class="icon">🏠</span>
+                <span class="label">Home</span>
+            </button>
+            <button onclick="showScreen('screen-report'); document.getElementById('status-zone-name') && (document.getElementById('report-zone-label').textContent = sessionStorage.getItem('citizen_zone_name') || '');">
+                <span class="icon">📋</span>
+                <span class="label">Report</span>
+            </button>
+            <button onclick="showScreen('screen-complaints'); loadComplaints();">
+                <span class="icon">📁</span>
+                <span class="label">My Reports</span>
+            </button>
+            <button onclick="showScreen('screen-help');">
+                <span class="icon">❓</span>
+                <span class="label">Help</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        if (typeof API_BASE === 'undefined') {
+            window.API_BASE = 'http://localhost:8000';
+        }
+
+        function showScreen(id) {
+            if (id !== 'screen-status' && typeof _statusInterval !== 'undefined' && _statusInterval) {
+                clearInterval(_statusInterval);
+                _statusInterval = null;
+            }
+            if (id !== 'screen-complaints' && typeof _complaintsInterval !== 'undefined' && _complaintsInterval) {
+                clearInterval(_complaintsInterval);
+                _complaintsInterval = null;
+            }
+
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            // Set active class on the tab button
+            document.querySelectorAll('#bottom-nav button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick').includes(id)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            navigator.geolocation.getCurrentPosition(gpsSuccess, gpsError, {timeout: 10000});
+        });
+
+        async function gpsSuccess(position) {
+            try {
+                const res = await fetch(API_BASE + '/citizen/locate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({lat: position.coords.latitude, lon: position.coords.longitude})
+                });
+                const data = await res.json();
+                
+                sessionStorage.setItem('citizen_zone_id', data.zone_id);
+                sessionStorage.setItem('citizen_zone_name', data.zone_name || data.zone_id);
+                
+                document.getElementById('gps-spinner').style.display = 'none';
+                document.getElementById('gps-result').style.display = 'block';
+                document.getElementById('detected-zone-name').textContent = data.zone_name || data.zone_id;
+                document.getElementById('detected-method').textContent = 'Detected via GPS · ' + (data.detection_method || 'location');
+            } catch(e) {
+                gpsError(e);
+            }
+        }
+
+        function gpsError(err) {
+            document.getElementById('gps-spinner').style.display = 'none';
+            document.getElementById('gps-error').style.display = 'block';
+        }
+
+        function useManualZone() {
+            const sel = document.getElementById('zone-select');
+            const zoneId = sel.value;
+            const zoneName = sel.options[sel.selectedIndex].text;
+            
+            sessionStorage.setItem('citizen_zone_id', zoneId);
+            sessionStorage.setItem('citizen_zone_name', zoneName);
+            enterStatusScreen();
+        }
+
+        function enterStatusScreen() {
+            showScreen('screen-status');
+            
+            document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
+            document.querySelector('#bottom-nav button:first-child').classList.add('active');
+            
+            loadZoneStatus();
+        }
+
+        let _statusInterval = null;
+
+        function loadZoneStatus() {
+            _fetchZoneStatus();
+            if (_statusInterval) clearInterval(_statusInterval);
+            _statusInterval = setInterval(_fetchZoneStatus, 60000);
+        }
+
+        async function _fetchZoneStatus() {
+            const zoneId = sessionStorage.getItem('citizen_zone_id');
+            const zoneName = sessionStorage.getItem('citizen_zone_name');
+            document.getElementById('status-zone-name').textContent = zoneName || zoneId || 'Your Zone';
+            
+            try {
+                const res = await fetch(API_BASE + '/recommendations/citizen');
+                const data = await res.json();
+                const advisories = data.advisories || [];
+                
+                // Try exact match first
+                let match = advisories.find(a => a.zone_id === zoneId);
+
+                // If no match, try first advisory as fallback
+                if (!match && advisories.length > 0) match = advisories[0];
+
+                // If still nothing, show a default message
+                if (!match) {
+                    document.getElementById('status-advisory').textContent = 
+                        'Water supply status is currently unavailable. Please check back later.';
+                    return;
+                }
+                
+                // Badge
+                const badge = document.getElementById('status-badge');
+                badge.textContent = match.supply_status || 'Normal';
+                
+                const status = (match.supply_status || '').toLowerCase();
+                if (status === 'normal') {
+                    badge.style.background = '#E8F5E9'; 
+                    badge.style.color = '#2E7D32';
+                } else if (status === 'intermittent') {
+                    badge.style.background = '#FFF3E0'; 
+                    badge.style.color = '#E65100';
+                } else {
+                    badge.style.background = '#FFEBEE'; 
+                    badge.style.color = '#D32F2F';
+                }
+                
+                // Advisory
+                document.getElementById('status-advisory').textContent = match.advisory_text || '';
+                
+                // Restoration
+                const rest = match.estimated_restoration;
+                const wrap = document.getElementById('status-restoration-wrap');
+                
+                if (rest && rest !== 'N/A' && rest.trim() !== '') {
+                    document.getElementById('status-restoration-text').textContent = '⏱ ' + rest;
+                    wrap.style.display = 'block';
+                } else {
+                    wrap.style.display = 'none';
+                }
+                
+                // Timestamp
+                const now = new Date();
+                document.getElementById('status-last-updated').textContent = 
+                    'Last updated: ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+            } catch(e) {
+                console.error('[Zone Status] fetch failed:', e);
+                document.getElementById('status-advisory').textContent = 
+                    'Could not load status. Please try again.';
+            }
+        }
+
+        // ── TASK 4: Complaint Submission ─────────────────────────────────
+        let photoBase64 = null;
+
+        document.getElementById('photo-input').addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const full = e.target.result;
+                photoBase64 = full.split(',')[1]; // strip data:...;base64, prefix
+                const img = document.getElementById('photo-preview');
+                img.innerHTML = '<img src="' + full + '" style="max-height:80px;border-radius:6px;margin-top:6px;">';
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('complaint-desc').addEventListener('input', function() {
+            document.getElementById('char-counter').textContent = this.value.length + '/200 characters';
+        });
+
+        async function submitComplaint() {
+            console.log('[Submit] API_BASE value is:', typeof API_BASE !== 'undefined' ? API_BASE : 'UNDEFINED - config.js not loaded');
+            const type = document.getElementById('complaint-type').value;
+            const desc = document.getElementById('complaint-desc').value;
+            const errEl = document.getElementById('submit-error');
+            errEl.style.display = 'none';
+
+            if (!type) { errEl.textContent = 'Please select a problem type.'; errEl.style.display = 'block'; return; }
+
+            const zoneId = sessionStorage.getItem('citizen_zone_id');
+            if (!zoneId) { errEl.textContent = 'Zone not detected. Please go back and select your zone.'; errEl.style.display = 'block'; return; }
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true; btn.textContent = 'Submitting...';
+
+            const body = { zone_id: zoneId, problem_type: type, description: desc };
+            if (photoBase64) body.photo_b64 = photoBase64;
+
+            try {
+                console.log('[Submit] Posting to:', API_BASE + '/citizen/complaint');
+                console.log('[Submit] Zone ID:', zoneId);
+                console.log('[Submit] Body:', JSON.stringify(body));
+
+                const res = await fetch(API_BASE + '/citizen/complaint', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({detail: 'Server error ' + res.status}));
+                    throw new Error(errData.detail || 'Submission failed with status ' + res.status);
+                }
+                const data = await res.json();
+
+                // Save to localStorage
+                const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+                complaints.push({
+                    complaint_id: data.complaint_id,
+                    problem_type: type,
+                    submitted_at: new Date().toISOString(),
+                    status: 'open'
+                });
+                localStorage.setItem('dhara_complaints', JSON.stringify(complaints));
+
+                // Reset form
+                document.getElementById('complaint-type').value = '';
+                document.getElementById('complaint-desc').value = '';
+                document.getElementById('char-counter').textContent = '0/200 characters';
+                document.getElementById('photo-preview').style.display = 'none';
+                document.getElementById('photo-preview').innerHTML = '';
+                photoBase64 = null;
+                document.getElementById('photo-input').value = '';
+
+                showToast('Complaint submitted. We will follow up.', 'green');
+                setTimeout(() => { showScreen('screen-complaints'); loadComplaints(); }, 1200);
+
+            } catch(e) {
+                errEl.textContent = e.message; errEl.style.display = 'block';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Submit Report';
+            }
+        }
+
+        // Toast helper
+        let _toastTimer = null;
+        function showToast(msg, type) {
+            let toast = document.getElementById('app-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'app-toast';
+                toast.style.cssText = 'position:fixed;bottom:72px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;color:#fff;z-index:9999;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.style.background = type === 'green' ? '#2E7D32' : type === 'red' ? '#D32F2F' : '#1A2332';
+            toast.style.opacity = '1';
+            clearTimeout(_toastTimer);
+            _toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        }
+
+        // ── TASK 5: My Complaints Logic ──────────────────────────────────
+        let _complaintsInterval = null;
+
+        const TYPE_LABELS = {
+            no_water: 'No Water', low_pressure: 'Low Pressure', dirty_water: 'Dirty Water',
+            pipe_leak: 'Pipe Leak Visible', billing: 'Billing Issue', tanker_request: 'Tanker Request'
+        };
+
+        function formatDate(isoString) {
+            const d = new Date(isoString);
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ' ' +
+                String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+        }
+
+        function loadComplaints() {
+            const listEl = document.getElementById('complaints-list');
+            const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+
+            if (complaints.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#8A96A4;"><div style="font-size:32px;margin-bottom:8px;">📋</div><div>No complaints submitted yet.</div></div>';
+                return;
+            }
+
+            listEl.innerHTML = complaints.map(c => `
+                <div class="complaint-card" id="complaint-card-${c.complaint_id}">
+                    <div class="cc-top">
+                        <span class="cc-type">${TYPE_LABELS[c.problem_type] || c.problem_type}</span>
+                        <span class="cc-badge" id="badge-${c.complaint_id}" style="${_badgeStyle(c.status)}">${c.status}</span>
+                    </div>
+                    <div class="cc-date">${formatDate(c.submitted_at)}</div>
+                </div>
+            `).join('');
+
+            // Start polling
+            if (_complaintsInterval) clearInterval(_complaintsInterval);
+            _complaintsInterval = setInterval(_pollComplaintStatuses, 30000);
+        }
+
+        function _badgeStyle(status) {
+            if (status === 'acknowledged') return 'background:#EBF3FB;color:#1976D2;';
+            if (status === 'resolved') return 'background:#E8F5E9;color:#2E7D32;';
+            return 'background:#F0F4F8;color:#8A96A4;';
+        }
+
+        async function _pollComplaintStatuses() {
+            const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+            let changed = false;
+            for (const c of complaints) {
+                try {
+                    const res = await fetch(API_BASE + '/citizen/complaint/' + c.complaint_id + '/status');
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const newStatus = data.status || c.status;
+                    if (newStatus !== c.status) {
+                        c.status = newStatus;
+                        changed = true;
+                        // Update only the badge, not the whole card
+                        const badge = document.getElementById('badge-' + c.complaint_id);
+                        if (badge) {
+                            badge.textContent = newStatus;
+                            badge.style.cssText = _badgeStyle(newStatus);
+                        }
+                    }
+                } catch(e) { /* silent fail — polling */ }
+            }
+            if (changed) localStorage.setItem('dhara_complaints', JSON.stringify(complaints));
+        }
+    </script>
+</body>
+</html>
