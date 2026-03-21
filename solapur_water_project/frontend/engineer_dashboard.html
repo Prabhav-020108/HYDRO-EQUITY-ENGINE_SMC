@@ -1919,6 +1919,26 @@
           </button>
         </div>`;
 
+        const actionButtons = alertStatus === 'resolved' || alertStatus === 'resolve_requested'
+          ? ''
+          : alertStatus === 'acknowledged'
+            ? `<div style="margin-top:7px;display:flex;gap:6px;">
+          <button class="abtn" onclick="resolveAlert(${dbId},this)"
+            style="border:1px solid #2E7D32;background:#E8F5E9;color:#2E7D32;padding:5px 8px;">
+            Resolve
+          </button>
+        </div>`
+            : `<div style="margin-top:7px;display:flex;gap:6px;">
+          <button class="abtn" onclick="ackAlert(${dbId},this)"
+            style="border:1px solid #1976D2;background:#EBF3FB;color:#1976D2;padding:5px 8px;">
+            Acknowledge
+          </button>
+          <button class="abtn" onclick="resolveAlert(${dbId},this)"
+            style="border:1px solid #2E7D32;background:#E8F5E9;color:#2E7D32;padding:5px 8px;">
+            Resolve
+          </button>
+        </div>`;
+
         return `<div class="acard ${isHigh ? 'high' : 'moderate'}"
                id="acard-${i}"
                data-alert-id="${dbId}"
