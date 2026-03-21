@@ -284,6 +284,10 @@ NEW_COLUMNS = [
         "alerts.resolution_photo",
         "ALTER TABLE alerts ADD COLUMN IF NOT EXISTS resolution_photo TEXT"
     ),
+    (
+        "alerts.resolved_by",
+        "ALTER TABLE alerts ADD COLUMN IF NOT EXISTS resolved_by TEXT"
+    ),
     # citizen_complaints — photo support + status + updated_at
     (
         "citizen_complaints.photo_b64",

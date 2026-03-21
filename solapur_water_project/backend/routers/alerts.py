@@ -513,7 +513,8 @@ def _fetch_alert_by_id(conn, alert_id: int) -> Optional[dict]:
                resolution_report,
                resolved_at,
                notes,
-               created_at
+               created_at,
+               resolved_by
         FROM   alerts
         WHERE  alert_id = :aid
     """), {"aid": alert_id}).fetchone()
@@ -534,6 +535,7 @@ def _fetch_alert_by_id(conn, alert_id: int) -> Optional[dict]:
         "resolved_at":       row[9].isoformat()   if row[9]  else None,
         "notes":             str(row[10])          if row[10] else None,
         "created_at":        row[11].isoformat()  if row[11] else None,
+        "resolved_by":       str(row[12])         if row[12] else None,
     }
 
 
@@ -567,7 +569,7 @@ def get_active_alerts(
                            probable_nodes, scenario, status,
                            acknowledged_at, acknowledged_by,
                            resolution_report, resolved_at,
-                           rejected_count, notes, created_at
+                           rejected_count, notes, created_at, resolved_by
                     FROM alerts
                     WHERE status = :st
                 """
@@ -613,6 +615,7 @@ def get_active_alerts(
                     'probable_nodes':    [],
                     'scenario':          scen,
                     'created_at':        r[14].isoformat() if r[14] else None,
+                    'resolved_by':       str(r[15]) if r[15] else None,
                 })
 
             return {
@@ -657,7 +660,7 @@ def get_active_alerts(
                 text("""
                     SELECT alert_id, zone_id, status,
                            acknowledged_by, resolution_report,
-                           acknowledged_at, resolved_at
+                           acknowledged_at, resolved_at, resolution_photo, resolved_by
                     FROM alerts
                     WHERE scenario = :scen
                 """),
@@ -671,6 +674,8 @@ def get_active_alerts(
                     'resolution_report': str(row[4]) if row[4] else None,
                     'acknowledged_at':   row[5].isoformat() if row[5] else None,
                     'resolved_at':       row[6].isoformat() if row[6] else None,
+                    'resolution_photo':  str(row[7]) if row[7] else None,
+                    'resolved_by':       str(row[8]) if row[8] else None,
                 }
     except Exception:
         pass  # PostgreSQL not available — fallback to defaults
@@ -707,6 +712,8 @@ def get_active_alerts(
             'resolution_report': db_info.get('resolution_report'),
             'acknowledged_at':   db_info.get('acknowledged_at'),
             'resolved_at':       db_info.get('resolved_at'),
+            'resolution_photo':  db_info.get('resolution_photo'),
+            'resolved_by':       db_info.get('resolved_by'),
         })
 
     formatted.sort(key=lambda x: x['clps'], reverse=True)

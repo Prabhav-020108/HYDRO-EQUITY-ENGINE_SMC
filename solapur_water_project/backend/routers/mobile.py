@@ -308,11 +308,12 @@ def mobile_resolve_alert(
                     UPDATE alerts
                     SET status            = 'resolve_requested',
                         resolution_report = :report,
-                        resolution_photo  = :photo
+                        resolution_photo  = :photo,
+                        resolved_by       = :resolved_by
                     WHERE alert_id = :aid AND status = 'acknowledged'
                     RETURNING alert_id, status
                 """),
-                {"report": report_text, "aid": alert_id, "photo": body.photo_b64},
+                {"report": report_text, "aid": alert_id, "photo": body.photo_b64, "resolved_by": current_user.get("sub")},
             )
             row = result.fetchone()
             conn.commit()
@@ -434,6 +435,17 @@ class ValveCheckRequest(BaseModel):
 def get_mobile_valves(current_user: dict = Depends(get_current_user)):
     _require_field_operator(current_user)
     zone_id = current_user.get("zone_id")
+    
+    default_valve_id = "V-" + zone_id.upper().replace("_", "") + "-01"
+    default_valve = {
+        "valve_id": default_valve_id,
+        "zone_id": zone_id,
+        "reported_state": None,
+        "checked_by": None,
+        "checked_at": None,
+        "notes": None
+    }
+    
     try:
         with engine.connect() as conn:
             rows = conn.execute(
@@ -442,19 +454,27 @@ def get_mobile_valves(current_user: dict = Depends(get_current_user)):
             ).fetchall()
             
         valves = []
+        found_default = False
         for r in rows:
+            valve_id = str(r[0])
+            if valve_id == default_valve_id:
+                found_default = True
             valves.append({
-                "valve_id": str(r[0]),
+                "valve_id": valve_id,
                 "zone_id": str(r[1]),
                 "reported_state": str(r[2]),
                 "checked_by": str(r[3]),
                 "checked_at": r[4].isoformat() if r[4] else None,
                 "notes": str(r[5]) if r[5] else None
             })
+            
+        if not found_default:
+            valves.append(default_valve)
+            
         return valves
     except Exception as e:
         logger.warning(f"Failed to fetch mobile valves: {e}")
-        return []
+        return [default_valve]
 
 @router.post("/valves/{valve_id}/check")
 def post_mobile_valve_check(
@@ -518,7 +538,7 @@ def get_mobile_history(current_user: dict = Depends(get_current_user)):
                 text("""
                     SELECT alert_id, zone_id, dominant_signal, status, resolved_at 
                     FROM alerts 
-                    WHERE acknowledged_by = :username AND status = 'resolved' 
+                    WHERE resolved_by = :username AND status = 'resolved' 
                     ORDER BY resolved_at DESC LIMIT 10
                 """),
                 {"username": username}

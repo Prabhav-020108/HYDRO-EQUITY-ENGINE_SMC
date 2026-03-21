@@ -354,3 +354,5 @@ if (!match) {
 | PASS | 16 |
 | FAIL (localhost line) | 1 — fixed post QA |
 | Final status | All 17 PASS |
+
+Person: C | Bug Fixes | Bible says: Add a new endpoint: GET /ward/field-history ... In frontend/ward_dashboard.html, add a "Field Work Log" section ... Fetches GET /ward/field-history on load | I did: Added the endpoint inside backend/routers/ward_complaints.py as @router.get("/field-history"). Because this router file defines a prefix="/ward/complaints", the endpoint exposed is actually /ward/complaints/field-history. I updated the frontend fetch call in ward_dashboard.html to fetch from /ward/complaints/field-history instead, maintaining backend prefix cleanly. | Impact on A/B/D: None.

@@ -247,8 +247,16 @@ html,body{height:100%;font-family:'IBM Plex Sans',sans-serif;background:var(--bg
         </div>
       </div>
     </div>
-    <div class="ptit">Zone Equity (HEI)</div>
-    <div id="znl"><div style="padding:16px 14px;color:var(--text3);font-size:11px">Loading...</div></div>
+    <div class="psec">
+      <div class="ptit">Zone Equity (HEI)</div>
+      <div id="znl"><div style="padding:16px 14px;color:var(--text3);font-size:11px">Loading...</div></div>
+    </div>
+    <!-- F4 BUG 1 & 2: Wrapped in their own psec, removed hard max-height to let left panel scroll naturally -->
+    <div class="psec" style="border-bottom:none;">
+      <div class="ptit">Valve Status (Live)</div>
+      <div id="valveBody" style="padding-bottom:4px"></div>
+    </div>
+    <!-- End F4 BUG 1 & 2 HTML -->
   </div>
 
   <div id="mapd"><div id="mapc"></div></div>
@@ -788,6 +796,23 @@ async function rejectResolution(id, btnEl) {
   }
 }
 
+// ── F4 BUG FIX helper: Fullscreen photo overlay ──────────────────
+function openPhotoOverlay(base64) {
+  const ov = document.createElement('div');
+  ov.id = 'photoOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);'
+    + 'z-index:99999;display:flex;align-items:center;justify-content:center;'
+    + 'cursor:pointer;';
+  ov.onclick = () => ov.remove();
+  const img = document.createElement('img');
+  img.src = 'data:image/jpeg;base64,' + base64;
+  img.style.cssText = 'max-width:90vw;max-height:90vh;border-radius:8px;'
+    + 'box-shadow:0 8px 32px rgba(0,0,0,0.6);object-fit:contain;';
+  ov.appendChild(img);
+  document.body.appendChild(ov);
+}
+
+
 // ══════════════════════════════════════════════════════════════════
 // N2 CHANGE 1 + 3 + 4: renderAlerts — full rewrite of alert list
 //
@@ -848,6 +873,18 @@ async function renderAlerts(){
         : '—';
       const reportText = a.resolution_report || a.report || '(No report submitted)';
 
+      // F4 BUG FIX: show button to open overlay instead of inline image
+      const photoHtml = (a.resolution_photo && a.resolution_photo.trim() !== '')
+        ? `<button onclick="openPhotoOverlay('${a.resolution_photo}')"
+             style="margin-bottom:8px;padding:4px 10px;background:#EBF3FB;
+                    border:1px solid #BBDEFB;border-radius:4px;color:#1565C0;
+                    font-size:11px;font-weight:600;cursor:pointer;
+                    font-family:'IBM Plex Sans',sans-serif;">
+             📷 View Photo
+           </button>`
+        : '';
+      // End F4 BUG FIX
+
       resolutionPanel = `
         <div style="margin-top:8px;padding:9px 10px;background:#F0F7FF;border:1px solid #BBDEFB;border-radius:5px;border-left:3px solid #1976D2;">
           <div style="font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
@@ -857,6 +894,7 @@ async function renderAlerts(){
             <span style="color:var(--text3)">Zone HEI at resolution:</span>
             <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:${parseFloat(zoneHei)>=0.85?'#2E7D32':parseFloat(zoneHei)>=0.70?'#E65100':'#D32F2F'}">${zoneHei}</span>
           </div>
+          ${photoHtml}
           <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">
             <span style="color:var(--text3)">Field report:</span>
             <span style="font-style:${reportText==='(No report submitted)'?'italic':''};color:${reportText==='(No report submitted)'?'var(--text3)':'var(--text)'}">${reportText}</span>
@@ -1076,6 +1114,68 @@ async function renderRecommendations(){
 }
 
 // ══════════════════════════════════════════════════════════════════
+// F4 CHANGE 1: loadValveStatus — fetches GET /engineer/valves,
+// groups by zone_id, renders live valve state badges in #valveBody.
+// Called once in loadAll() and repeated every 10 seconds.
+// Silently no-ops on any fetch error (network/403/etc).
+// ══════════════════════════════════════════════════════════════════
+async function loadValveStatus() {
+  try {
+    const res = await fetch(API_BASE + '/engineer/valves', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const vb = document.getElementById('valveBody');
+    if (!vb) return;
+    if (!Array.isArray(data) || data.length === 0) {
+      vb.innerHTML = '<div style="padding:10px 14px;font-size:11px;color:var(--text3);">No valve checks logged yet.</div>';
+      return;
+    }
+
+    // Group rows by zone_id
+    const grouped = {};
+    data.forEach(v => {
+      const z = v.zone_id || 'Unknown';
+      if (!grouped[z]) grouped[z] = [];
+      grouped[z].push(v);
+    });
+
+    let html = '';
+    for (const z of Object.keys(grouped).sort()) {
+      const zName = z.replace(/^(?:zone_|z)?(\d+)$/i, 'Zone $1');
+      html += `<div style="padding:6px 14px;background:#F7F9FB;font-size:10px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);">${zName}</div>`;
+
+      grouped[z].forEach(v => {
+        const state = (v.reported_state || '').toLowerCase();
+        const text = state === 'open' ? 'OPEN' : state === 'closed' ? 'CLOSED' : (v.reported_state || 'UNKNOWN').toUpperCase();
+        const bg   = state === 'open' ? '#2E7D32' : state === 'closed' ? '#D32F2F' : '#8A96A4';
+        const byHtml = v.checked_by ? ` <span style="color:var(--text3);font-size:10px;">by ${v.checked_by}</span>` : '';
+
+        let rel = '';
+        if (v.checked_at) {
+          const mins = Math.max(0, Math.floor((Date.now() - new Date(v.checked_at).getTime()) / 60000));
+          if (mins < 60) rel = `${mins}m ago`;
+          else if (mins < 1440) rel = `${Math.floor(mins / 60)}h ago`;
+          else rel = `${Math.floor(mins / 1440)}d ago`;
+        }
+
+        html += `<div style="padding:6px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text);">${v.valve_id}</span>
+            <span style="font-size:9px;font-weight:700;color:#fff;background:${bg};padding:1px 6px;border-radius:4px;letter-spacing:.04em;">${text}</span>
+            ${byHtml}
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);">${rel}</div>
+        </div>`;
+      });
+    }
+    vb.innerHTML = html;
+  } catch (err) { /* silent — do not console.error */ }
+}
+// ── End F4 CHANGE 1 loadValveStatus ─────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════
 // N2 CHANGE 1: loadAll — adds setInterval for 15-second auto-refresh
 // The interval only calls renderAlerts(); all other panels (map,
 // equity, recommendations) are NOT refreshed automatically.
@@ -1089,6 +1189,10 @@ async function loadAll(){
   }catch(e){console.warn('[loadAll] pipeline failed:',e.message);}
   await addMarkers();
   await Promise.all([compEquity(),renderAlerts(),renderBurstRisk(),renderRecommendations()]);
+
+  // F4 CHANGE 1: initial valve status load after main panel data is ready
+  await loadValveStatus();
+
   initTL();startClock();
   setTimeout(()=>document.getElementById('ld').classList.add('hidden'),300);
 
@@ -1096,8 +1200,11 @@ async function loadAll(){
   // Only renderAlerts() is called — map, equity, and recommendations
   // are NOT touched by this interval (they refresh only on scenario change).
   setInterval(renderAlerts, 15000);
+
+  // F4 CHANGE 1: Valve status auto-refresh every 10 seconds (separate interval).
+  setInterval(loadValveStatus, 10000);
 }
-// ── End N2 CHANGE 1 in loadAll ────────────────────────────────────
+// ── End N2 CHANGE 1 + F4 CHANGE 1 in loadAll ────────────────────────
 
 window.addEventListener('load',()=>setTimeout(loadAll,400));
 
