@@ -69,3 +69,83 @@ async def ingest_data(file: UploadFile = File(...), current_user: dict = Depends
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/reset-simulation-data")
+async def reset_simulation_data(current_user: dict = Depends(get_current_user)):
+    """
+    Resets all simulation-derived data back to committed defaults.
+    Re-imports from outputs/*.json and Data/*.csv files.
+    KEEPS: users, citizens, zone_polygons.
+    WIPES AND RELOADS: alerts, pipe_segments, nodes, zone_demand,
+                       zone_equity_scores, pipe_stress_scores,
+                       engineer_recs, ward_recs, commissioner_recs,
+                       citizen_recs, citizen_complaints.
+    Requires: engineer or commissioner role.
+    """
+    role = current_user.get("role", "")
+    if role not in ("engineer", "commissioner"):
+        raise HTTPException(
+            status_code=403,
+            detail="engineer or commissioner role required."
+        )
+
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
+    results = {}
+
+    try:
+        from scripts.db_migrate import (
+            migrate_pipe_segments, migrate_nodes, migrate_zone_demand,
+            migrate_equity_scores, migrate_alerts, migrate_pipe_stress
+        )
+
+        # Also wipe recommendation and complaint tables for clean state
+        from backend.database import engine
+        from sqlalchemy import text
+
+        with engine.connect() as conn:
+            for table in ['engineer_recs', 'ward_recs', 'commissioner_recs',
+                          'citizen_recs', 'citizen_complaints', 'v7_run_log',
+                          'audit_log']:
+                try:
+                    conn.execute(text(f"DELETE FROM {table}"))
+                except Exception:
+                    pass
+            conn.commit()
+
+        migrate_pipe_segments()
+        results['pipe_segments'] = 'reset'
+        migrate_nodes()
+        results['nodes'] = 'reset'
+        migrate_zone_demand()
+        results['zone_demand'] = 'reset'
+        migrate_equity_scores()
+        results['zone_equity_scores'] = 'reset'
+        migrate_alerts()
+        results['alerts'] = 'reset'
+        migrate_pipe_stress()
+        results['pipe_stress_scores'] = 'reset'
+
+        # Re-run V7 recommendations
+        try:
+            from scripts.v7_recommendations import run_v7
+            run_v7()
+            results['recommendations'] = 'rebuilt'
+        except Exception as e:
+            results['recommendations'] = f'skipped: {e}'
+
+        return {
+            "success": True,
+            "message": "All simulation data reset to defaults from committed outputs.",
+            "tables_reset": results,
+            "note": "Users, citizens, and zone_polygons were NOT affected."
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Reset failed: {e}"
+        )
