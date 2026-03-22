@@ -2557,15 +2557,19 @@
 
     const body = document.getElementById('ecp-body');
     body.innerHTML = list.map(c => {
-      const statusClass = 'status-' + c.status;
-      const pillClass   = 'pill-' + c.status;
-      const statusLabel = c.status === 'acknowledged' ? 'ACKNOWLEDGED'
-                        : c.status === 'resolved'     ? 'RESOLVED'
+      const statusClass = c.status === 'not_resolved' ? 'status-not-resolved' : 'status-' + c.status;
+      const pillClass   = c.status === 'not_resolved' ? 'pill-disputed' : 'pill-' + c.status;
+      const statusLabel = c.status === 'acknowledged'  ? 'ACKNOWLEDGED'
+                        : c.status === 'resolved'      ? 'RESOLVED'
+                        : c.status === 'not_resolved'  ? '⚠ DISPUTED'
                         : 'NEW';
       const typeLabel   = TYPE_LABELS[c.problem_type] || c.problem_type || '—';
 
       const ackBtn = (c.status === 'open')
         ? `<button class="ecp-btn ecp-btn-ack" onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g,'&quot;')})">✓ Acknowledge</button>`
+        : '';
+      const reAckBtn = (c.status === 'not_resolved')
+        ? `<button class="ecp-btn ecp-btn-ack" onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g,'&quot;')})" style="background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;">↺ Re-Acknowledge</button>`
         : '';
       const resBtn = (c.status === 'acknowledged')
         ? `<span style="font-size:10px;color:#1565C0;font-style:italic;
@@ -2577,15 +2581,20 @@
 
       const by = c.acknowledged_by ? `<span style="color:var(--blue);font-size:10px">· acked by ${c.acknowledged_by}</span>` : '';
 
-      return `<div class="ecp-card ${statusClass}" id="ecp-card-${c.complaint_id}">
+      // Pill style for disputed
+      const pillStyle = c.status === 'not_resolved' ? 'background:#FFEBEE;color:#B71C1C;border:1px solid #FFCDD2;' : '';
+      // Card border for disputed
+      const cardStyle = c.status === 'not_resolved' ? 'border-left-color:#D32F2F;background:#FFFCFC;' : '';
+
+      return `<div class="ecp-card ${statusClass}" id="ecp-card-${c.complaint_id}" style="${cardStyle}">
         <div class="ecp-card-top">
           <span class="ecp-card-type">${typeLabel}</span>
-          <span class="ecp-status-pill ${pillClass}">${statusLabel}</span>
+          <span class="ecp-status-pill ${pillClass}" style="${pillStyle}">${statusLabel}</span>
         </div>
         <div class="ecp-card-zone">📍 ${c.zone_name || c.zone_id} ${by}</div>
         <div class="ecp-card-desc">${c.description || '<em style="color:var(--text3)">No description provided</em>'}</div>
         <div class="ecp-card-time">Submitted: ${ecpFmt(c.created_at)}</div>
-        <div class="ecp-card-actions">${ackBtn}${resBtn}${printBtn}</div>
+        <div class="ecp-card-actions">${ackBtn}${reAckBtn}${resBtn}${printBtn}</div>
       </div>`;
     }).join('');
   }

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dhara — Water Supply · Solapur</title>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <script src="config.js"></script>
     <style>
         :root {
@@ -98,37 +100,88 @@
             color: var(--blue);
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner { width:40px; height:40px; border:3px solid #DDE3EA; border-top-color:#0D5FA8; border-radius:50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-        .complaint-card { background:#fff; border:1px solid #DDE3EA; border-radius:8px; padding:12px 14px; margin-bottom:10px; }
-        .cc-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-        .cc-type { font-size:13px; font-weight:600; color:#1A2332; }
-        .cc-date { font-size:11px; color:#8A96A4; }
-        .cc-badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; line-height:1.2; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #DDE3EA;
+            border-top-color: #0D5FA8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        .complaint-card {
+            background: #fff;
+            border: 1px solid #DDE3EA;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+
+        .cc-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .cc-type {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1A2332;
+        }
+
+        .cc-date {
+            font-size: 11px;
+            color: #8A96A4;
+        }
+
+        .cc-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            line-height: 1.2;
+        }
     </style>
 </head>
+
 <body>
     <div class="app">
         <div id="screen-detect" class="screen active">
-            <div style="max-width: 360px; margin: 40px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <div style="color: var(--blue); font-weight: 600; font-size: 16px; margin-bottom: 24px; letter-spacing: 0.05em;">DHARA · Solapur Water</div>
-                
+            <div
+                style="max-width: 360px; margin: 40px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div
+                    style="color: var(--blue); font-weight: 600; font-size: 16px; margin-bottom: 24px; letter-spacing: 0.05em;">
+                    DHARA · Solapur Water</div>
+
                 <div id="gps-spinner">
                     <div class="spinner"></div>
                     <div style="color: var(--text3); font-size: 14px;">Detecting your zone...</div>
                 </div>
 
                 <div id="gps-result" style="display: none;">
-                    <div id="detected-zone-name" style="font-size: 28px; font-weight: bold; color: var(--text); margin-bottom: 4px;">—</div>
+                    <div id="detected-zone-name"
+                        style="font-size: 28px; font-weight: bold; color: var(--text); margin-bottom: 4px;">—</div>
                     <div style="font-size: 14px; color: var(--text2); margin-bottom: 12px;">Your water supply zone</div>
-                    <div id="detected-method" style="font-size: 11px; color: var(--text3); margin-bottom: 24px;">Detected via GPS</div>
-                    <button onclick="enterStatusScreen()" style="width: 100%; padding: 12px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">View Zone Status</button>
+                    <div id="detected-method" style="font-size: 11px; color: var(--text3); margin-bottom: 24px;">
+                        Detected via GPS</div>
+                    <button onclick="enterStatusScreen()"
+                        style="width: 100%; padding: 12px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">View
+                        Zone Status</button>
                 </div>
 
                 <div id="gps-error" style="display: none;">
-                    <div style="font-size: 14px; color: var(--text2); margin-bottom: 12px; font-weight: 500;">GPS unavailable — select your zone</div>
-                    <select id="zone-select" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; background: var(--surface); color: var(--text);">
+                    <div style="font-size: 14px; color: var(--text2); margin-bottom: 12px; font-weight: 500;">GPS
+                        unavailable — select your zone</div>
+                    <select id="zone-select"
+                        style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; background: var(--surface); color: var(--text);">
                         <option value="zone_1">Zone 1</option>
                         <option value="zone_2">Zone 2</option>
                         <option value="zone_3">Zone 3</option>
@@ -138,49 +191,69 @@
                         <option value="zone_7">Zone 7</option>
                         <option value="zone_8">Zone 8</option>
                     </select>
-                    <button onclick="useManualZone()" style="width: 100%; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">Use This Zone</button>
+                    <button onclick="useManualZone()"
+                        style="width: 100%; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">Use
+                        This Zone</button>
                 </div>
             </div>
         </div>
         <div id="screen-status" class="screen">
             <div style="padding: 24px 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
                     <div>
-                        <div id="status-zone-name" style="font-size: 24px; font-weight: bold; color: var(--blue); margin-bottom: 4px;">Zone Name</div>
+                        <div id="status-zone-name"
+                            style="font-size: 24px; font-weight: bold; color: var(--blue); margin-bottom: 4px;">Zone
+                            Name</div>
                         <div style="font-size: 14px; color: var(--text2);">Water Supply Status</div>
                     </div>
-                    <div id="status-badge" style="padding: 6px 12px; border-radius: 16px; font-weight: 600; font-size: 13px; background: #E8F5E9; color: #2E7D32;">Normal</div>
+                    <div id="status-badge"
+                        style="padding: 6px 12px; border-radius: 16px; font-weight: 600; font-size: 13px; background: #E8F5E9; color: #2E7D32;">
+                        Normal</div>
                 </div>
 
-                <div id="status-advisory" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div id="status-advisory"
+                    style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                     Loading status...
                 </div>
 
-                <div id="status-restoration-wrap" style="display: none; padding: 12px 16px; background: #FFF3E0; border: 1px solid #FFE0B2; border-radius: 8px; margin-bottom: 16px;">
-                    <div id="status-restoration-text" style="font-size: 13px; font-style: italic; color: var(--orange); font-weight: 500;"></div>
+                <div id="status-restoration-wrap"
+                    style="display: none; padding: 12px 16px; background: #FFF3E0; border: 1px solid #FFE0B2; border-radius: 8px; margin-bottom: 16px;">
+                    <div id="status-restoration-text"
+                        style="font-size: 13px; font-style: italic; color: var(--orange); font-weight: 500;"></div>
                 </div>
 
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                    <div style="font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">Supply Hours</div>
-                    <div style="font-size: 14px; color: var(--text); margin-bottom: 8px;">🌅 Morning: 6:00 AM – 8:00 AM</div>
+                <div
+                    style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div
+                        style="font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">
+                        Supply Hours</div>
+                    <div style="font-size: 14px; color: var(--text); margin-bottom: 8px;">🌅 Morning: 6:00 AM – 8:00 AM
+                    </div>
                     <div style="font-size: 14px; color: var(--text);">🌆 Evening: 5:00 PM – 8:00 PM</div>
                 </div>
 
                 <div style="text-align: center;">
-                    <div style="font-size: 11px; color: var(--text3); margin-bottom: 4px;">Updates every 60 seconds</div>
+                    <div style="font-size: 11px; color: var(--text3); margin-bottom: 4px;">Updates every 60 seconds
+                    </div>
                     <div id="status-last-updated" style="font-size: 11px; color: var(--text3);"></div>
                 </div>
             </div>
         </div>
         <div id="screen-report" class="screen">
             <div style="padding: 24px 20px;">
-                <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 4px;">Report an Issue</div>
+                <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 4px;">Report an Issue
+                </div>
                 <div id="report-zone-label" style="font-size: 14px; color: var(--text3); margin-bottom: 24px;">—</div>
 
-                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div
+                    style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Problem Type *</label>
-                        <select id="complaint-type" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text);">
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Problem
+                            Type *</label>
+                        <select id="complaint-type" required
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text);">
                             <option value="">-- Select a problem --</option>
                             <option value="no_water">No Water</option>
                             <option value="low_pressure">Low Pressure</option>
@@ -192,20 +265,32 @@
                     </div>
 
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Add Photo (optional)</label>
-                        <input type="file" id="photo-input" accept="image/*" style="width: 100%; font-size: 13px; color: var(--text2);">
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Add
+                            Photo (optional)</label>
+                        <input type="file" id="photo-input" accept="image/*"
+                            style="width: 100%; font-size: 13px; color: var(--text2);">
                         <div id="photo-preview" style="display: none; margin-top: 8px;"></div>
                     </div>
 
                     <div style="margin-bottom: 24px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Additional details (optional)</label>
-                        <textarea id="complaint-desc" maxlength="200" rows="3" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text); resize: none;"></textarea>
-                        <div id="char-counter" style="font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px;">0/200 characters</div>
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Additional
+                            details (optional)</label>
+                        <textarea id="complaint-desc" maxlength="200" rows="3"
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text); resize: none;"></textarea>
+                        <div id="char-counter"
+                            style="font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px;">0/200
+                            characters</div>
                     </div>
 
-                    <div id="submit-error" style="display: none; color: var(--red); font-size: 13px; font-weight: 500; margin-bottom: 16px; padding: 10px; background: #FFEBEE; border-radius: 6px;"></div>
+                    <div id="submit-error"
+                        style="display: none; color: var(--red); font-size: 13px; font-weight: 500; margin-bottom: 16px; padding: 10px; background: #FFEBEE; border-radius: 6px;">
+                    </div>
 
-                    <button id="submit-btn" onclick="submitComplaint()" style="width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">Submit Report</button>
+                    <button id="submit-btn" onclick="submitComplaint()"
+                        style="width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">Submit
+                        Report</button>
                 </div>
             </div>
         </div>
@@ -213,193 +298,109 @@
             <div style="padding: 24px 20px;">
                 <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 4px;">My Complaints</div>
                 <div style="font-size: 14px; color: var(--text3); margin-bottom: 24px;">Submitted from this device</div>
-                
+
                 <div id="complaints-list"></div>
             </div>
         </div>
         <div id="screen-help" class="screen">
             <div style="padding: 24px 20px;">
-                <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 24px;">Help & Information</div>
-                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                    <div style="font-size: 14px; font-weight: 500;">For urgent water issues call SMC: <span style="color: var(--blue); font-weight: 600;">0217-2728888</span></div>
+                <div style="font-size: 24px; font-weight: bold; color: #1A2332; margin-bottom: 24px;">Help & Information
                 </div>
-                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div
+                    style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="font-size: 14px; font-weight: 500;">For urgent water issues call SMC: <span
+                            style="color: var(--blue); font-weight: 600;">0217-2728888</span></div>
+                </div>
+                <div
+                    style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                     <div style="font-size: 14px; font-weight: 500;">Supply hours: 6–8 AM and 5–8 PM daily</div>
                 </div>
-                <div style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                    <div style="font-size: 14px; font-weight: 500;">Complaints are tracked — check My Reports tab for updates.</div>
+                <div
+                    style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    <div style="font-size: 14px; font-weight: 500;">Complaints are tracked — check My Reports tab for
+                        updates.</div>
                 </div>
             </div>
         </div>
-        
-        <!-- Screen 5: Profile -->
-        <div id="screen-profile" class="screen">
-          <div style="padding-bottom:80px;">
 
-            <!-- ── Profile Header Card ── -->
-            <div style="background:linear-gradient(135deg,#0D5FA8,#1976D2);
-                        padding:28px 20px 24px;color:#fff;">
-              <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
-                <!-- Avatar -->
-                <div style="position:relative;">
-                  <div id="profile-avatar-circle"
-                       style="width:72px;height:72px;border-radius:50%;
-                              background:rgba(255,255,255,.2);
-                              border:3px solid rgba(255,255,255,.5);
-                              display:flex;align-items:center;justify-content:center;
-                              font-size:28px;overflow:hidden;cursor:pointer;"
-                       onclick="document.getElementById('profile-avatar-input').click()">
-                    <span id="profile-avatar-emoji">👤</span>
-                    <img id="profile-avatar-img" src="" alt=""
-                         style="display:none;width:100%;height:100%;object-fit:cover;
-                                border-radius:50%;">
-                  </div>
-                  <input type="file" id="profile-avatar-input" accept="image/*"
-                         style="display:none" onchange="handleAvatarUpload(this)">
-                  <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;
-                              background:#fff;border-radius:50%;display:flex;
-                              align-items:center;justify-content:center;
-                              font-size:12px;cursor:pointer;"
-                       onclick="document.getElementById('profile-avatar-input').click()">✏️</div>
-                </div>
-                <!-- Name & Zone -->
-                <div style="flex:1;">
-                  <div id="profile-display-name"
-                       style="font-size:18px;font-weight:700;margin-bottom:2px;">
-                    Solapur Resident
-                  </div>
-                  <div id="profile-zone-tag"
-                       style="font-size:12px;opacity:.8;margin-bottom:4px;">—</div>
-                  <div style="display:inline-block;background:rgba(255,255,255,.18);
-                              border-radius:10px;padding:2px 10px;font-size:11px;">
-                    Dhara Member
-                  </div>
-                </div>
-              </div>
+<!-- Screen 5: Profile -->
+<div id="screen-profile" class="screen">
+  <div style="padding-bottom:80px;">
+    <div style="background:linear-gradient(135deg,#0D5FA8,#1976D2);padding:28px 20px 24px;color:#fff;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <div style="position:relative;">
+          <div id="profile-avatar-circle" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;cursor:pointer;" onclick="document.getElementById('profile-avatar-input').click()">
+            <span id="profile-avatar-emoji">👤</span>
+            <img id="profile-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+          </div>
+          <input type="file" id="profile-avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
+          <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;" onclick="document.getElementById('profile-avatar-input').click()">✏️</div>
+        </div>
+        <div style="flex:1;">
+          <div id="profile-display-name" style="font-size:18px;font-weight:700;margin-bottom:2px;">Solapur Resident</div>
+          <div id="profile-zone-tag" style="font-size:12px;opacity:.8;margin-bottom:4px;">—</div>
+          <div style="display:inline-block;background:rgba(255,255,255,.18);border-radius:10px;padding:2px 10px;font-size:11px;">Dhara Member</div>
+        </div>
+      </div>
+      <input id="profile-name-input" type="text" placeholder="Tap to set your name" oninput="saveProfileField('name', this.value)" style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:14px;font-family:'IBM Plex Sans',sans-serif;margin-bottom:10px;outline:none;" onfocus="this.style.background='rgba(255,255,255,.25)'" onblur="this.style.background='rgba(255,255,255,.15)'">
+      <input id="profile-phone-input" type="tel" placeholder="📱 Mobile number" oninput="saveProfileField('phone', this.value)" style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:14px;font-family:'IBM Plex Sans',sans-serif;outline:none;" onfocus="this.style.background='rgba(255,255,255,.25)'" onblur="this.style.background='rgba(255,255,255,.15)'">
+    </div>
+    <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);">
+      <div style="flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border);">
+        <div id="stat-total" style="font-size:22px;font-weight:700;color:var(--blue);font-family:'IBM Plex Mono',monospace;">0</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Total</div>
+      </div>
+      <div style="flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border);">
+        <div id="stat-resolved" style="font-size:22px;font-weight:700;color:var(--green);font-family:'IBM Plex Mono',monospace;">0</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Resolved</div>
+      </div>
+      <div style="flex:1;padding:14px 8px;text-align:center;">
+        <div id="stat-open" style="font-size:22px;font-weight:700;color:var(--orange);font-family:'IBM Plex Mono',monospace;">0</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Active</div>
+      </div>
+    </div>
+    <div style="padding:16px 20px 0;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px;">My Details</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+        <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:18px;margin-right:14px;">🏠</span>
+          <div><div style="font-size:11px;color:var(--text3);">Service Zone</div><div id="profile-detail-zone" style="font-size:14px;font-weight:600;color:var(--text);">—</div></div>
+        </div>
+        <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:18px;margin-right:14px;">💧</span>
+          <div><div style="font-size:11px;color:var(--text3);">Supply Hours</div><div style="font-size:14px;font-weight:600;color:var(--text);">6–8 AM &amp; 5–8 PM daily</div></div>
+        </div>
+        <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:18px;margin-right:14px;">📞</span>
+          <div><div style="font-size:11px;color:var(--text3);">SMC Helpline</div><div style="font-size:14px;font-weight:600;color:var(--blue);">0217-2728888</div></div>
+        </div>
+        <div style="display:flex;align-items:center;padding:14px 16px;">
+          <span style="font-size:18px;margin-right:14px;">🆔</span>
+          <div><div style="font-size:11px;color:var(--text3);">Member Since</div><div id="profile-since" style="font-size:14px;font-weight:600;color:var(--text);">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:20px 20px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);">Complaint History</div>
+        <div id="profile-history-count" style="font-size:11px;color:var(--text3);">0 entries</div>
+      </div>
+      <div id="profile-history-list">
+        <div style="text-align:center;padding:32px 16px;color:var(--text3);">
+          <div style="font-size:28px;margin-bottom:8px;">📂</div>
+          <div style="font-size:13px;">Resolved &amp; closed complaints will appear here</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-              <!-- Edit Name Field -->
-              <input id="profile-name-input" type="text"
-                     placeholder="Tap to set your name"
-                     oninput="saveProfileField('name', this.value)"
-                     style="width:100%;padding:10px 14px;border-radius:8px;border:none;
-                            background:rgba(255,255,255,.15);color:#fff;font-size:14px;
-                            font-family:'IBM Plex Sans',sans-serif;margin-bottom:10px;
-                            outline:none;"
-                     onfocus="this.style.background='rgba(255,255,255,.25)'"
-                     onblur="this.style.background='rgba(255,255,255,.15)'">
-              <input id="profile-phone-input" type="tel"
-                     placeholder="📱 Mobile number"
-                     oninput="saveProfileField('phone', this.value)"
-                     style="width:100%;padding:10px 14px;border-radius:8px;border:none;
-                            background:rgba(255,255,255,.15);color:#fff;font-size:14px;
-                            font-family:'IBM Plex Sans',sans-serif;outline:none;"
-                     onfocus="this.style.background='rgba(255,255,255,.25)'"
-                     onblur="this.style.background='rgba(255,255,255,.15)'">
-            </div>
-
-            <!-- ── Stats Row ── -->
-            <div style="display:flex;background:var(--surface);
-                        border-bottom:1px solid var(--border);">
-              <div style="flex:1;padding:14px 8px;text-align:center;
-                          border-right:1px solid var(--border);">
-                <div id="stat-total" style="font-size:22px;font-weight:700;
-                     color:var(--blue);font-family:'IBM Plex Mono',monospace;">0</div>
-                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;
-                     letter-spacing:.06em;margin-top:2px;">Total</div>
-              </div>
-              <div style="flex:1;padding:14px 8px;text-align:center;
-                          border-right:1px solid var(--border);">
-                <div id="stat-resolved" style="font-size:22px;font-weight:700;
-                     color:var(--green);font-family:'IBM Plex Mono',monospace;">0</div>
-                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;
-                     letter-spacing:.06em;margin-top:2px;">Resolved</div>
-              </div>
-              <div style="flex:1;padding:14px 8px;text-align:center;">
-                <div id="stat-open" style="font-size:22px;font-weight:700;
-                     color:var(--orange);font-family:'IBM Plex Mono',monospace;">0</div>
-                <div style="font-size:10px;color:var(--text3);text-transform:uppercase;
-                     letter-spacing:.06em;margin-top:2px;">Active</div>
-              </div>
-            </div>
-
-            <!-- ── Info Cards ── -->
-            <div style="padding:16px 20px 0;">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;
-                          letter-spacing:.08em;color:var(--text3);margin-bottom:10px;">
-                My Details
-              </div>
-              <div style="background:var(--surface);border:1px solid var(--border);
-                          border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);">
-                <div style="display:flex;align-items:center;padding:14px 16px;
-                            border-bottom:1px solid var(--border);">
-                  <span style="font-size:18px;margin-right:14px;">🏠</span>
-                  <div>
-                    <div style="font-size:11px;color:var(--text3);">Service Zone</div>
-                    <div id="profile-detail-zone" style="font-size:14px;font-weight:600;
-                         color:var(--text);">—</div>
-                  </div>
-                </div>
-                <div style="display:flex;align-items:center;padding:14px 16px;
-                            border-bottom:1px solid var(--border);">
-                  <span style="font-size:18px;margin-right:14px;">💧</span>
-                  <div>
-                    <div style="font-size:11px;color:var(--text3);">Supply Hours</div>
-                    <div style="font-size:14px;font-weight:600;color:var(--text);">
-                      6–8 AM &amp; 5–8 PM daily
-                    </div>
-                  </div>
-                </div>
-                <div style="display:flex;align-items:center;padding:14px 16px;
-                            border-bottom:1px solid var(--border);">
-                  <span style="font-size:18px;margin-right:14px;">📞</span>
-                  <div>
-                    <div style="font-size:11px;color:var(--text3);">SMC Helpline</div>
-                    <div style="font-size:14px;font-weight:600;color:var(--blue);">
-                      0217-2728888
-                    </div>
-                  </div>
-                </div>
-                <div style="display:flex;align-items:center;padding:14px 16px;">
-                  <span style="font-size:18px;margin-right:14px;">🆔</span>
-                  <div>
-                    <div style="font-size:11px;color:var(--text3);">Member Since</div>
-                    <div id="profile-since" style="font-size:14px;font-weight:600;
-                         color:var(--text);">—</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ── History Log ── -->
-            <div style="padding:20px 20px 0;">
-              <div style="display:flex;align-items:center;justify-content:space-between;
-                          margin-bottom:12px;">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;
-                            letter-spacing:.08em;color:var(--text3);">Complaint History</div>
-                <div id="profile-history-count"
-                     style="font-size:11px;color:var(--text3);">0 entries</div>
-              </div>
-              <div id="profile-history-list">
-                <div style="text-align:center;padding:32px 16px;color:var(--text3);">
-                  <div style="font-size:28px;margin-bottom:8px;">📂</div>
-                  <div style="font-size:13px;">
-                    Resolved &amp; closed complaints will appear here
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div><!-- end padding wrapper -->
-        </div><!-- end screen-profile -->
-        
         <nav id="bottom-nav">
             <button onclick="showScreen('screen-status'); loadZoneStatus();">
                 <span class="icon">🏠</span>
                 <span class="label">Home</span>
             </button>
-            <button onclick="showScreen('screen-report');
-                             document.getElementById('report-zone-label').textContent =
-                             sessionStorage.getItem('citizen_zone_name') || '';">
+            <button onclick="showScreen('screen-report'); document.getElementById('report-zone-label').textContent = sessionStorage.getItem('citizen_zone_name') || '';">
                 <span class="icon">📋</span>
                 <span class="label">Report</span>
             </button>
@@ -419,9 +420,7 @@
     </div>
 
     <script>
-        if (typeof API_BASE === 'undefined') {
-            window.API_BASE = 'http://localhost:8000';
-        }
+
 
         function showScreen(id) {
             if (id !== 'screen-status' && typeof _statusInterval !== 'undefined' && _statusInterval) {
@@ -435,7 +434,7 @@
 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
+
             // Set active class on the tab button
             document.querySelectorAll('#bottom-nav button').forEach(btn => {
                 btn.classList.remove('active');
@@ -446,7 +445,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            navigator.geolocation.getCurrentPosition(gpsSuccess, gpsError, {timeout: 10000});
+            navigator.geolocation.getCurrentPosition(gpsSuccess, gpsError, { timeout: 10000 });
         });
 
         async function gpsSuccess(position) {
@@ -530,7 +529,7 @@
             const sel = document.getElementById('zone-select');
             const zoneId = sel.value;
             const zoneName = sel.options[sel.selectedIndex].text;
-            
+
             sessionStorage.setItem('citizen_zone_id', zoneId);
             sessionStorage.setItem('citizen_zone_name', zoneName);
             enterStatusScreen();
@@ -538,10 +537,10 @@
 
         function enterStatusScreen() {
             showScreen('screen-status');
-            
+
             document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
             document.querySelector('#bottom-nav button:first-child').classList.add('active');
-            
+
             loadZoneStatus();
         }
 
@@ -557,12 +556,12 @@
             const zoneId = sessionStorage.getItem('citizen_zone_id');
             const zoneName = sessionStorage.getItem('citizen_zone_name');
             document.getElementById('status-zone-name').textContent = zoneName || zoneId || 'Your Zone';
-            
+
             try {
                 const res = await fetch(API_BASE + '/recommendations/citizen');
                 const data = await res.json();
                 const advisories = data.advisories || [];
-                
+
                 // Try exact match first
                 let match = advisories.find(a => a.zone_id === zoneId);
 
@@ -571,48 +570,48 @@
 
                 // If still nothing, show a default message
                 if (!match) {
-                    document.getElementById('status-advisory').textContent = 
+                    document.getElementById('status-advisory').textContent =
                         'Water supply status is currently unavailable. Please check back later.';
                     return;
                 }
-                
+
                 // Badge
                 const badge = document.getElementById('status-badge');
                 badge.textContent = match.supply_status || 'Normal';
-                
+
                 const status = (match.supply_status || '').toLowerCase();
                 if (status === 'normal') {
-                    badge.style.background = '#E8F5E9'; 
+                    badge.style.background = '#E8F5E9';
                     badge.style.color = '#2E7D32';
                 } else if (status === 'intermittent') {
-                    badge.style.background = '#FFF3E0'; 
+                    badge.style.background = '#FFF3E0';
                     badge.style.color = '#E65100';
                 } else {
-                    badge.style.background = '#FFEBEE'; 
+                    badge.style.background = '#FFEBEE';
                     badge.style.color = '#D32F2F';
                 }
-                
+
                 // Advisory
                 document.getElementById('status-advisory').textContent = match.advisory_text || '';
-                
+
                 // Restoration
                 const rest = match.estimated_restoration;
                 const wrap = document.getElementById('status-restoration-wrap');
-                
+
                 if (rest && rest !== 'N/A' && rest.trim() !== '') {
                     document.getElementById('status-restoration-text').textContent = '⏱ ' + rest;
                     wrap.style.display = 'block';
                 } else {
                     wrap.style.display = 'none';
                 }
-                
+
                 // Timestamp
                 const now = new Date();
-                document.getElementById('status-last-updated').textContent = 
-                    'Last updated: ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-            } catch(e) {
+                document.getElementById('status-last-updated').textContent =
+                    'Last updated: ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            } catch (e) {
                 console.error('[Zone Status] fetch failed:', e);
-                document.getElementById('status-advisory').textContent = 
+                document.getElementById('status-advisory').textContent =
                     'Could not load status. Please try again.';
             }
         }
@@ -620,11 +619,11 @@
         // ── TASK 4: Complaint Submission ─────────────────────────────────
         let photoBase64 = null;
 
-        document.getElementById('photo-input').addEventListener('change', function() {
+        document.getElementById('photo-input').addEventListener('change', function () {
             const file = this.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const full = e.target.result;
                 photoBase64 = full.split(',')[1]; // strip data:...;base64, prefix
                 const img = document.getElementById('photo-preview');
@@ -634,7 +633,7 @@
             reader.readAsDataURL(file);
         });
 
-        document.getElementById('complaint-desc').addEventListener('input', function() {
+        document.getElementById('complaint-desc').addEventListener('input', function () {
             document.getElementById('char-counter').textContent = this.value.length + '/200 characters';
         });
 
@@ -656,27 +655,19 @@
             const body = { zone_id: zoneId, problem_type: type, description: desc };
             if (photoBase64) body.photo_b64 = photoBase64;
 
-            // Attempt to capture live GPS (10s timeout) — fails silently if denied
-            try {
-                const pos = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
-                });
-                body.lat = pos.coords.latitude;
-                body.lon = pos.coords.longitude;
-            } catch (e) {
-                console.warn('[GPS] Could not capture live coords for complaint', e);
-            }
-
             try {
                 console.log('[Submit] Posting to:', API_BASE + '/citizen/complaint');
+                console.log('[Submit] Zone ID:', zoneId);
+                console.log('[Submit] Body:', JSON.stringify(body));
+
                 const res = await fetch(API_BASE + '/citizen/complaint', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
 
                 if (!res.ok) {
-                    const errData = await res.json().catch(() => ({detail: 'Server error ' + res.status}));
+                    const errData = await res.json().catch(() => ({ detail: 'Server error ' + res.status }));
                     throw new Error(errData.detail || 'Submission failed with status ' + res.status);
                 }
                 const data = await res.json();
@@ -684,7 +675,7 @@
                 // Save to localStorage
                 const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
                 complaints.push({
-                    complaint_id: String(data.complaint_id), // FORCE STRING
+                    complaint_id: String(data.complaint_id),
                     problem_type: type,
                     submitted_at: new Date().toISOString(),
                     status: 'open'
@@ -700,14 +691,10 @@
                 photoBase64 = null;
                 document.getElementById('photo-input').value = '';
 
-                showToast('Complaint submitted.', 'green');
+                showToast('Complaint submitted. We will follow up.', 'green');
+                setTimeout(() => { showScreen('screen-complaints'); loadComplaints(); }, 1200);
 
-                // IMPERATIVE: Load complaints into DOM *before* switching screens
-                loadComplaints(); 
-
-                setTimeout(() => { showScreen('screen-complaints'); }, 600);
-
-            } catch(e) {
+            } catch (e) {
                 errEl.textContent = e.message; errEl.style.display = 'block';
             } finally {
                 btn.disabled = false; btn.textContent = 'Submit Report';
@@ -741,58 +728,30 @@
 
         function formatDate(isoString) {
             const d = new Date(isoString);
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ' ' +
-                String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-        }
-
-        async function _checkAndExpireOldComplaints() {
-            const stored = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
-            if (!stored.length) return;
-
-            // Client-side check: mark any open complaint older than 24h as expired locally
-            const now        = Date.now();
-            const MS_24H     = 24 * 60 * 60 * 1000;
-            let   localChange = false;
-
-            const updated = stored.map(c => {
-                if (c.status === 'open') {
-                    const age = now - new Date(c.submitted_at).getTime();
-                    if (age > MS_24H) {
-                        localChange = true;
-                        return { ...c, status: 'expired' };
-                    }
-                }
-                return c;
-            });
-
-            if (localChange) {
-                localStorage.setItem('dhara_complaints', JSON.stringify(updated));
-            }
-
-            // Also call backend to expire server-side (fire and forget, no UI dependency)
-            try {
-                await fetch(API_BASE + '/citizen/complaints/expire-old', { method: 'POST' });
-            } catch(e) { /* silent — local expiry already handled */ }
+                String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
         }
 
         async function loadComplaints() {
-            await _checkAndExpireOldComplaints();
-            const storedFresh = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
-            
             const listEl = document.getElementById('complaints-list');
-            
+
+            // Check and expire old complaints first
+            await _checkAndExpireOldComplaints();
+            const allComplaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+
             // Active list = everything except expired and resolved
-            const activelist = storedFresh.filter(c => 
+            const complaints = allComplaints.filter(c =>
                 c.status !== 'expired' && c.status !== 'resolved'
             );
 
-            if (activelist.length === 0) {
-                listEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#8A96A4;"><div style="font-size:32px;margin-bottom:8px;">📋</div><div>No active complaints.</div></div>';
+            if (complaints.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center;padding:40px 16px;color:#8A96A4;"><div style="font-size:32px;margin-bottom:8px;">📋</div><div>No active complaints. Check your Profile for history.</div></div>';
                 return;
             }
 
-            listEl.innerHTML = activelist.map(c => {
+            listEl.innerHTML = complaints.map(c => {
+                // Dual action buttons for acknowledged complaints
                 const markFixedBtn = (c.status === 'acknowledged') ? `
                     <div style="margin-top:12px;padding:14px 16px;
                                 background:linear-gradient(135deg,#EBF3FB,#F0F7FF);
@@ -801,49 +760,44 @@
                         <div style="font-size:13px;font-weight:700;color:#1565C0;margin-bottom:4px;">
                             ✓ SMC has acknowledged your complaint
                         </div>
-                        <div style="font-size:12px;color:#4A5568;margin-bottom:12px;line-height:1.6;">
-                            Our team is working on it. Once fixed, please confirm to close the report.
+                        <div style="font-size:12px;color:#4A5568;margin-bottom:14px;line-height:1.6;">
+                            Has the issue at your location been fixed?
+                            Your response directly updates SMC records.
                         </div>
-                        <div style="display:flex;gap:8px;">
+                        <div style="display:flex;gap:10px;">
                             <button id="markfixed-${c.complaint_id}"
                                 onclick="citizenMarkFixed('${c.complaint_id}')"
-                                style="flex:1;padding:11px;background:#2E7D32;color:#fff;
-                                       border:none;border-radius:8px;font-size:14px;font-weight:600;
-                                       cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
+                                style="flex:1;padding:11px 8px;background:#2E7D32;color:#fff;
+                                       border:none;border-radius:8px;font-size:13px;font-weight:600;
+                                       cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+                                       transition:opacity .2s;line-height:1.3;">
                                 ✓ Yes, Fixed
                             </button>
                             <button id="notfixed-${c.complaint_id}"
                                 onclick="citizenMarkNotResolved('${c.complaint_id}')"
-                                style="flex:1;padding:11px;background:#fff;color:#D32F2F;
-                                       border:1px solid #EF9A9A;border-radius:8px;font-size:14px;
-                                       font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
+                                style="flex:1;padding:11px 8px;background:#D32F2F;color:#fff;
+                                       border:none;border-radius:8px;font-size:13px;font-weight:600;
+                                       cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+                                       transition:opacity .2s;line-height:1.3;">
                                 ✕ Not Fixed
                             </button>
                         </div>
+                        <div style="font-size:10px;color:#8A96A4;text-align:center;margin-top:8px;">
+                            "Not Fixed" will notify SMC to re-examine your complaint
+                        </div>
                     </div>` : '';
 
+                // Disputed note
                 const disputedNote = (c.status === 'not_resolved') ? `
                     <div style="margin-top:12px;padding:12px 14px;
                                 background:#FFEBEE;border-radius:8px;
                                 border-left:4px solid #D32F2F;">
                         <div style="font-size:13px;font-weight:700;color:#D32F2F;margin-bottom:3px;">
-                            ⚠ Dispute Registered
+                            ⚠ Issue Flagged — Pending Re-examination
                         </div>
-                        <div style="font-size:11px;color:#C62828;">
-                            You have marked this as not resolved. SMC will review and schedule further action.
-                        </div>
-                    </div>` : '';
-
-                const resolvedNote = (c.status === 'resolved') ? `
-                    <div style="margin-top:12px;padding:12px 14px;
-                                background:#E8F5E9;border-radius:8px;
-                                border-left:4px solid #2E7D32;">
-                        <div style="font-size:13px;font-weight:700;color:#2E7D32;margin-bottom:3px;">
-                            ✅ Complaint Resolved
-                        </div>
-                        <div style="font-size:11px;color:#4A5568;">
-                            You confirmed this issue was resolved. Thank you for helping us
-                            track and improve water supply quality in your zone.
+                        <div style="font-size:11px;color:#4A5568;line-height:1.5;">
+                            You reported this issue as unresolved. SMC has been notified and
+                            will review your complaint again. This will remain open until resolved.
                         </div>
                     </div>` : '';
 
@@ -855,76 +809,73 @@
                          c.status==='not_resolved' ? '#D32F2F' : '#8A96A4'}">
                     <div class="cc-top">
                         <span class="cc-type">${TYPE_LABELS[c.problem_type] || c.problem_type}</span>
-                        <span class="cc-badge" id="badge-${c.complaint_id}" style="${_badgeStyle(c.status)}">${c.status.toUpperCase()}</span>
+                        <span class="cc-badge" id="badge-${c.complaint_id}" style="${_badgeStyle(c.status)}">${c.status}</span>
                     </div>
-                    <div class="cc-date" style="margin-bottom: ${c.status === 'acknowledged' ? '12px' : '0'};">${formatDate(c.submitted_at)}</div>
-                    ${markFixedBtn}
-                    ${resolvedNote}
-                    ${disputedNote}
+                    <div class="cc-date">${formatDate(c.submitted_at)}</div>
+                    ${markFixedBtn}${disputedNote}
                 </div>
-                `;
-            }).join('');
+            `}).join('');
 
             // Start polling
             if (_complaintsInterval) clearInterval(_complaintsInterval);
-            _complaintsInterval = setInterval(async () => {
-                let currentComplaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
-                if (currentComplaints.length === 0) return;
-
-                let changed = false;
-                for (let c of currentComplaints) {
-                    if (c.status === 'open' || c.status === 'acknowledged') {
-                        try {
-                            const r = await fetch(`${API_BASE}/citizen/complaint/${c.complaint_id}/status`);
-                            if (r.ok) {
-                                const data = await r.json();
-                                if (data.status && data.status !== c.status) {
-                                    c.status = data.status;
-                                    changed = true;
-                                }
-                            }
-                        } catch(e) {}
-                    }
-                }
-                
-                if (changed) {
-                    localStorage.setItem('dhara_complaints', JSON.stringify(currentComplaints));
-                    loadComplaints(); // Re-render if statuses mutated in background
-                }
-            }, 10000);
+            _complaintsInterval = setInterval(_pollComplaintStatuses, 30000);
+            _pollComplaintStatuses();
         }
 
-        window.citizenMarkFixed = async function(id) {
-            if (!confirm('Are you sure this complaint has been resolved?')) return;
-            
-            // Optimistic UI Update
-            const btn = document.getElementById('markfixed-' + id);
-            if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
+        function _badgeStyle(status) {
+            if (status === 'acknowledged') return 'background:#EBF3FB;color:#1976D2;';
+            if (status === 'resolved') return 'background:#E8F5E9;color:#2E7D32;';
+            if (status === 'not_resolved') return 'background:#FFEBEE;color:#D32F2F;';
+            if (status === 'expired') return 'background:#F0F4F8;color:#8A96A4;';
+            return 'background:#F0F4F8;color:#8A96A4;';
+        }
 
+        async function _pollComplaintStatuses() {
+            const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+            let changed = false;
+            for (const c of complaints) {
+                try {
+                    const res = await fetch(API_BASE + '/citizen/complaint/' + c.complaint_id + '/status');
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const newStatus = data.status || c.status;
+                    if (newStatus !== c.status) {
+                        c.status = newStatus;
+                        changed = true;
+                    }
+                } catch (e) { /* silent fail — polling */ }
+            }
+            if (changed) {
+                localStorage.setItem('dhara_complaints', JSON.stringify(complaints));
+                // Re-render to show/hide action buttons based on new status
+                loadComplaints();
+            }
+        }
+
+        async function citizenMarkFixed(complaintId) {
             try {
-                const res = await fetch(`${API_BASE}/citizen/complaint/${id}/mark-fixed`, {
-                    method: 'POST'
+                const res = await fetch(API_BASE + '/citizen/complaint/' + complaintId + '/mark-fixed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || 'Failed to update');
-
-                // Force local array update
-                const cmps = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
-                const idx = cmps.findIndex(c => String(c.complaint_id) === String(id));
-                if (idx > -1) {
-                    cmps[idx].status = 'resolved';
-                    cmps[idx].resolved_at = new Date().toISOString();
-                    localStorage.setItem('dhara_complaints', JSON.stringify(cmps));
+                if (data.success) {
+                    const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+                    const idx = complaints.findIndex(x => String(x.complaint_id) === String(complaintId));
+                    if (idx !== -1) {
+                        complaints[idx].status = 'resolved';
+                        complaints[idx].resolved_at = new Date().toISOString();
+                    }
+                    localStorage.setItem('dhara_complaints', JSON.stringify(complaints));
+                    showToast('Complaint marked as resolved. Thank you!', 'green');
+                    loadComplaints();
+                } else {
+                    showToast(data.error || 'Could not mark as fixed.', 'red');
                 }
-                
-                showToast('Complaint marked as resolved.', 'green');
-                loadComplaints(); // Re-render immediately
-            } catch(e) {
-                console.error(e);
-                showToast(e.message, 'red');
-                if (btn) { btn.disabled = false; btn.textContent = '✓ Yes, the issue has been fixed'; }
+            } catch (e) {
+                showToast('Network error. Please try again.', 'red');
             }
-        };
+        }
 
         async function citizenMarkNotResolved(complaintId) {
             const btn = document.getElementById('notfixed-' + complaintId);
@@ -947,15 +898,14 @@
 
                 const data = await res.json();
                 if (data.success) {
-                    // Update localStorage
                     const stored = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
                     const idx = stored.findIndex(c => String(c.complaint_id) === String(complaintId));
                     if (idx !== -1) {
                         stored[idx].status = 'not_resolved';
                         localStorage.setItem('dhara_complaints', JSON.stringify(stored));
-                        loadComplaints();
                     }
                     showToast('SMC notified. Your complaint remains open for re-examination.', 'red');
+                    loadComplaints();
                 } else {
                     if (btn) { btn.disabled = false; btn.textContent = '✕ Not Fixed'; }
                     if (fixBtn) fixBtn.disabled = false;
@@ -968,18 +918,44 @@
             }
         }
 
+        // ── 24h Expiry Check ──────────────────────────────────────────
+        async function _checkAndExpireOldComplaints() {
+            const stored = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+            if (!stored.length) return;
+
+            const now    = Date.now();
+            const MS_24H = 24 * 60 * 60 * 1000;
+            let   localChange = false;
+
+            const updated = stored.map(c => {
+                if (c.status === 'open') {
+                    const age = now - new Date(c.submitted_at).getTime();
+                    if (age > MS_24H) {
+                        localChange = true;
+                        return { ...c, status: 'expired' };
+                    }
+                }
+                return c;
+            });
+
+            if (localChange) {
+                localStorage.setItem('dhara_complaints', JSON.stringify(updated));
+            }
+
+            try {
+                await fetch(API_BASE + '/citizen/complaints/expire-old', { method: 'POST' });
+            } catch(e) { /* silent */ }
+        }
+
         /* ══════════════════════════════════════════════════════════════
            CITIZEN PROFILE — localStorage-backed profile + history log
            ══════════════════════════════════════════════════════════════ */
 
-        const HISTORY_STATUSES   = ['resolved', 'expired'];   // statuses that belong in history
+        const HISTORY_STATUSES   = ['resolved', 'expired'];
         const COMPLAINT_TYPE_MAP = {
-            no_water:       'No Water Supply',
-            low_pressure:   'Low Pressure',
-            dirty_water:    'Dirty / Contaminated Water',
-            pipe_leak:      'Pipe Leak',
-            billing:        'Billing Issue',
-            tanker_request: 'Tanker Request',
+            no_water: 'No Water Supply', low_pressure: 'Low Pressure',
+            dirty_water: 'Dirty / Contaminated Water', pipe_leak: 'Pipe Leak',
+            billing: 'Billing Issue', tanker_request: 'Tanker Request',
         };
 
         function saveProfileField(key, value) {
@@ -998,7 +974,7 @@
                 const img   = document.getElementById('profile-avatar-img');
                 const emoji = document.getElementById('profile-avatar-emoji');
                 if (img && emoji) {
-                    img.src          = dataUrl;
+                    img.src           = dataUrl;
                     img.style.display = 'block';
                     emoji.style.display = 'none';
                 }
@@ -1011,23 +987,19 @@
             const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
             const zoneName   = sessionStorage.getItem('citizen_zone_name') || '—';
 
-            // ── Populate name / phone ───────────────────────────────────────────
             const nameInput  = document.getElementById('profile-name-input');
             const phoneInput = document.getElementById('profile-phone-input');
             if (nameInput  && profile.name)  nameInput.value  = profile.name;
             if (phoneInput && profile.phone) phoneInput.value = profile.phone;
 
-            // ── Display name ────────────────────────────────────────────────────
             const displayName = document.getElementById('profile-display-name');
             if (displayName) displayName.textContent = profile.name || 'Solapur Resident';
 
-            // ── Zone ────────────────────────────────────────────────────────────
             const zoneTag    = document.getElementById('profile-zone-tag');
             const detailZone = document.getElementById('profile-detail-zone');
             if (zoneTag)    zoneTag.textContent    = zoneName;
             if (detailZone) detailZone.textContent = zoneName;
 
-            // ── Avatar ──────────────────────────────────────────────────────────
             if (profile.avatar) {
                 const img   = document.getElementById('profile-avatar-img');
                 const emoji = document.getElementById('profile-avatar-emoji');
@@ -1038,14 +1010,12 @@
                 }
             }
 
-            // ── Member since ────────────────────────────────────────────────────
             const sinceEl = document.getElementById('profile-since');
             if (sinceEl) {
-                const firstComplaint = complaints.sort((a,b) =>
-                    new Date(a.submitted_at) - new Date(b.submitted_at)
-                )[0];
-                if (firstComplaint) {
-                    sinceEl.textContent = new Date(firstComplaint.submitted_at)
+                const sorted = [...complaints].sort((a,b) =>
+                    new Date(a.submitted_at) - new Date(b.submitted_at));
+                if (sorted[0]) {
+                    sinceEl.textContent = new Date(sorted[0].submitted_at)
                         .toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
                 } else {
                     sinceEl.textContent = new Date().toLocaleDateString('en-IN',
@@ -1053,7 +1023,6 @@
                 }
             }
 
-            // ── Stats ───────────────────────────────────────────────────────────
             const total    = complaints.length;
             const resolved = complaints.filter(c => c.status === 'resolved').length;
             const active   = complaints.filter(c =>
@@ -1066,8 +1035,6 @@
             if (s2) s2.textContent = resolved;
             if (s3) s3.textContent = active;
 
-            // ── History log ─────────────────────────────────────────────────────
-            // History = resolved + expired. NOT not_resolved.
             const historyItems = complaints
                 .filter(c => HISTORY_STATUSES.includes(c.status))
                 .sort((a,b) => new Date(b.submitted_at) - new Date(a.submitted_at));
@@ -1083,21 +1050,18 @@
                 historyList.innerHTML = `
                     <div style="text-align:center;padding:32px 16px;color:var(--text3);">
                         <div style="font-size:28px;margin-bottom:8px;">📂</div>
-                        <div style="font-size:13px;">
-                            Resolved &amp; closed complaints will appear here
-                        </div>
+                        <div style="font-size:13px;">Resolved &amp; closed complaints will appear here</div>
                     </div>`;
                 return;
             }
 
             historyList.innerHTML = historyItems.map(c => {
-                const typeLabel    = COMPLAINT_TYPE_MAP[c.problem_type] || c.problem_type || '—';
-                const isResolved   = c.status === 'resolved';
-                const iconColor    = isResolved ? '#2E7D32' : '#8A96A4';
-                const icon         = isResolved ? '✅' : '⏱';
-                const statusText   = isResolved ? 'Resolved' : 'Closed — Not Acknowledged';
-                const statusBg     = isResolved ? '#E8F5E9' : '#F0F4F8';
-                const statusFg     = isResolved ? '#2E7D32' : '#8A96A4';
+                const typeLabel  = COMPLAINT_TYPE_MAP[c.problem_type] || c.problem_type || '—';
+                const isResolved = c.status === 'resolved';
+                const icon       = isResolved ? '✅' : '⏱';
+                const statusText = isResolved ? 'Resolved' : 'Closed — Not Acknowledged';
+                const statusBg   = isResolved ? '#E8F5E9' : '#F0F4F8';
+                const statusFg   = isResolved ? '#2E7D32' : '#8A96A4';
 
                 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('en-IN',
                     {day:'2-digit', month:'short', year:'numeric'}) : '—';
@@ -1106,37 +1070,28 @@
                 <div style="background:var(--surface);border:1px solid var(--border);
                             border-radius:10px;margin-bottom:10px;overflow:hidden;
                             box-shadow:0 1px 4px rgba(0,0,0,.06);">
-                    <!-- Card Header -->
                     <div style="display:flex;align-items:center;justify-content:space-between;
                                 padding:12px 14px;border-bottom:1px solid var(--border);">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <span style="font-size:20px;">${icon}</span>
                             <div>
-                                <div style="font-size:13px;font-weight:600;color:var(--text);">
-                                    ${typeLabel}
-                                </div>
-                                <div style="font-size:11px;color:var(--text3);">
-                                    ID #${c.complaint_id}
-                                </div>
+                                <div style="font-size:13px;font-weight:600;color:var(--text);">${typeLabel}</div>
+                                <div style="font-size:11px;color:var(--text3);">ID #${c.complaint_id}</div>
                             </div>
                         </div>
                         <span style="font-size:10px;font-weight:700;padding:3px 10px;
-                                     border-radius:10px;background:${statusBg};
-                                     color:${statusFg};">
+                                     border-radius:10px;background:${statusBg};color:${statusFg};">
                             ${statusText}
                         </span>
                     </div>
-                    <!-- Card Body -->
                     <div style="padding:10px 14px;">
                         <div style="display:flex;gap:8px;margin-bottom:4px;">
                             <span style="font-size:10px;color:var(--text3);min-width:84px;
                                          font-weight:600;text-transform:uppercase;
                                          letter-spacing:.05em;">Submitted</span>
-                            <span style="font-size:11px;color:var(--text2);">
-                                ${fmtDate(c.submitted_at)}
-                            </span>
+                            <span style="font-size:11px;color:var(--text2);">${fmtDate(c.submitted_at)}</span>
                         </div>
-                        ${c.status === 'resolved' ? `
+                        ${isResolved ? `
                         <div style="display:flex;gap:8px;">
                             <span style="font-size:10px;color:var(--text3);min-width:84px;
                                          font-weight:600;text-transform:uppercase;
@@ -1159,4 +1114,5 @@
         }
     </script>
 </body>
+
 </html>

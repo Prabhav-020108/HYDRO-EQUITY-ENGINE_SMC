@@ -10,7 +10,7 @@ Falls back gracefully if file not found (map just skips infra markers).
 """
 
 import os, csv
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 import json as _json
 
 router = APIRouter(tags=["Public"])
@@ -93,7 +93,7 @@ def get_nrw():
     outputs_path = os.path.normpath(outputs_path)
 
     if not os.path.exists(outputs_path):
-        return {"nrw": "18% (baseline estimate)", "source": "fallback"}
+        return {"nrw": None, "source": "fallback"}
 
     try:
         with open(outputs_path, encoding='utf-8') as f:
@@ -116,7 +116,7 @@ def get_nrw():
     except Exception:
         pass
 
-    return {"nrw": "18% (baseline estimate)", "source": "fallback"}
+    return {"nrw": None, "source": "fallback"}
 
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -155,6 +155,7 @@ def locate_citizen(req: CitizenLocateRequest):
 
     if not (SOLAPUR_LAT_MIN <= req.lat <= SOLAPUR_LAT_MAX and
             SOLAPUR_LON_MIN <= req.lon <= SOLAPUR_LON_MAX):
+        from fastapi import HTTPException
         raise HTTPException(
             status_code=422,
             detail={
@@ -217,4 +218,4 @@ def locate_citizen(req: CitizenLocateRequest):
     except HTTPException:
         raise
     except Exception:
-        return closest_zone
+        return closest_zone

@@ -217,8 +217,6 @@ def acknowledge_complaint(
 
 
 
-
-
 # ─────────────────────────────────────────────────────────────
 #  PUBLIC: GET /citizen/complaint/{id}/status
 #  (replaces the inline route in app.py — keep BOTH if the
