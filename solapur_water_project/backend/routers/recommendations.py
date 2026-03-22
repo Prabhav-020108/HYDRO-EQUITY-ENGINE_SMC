@@ -781,6 +781,7 @@ Two runtime fixes applied here:
 
 import os
 import json
+import re
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -929,8 +930,8 @@ def _build_citizen_advisories(raw_recs: list) -> list:
             supply_status  = 'Normal'
             advisory_text  = (
                 "Water supply in {} is near-normal (equity score: {:.2f}). "
-                "Some households may experience slightly reduced pressure during peak hours "
-                "(6–8 AM and 5–8 PM). Store water during supply windows.".format(znm, v4hei)
+                "Some households may experience slightly reduced pressure during peak hours. "
+                "Store water during supply windows.".format(znm, v4hei)
             )
             complaint_guid = (
                 "Persistent low pressure? Submit a complaint using the form below."
@@ -940,7 +941,6 @@ def _build_citizen_advisories(raw_recs: list) -> list:
             supply_status  = 'Normal'
             advisory_text  = (
                 "Water supply in {} is operating normally. "
-                "Supply window: 6–8 AM and 5–8 PM. "
                 "Fill overhead tanks during supply hours.".format(znm)
             )
             complaint_guid = (
@@ -952,13 +952,23 @@ def _build_citizen_advisories(raw_recs: list) -> list:
             supply_status  = base.get('supply_status', 'Normal')
             advisory_text  = base.get('advisory_text') or (
                 "Water supply in {} is operating normally (equity score: {:.2f}). "
-                "Supply window: 6–8 AM and 5–8 PM. "
                 "Ensure your overhead tank is filled during supply hours.".format(znm, v4hei)
             )
             complaint_guid  = base.get('complaint_guidance') or (
                 "For any supply issues, submit a complaint using the form below."
             )
             est_restoration = base.get('estimated_restoration') or 'No disruption — normal operation.'
+
+        # Always strip time mentions (e.g., "6:00 AM – 8:00 AM", "6–8 AM", "Supply window: ...")
+        # 1. Strip parenthetical time ranges
+        advisory_text = re.sub(r'\s*\(\d{1,2}(?::\d{2})?\s*[–-]\s*\d{1,2}(?::\d{2})?\s*[AP]M(?:\s*and\s*\d{1,2}(?::\d{2})?\s*[–-]\s*\d{1,2}(?::\d{2})?\s*[AP]M)?\)', '', advisory_text)
+        # 2. Strip "Supply window: ..." sentences
+        advisory_text = re.sub(r'\s*Supply window:\s*\d{1,2}(?::\d{2})?\s*[–-]\s*\d{1,2}(?::\d{2})?\s*[AP]M(?:\s*and\s*\d{1,2}(?::\d{2})?\s*[–-]\s*\d{1,2}(?::\d{2})?\s*[AP]M)?\.?\s*', ' ', advisory_text).strip()
+        # 3. Strip any remaining standalone time ranges
+        advisory_text = re.sub(r'\d{1,2}(?::\d{2})?\s*[–-]\s*\d{1,2}(?::\d{2})?\s*[AP]M', '', advisory_text)
+        # 4. Clean up punctuation and spacing
+        advisory_text = advisory_text.replace('  ', ' ').strip()
+        if advisory_text.endswith(' :'): advisory_text = advisory_text[:-2].strip()
 
         result.append({
             "zone_id":               zid,

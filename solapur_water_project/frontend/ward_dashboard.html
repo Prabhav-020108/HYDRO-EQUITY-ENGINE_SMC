@@ -11,7 +11,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+
   <style>
     :root {
       --bg: #F0F4F8;
@@ -549,7 +549,8 @@
 
       <div class="psec">
         <div class="ptit">Citizen Complaints
-          <span id="ccnt" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
+          <span id="ccnt"
+            style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
         </div>
         <div id="complaintBody" style="overflow-y:auto;max-height:220px">
           <div style="padding:12px 14px;color:var(--text3);font-size:11px">Loading...</div>
@@ -578,38 +579,7 @@
         </div>
         <div id="albody" style="overflow-y:auto;max-height:280px"></div>
       </div>
-<div class="psec">
-    <div class="ptit" style="justify-content:space-between;">
-        <span>Complaint Heatmap</span>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-            <span id="ward-heat-label"
-                  style="font-size:11px;color:var(--text3);">Off</span>
-            <div class="tog" style="width:36px;height:20px;">
-                <input type="checkbox" id="ward-heat-toggle"
-                       onchange="wardToggleHeatmap(this.checked)">
-                <span class="togsl"></span>
-            </div>
-        </label>
-    </div>
-    <div id="ward-heatmap-summary" style="padding:8px 14px;display:none;">
-        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">
-            Complaint density — last 24 hours
-        </div>
-        <div id="ward-heatmap-counts" style="font-size:11px;"></div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-            <div style="flex:1;height:6px;border-radius:4px;
-                        background:linear-gradient(to right,
-                        #3182BD,#41AB5D,#FEB24C,#F03B20,#BD0026);"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;
-                    font-size:9px;color:var(--text3);margin-top:2px;">
-            <span>Low density</span><span>High density</span>
-        </div>
-        <div style="font-size:9px;color:var(--text3);margin-top:6px;">
-            Refreshes every 30 seconds
-        </div>
-    </div>
-</div>
+
       <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
         <div class="ptit">V7 Recommendations — Your Zone <span id="recstamp"
             style="font-size:9px;text-transform:none;font-weight:normal;opacity:0.5;font-family:'IBM Plex Mono',monospace">Loading...</span>
@@ -907,8 +877,8 @@
     function fmtTs(iso) {
       if (!iso) return '—';
       const d = new Date(iso);
-      const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return `${String(d.getDate()).padStart(2,'0')} ${mn[d.getMonth()]} ${String(d.getFullYear()).slice(2)}, ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const mn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${String(d.getDate()).padStart(2, '0')} ${mn[d.getMonth()]} ${String(d.getFullYear()).slice(2)}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
 
     async function loadFieldHistory() {
@@ -945,12 +915,12 @@
         return;
       }
       if (cnt) cnt.textContent = data.length;
-      const typeLabels = { no_water:'No Water', low_pressure:'Low Pressure', dirty_water:'Dirty Water', pipe_leak:'Pipe Leak', billing:'Billing', tanker_request:'Tanker Request' };
-      const statusCol = { open:'#E65100', acknowledged:'#1976D2', resolved:'#2E7D32' };
+      const typeLabels = { no_water: 'No Water', low_pressure: 'Low Pressure', dirty_water: 'Dirty Water', pipe_leak: 'Pipe Leak', billing: 'Billing', tanker_request: 'Tanker Request' };
+      const statusCol = { open: '#E65100', acknowledged: '#1976D2', resolved: '#2E7D32' };
       el.innerHTML = data.map(c => {
         const col = statusCol[c.status] || '#8A96A4';
         const label = typeLabels[c.problem_type] || c.problem_type;
-        const d = c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '—';
+        const d = c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—';
         return `<div style="padding:7px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div>
             <div style="font-size:12px;font-weight:500;color:var(--text)">${label}</div>
@@ -969,98 +939,7 @@
     setInterval(() => { loadAlerts(); }, 15000);
     setInterval(() => { loadEquity(); loadRecs(); loadFieldHistory(); }, 60000);
 
-/* ================================================================
-   WARD OFFICER HEATMAP — Single-zone citizen complaint density
-   Scoped IIFE. Tighter radius for street-level resolution.
-   ================================================================ */
-(function() {
-    let _wardHeatLayer = null;
-    let _wardHeatTimer = null;
 
-    const HEAT_GRADIENT = {
-        0.0:'#3182BD', 0.25:'#41AB5D',
-        0.5:'#FEB24C', 0.75:'#F03B20', 1.0:'#BD0026',
-    };
-
-    window.wardToggleHeatmap = function(enabled) {
-        const label   = document.getElementById('ward-heat-label');
-        const summary = document.getElementById('ward-heatmap-summary');
-        if (enabled) {
-            if (label)   label.textContent      = 'On';
-            if (summary) summary.style.display  = 'block';
-            _loadWardHeatmap();
-            _wardHeatTimer = setInterval(_loadWardHeatmap, 30000);
-        } else {
-            if (label)   label.textContent      = 'Off';
-            if (summary) summary.style.display  = 'none';
-            if (_wardHeatLayer) { map.removeLayer(_wardHeatLayer); _wardHeatLayer = null; }
-            if (_wardHeatTimer) { clearInterval(_wardHeatTimer); _wardHeatTimer = null; }
-        }
-    };
-
-    async function _loadWardHeatmap() {
-        const toggle = document.getElementById('ward-heat-toggle');
-        if (!toggle || !toggle.checked) return;
-        const zoneId = ZONE_ID;
-        try {
-            const [ptsRes, sumRes] = await Promise.all([
-                fetch(BACK + '/heatmap/citizen-alerts/' + zoneId,
-                      { headers: { 'Authorization': 'Bearer ' + TOKEN } }),
-                fetch(BACK + '/heatmap/zone-summary',
-                      { headers: { 'Authorization': 'Bearer ' + TOKEN } }),
-            ]);
-            if (!ptsRes || !ptsRes.ok) return;
-            const ptsData = await ptsRes.json().catch(() => ({}));
-            const sumData = sumRes && sumRes.ok
-                ? await sumRes.json().catch(() => ({})) : {};
-
-            const heatData = (ptsData.points || []).map(p => [p.lat, p.lon, p.intensity]);
-            if (_wardHeatLayer) map.removeLayer(_wardHeatLayer);
-            _wardHeatLayer = L.heatLayer(heatData, {
-                radius: 22, blur: 16, maxZoom: 18,
-                minOpacity: 0.40, gradient: HEAT_GRADIENT,
-            }).addTo(map);
-
-            const zSummary = (sumData.zones || []).find(z => z.zone_id === zoneId);
-            const countsEl = document.getElementById('ward-heatmap-counts');
-            if (!countsEl) return;
-
-            if (!zSummary || zSummary.total === 0) {
-                countsEl.innerHTML =
-                    '<div style="color:#2E7D32;font-weight:500;">✅ No active complaints right now</div>';
-                return;
-            }
-
-            const ICONS = { no_water:'🚱', low_pressure:'📉', dirty_water:'⚠️',
-                            pipe_leak:'💧', billing:'📄', tanker_request:'🚚' };
-            const LBLS  = { no_water:'No Water', low_pressure:'Low Pressure',
-                            dirty_water:'Contaminated', pipe_leak:'Pipe Leak',
-                            billing:'Billing', tanker_request:'Tanker' };
-            const bd = zSummary.breakdown || {};
-            const rows = Object.entries(bd)
-                .filter(([,v]) => v > 0).sort(([,a],[,b]) => b - a)
-                .map(([k,v]) =>
-                    `<div style="display:flex;align-items:center;justify-content:space-between;
-                                 padding:3px 0;border-bottom:1px solid #EEF2F6;">
-                        <span>${ICONS[k]||'❗'} ${LBLS[k]||k}</span>
-                        <span style="font-weight:700;color:#D32F2F;">${v}</span>
-                    </div>`
-                ).join('');
-
-            countsEl.innerHTML = `
-                ${zSummary.is_red_zone ? `
-                    <div style="background:#FFEBEE;color:#D32F2F;font-size:10px;
-                                font-weight:700;padding:4px 8px;border-radius:6px;
-                                margin-bottom:6px;">
-                        🔴 RED ZONE — ${zSummary.total} active complaints
-                    </div>` : ''}
-                ${rows}
-                <div style="font-size:10px;color:#8A96A4;margin-top:4px;padding-top:4px;">
-                    Total active: <strong>${zSummary.total}</strong>
-                </div>`;
-        } catch(e) { /* silent fail */ }
-    }
-})();
   </script>
 </body>
 

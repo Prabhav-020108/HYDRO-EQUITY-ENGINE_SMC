@@ -1032,7 +1032,6 @@
     ::-webkit-scrollbar-track {
       background: transparent
     }
-
   </style>
 </head>
 
@@ -1177,6 +1176,11 @@
 
     <div id="mapd">
       <div id="mapc"></div>
+      <!-- FAB Button -->
+      <button class="eng-complaints-fab" onclick="toggleComplaintsPanel()" title="Citizen Complaints">
+        <span class="eng-complaints-badge" id="eng-complaints-badge"></span>
+        <span class="fab-icon">📋</span>
+      </button>
     </div>
 
     <div class="panel" id="rp">
@@ -1241,17 +1245,7 @@
           <div id="recbody" style="overflow-y:auto;height:100%;padding-bottom:8px"></div>
         </div>
       </div>
-      <div class="psec" style="flex-shrink:0">
-        <div class="ptit acc-head" onclick="toggleAcc('auditLogBody','auditLogArrow')" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between">
-          <span>Complaint Audit Log 
-            <span id="audit-count" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F0F4F8;color:var(--text2);padding:2px 8px;border-radius:10px;margin-left:6px">0</span>
-          </span>
-          <span id="auditLogArrow" style="font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate(90deg)">▶</span>
-        </div>
-        <div id="auditLogBody" class="acc-body" style="overflow:hidden;transition:max-height .25s ease,opacity .15s ease;max-height:0px;opacity:0;pointer-events:none">
-          <div id="audit-log-body" style="overflow-y:auto;max-height:180px;padding:4px 10px"></div>
-        </div>
-      </div>
+
     </div>
   </div>
 
@@ -1962,7 +1956,7 @@
       ${resolutionPanel}
     </div>`;
       }).join('') + _resolvedSec;
-      if (_resolvedAl.length > 0) { var _rb = document.getElementById('resolvedBody'); if (_rb) _rb.innerHTML = _resolvedAl.map(function (a) { var isH = (a.level === 'HIGH' || a.level === 'high'), c = isH ? '#D32F2F' : '#E65100', cl = parseFloat(a.clps || 0), db = a.db_alert_id || 0; return '<div class="acard ' + (isH ? 'high' : 'moderate') + '" data-alert-id="' + db + '" data-status="resolved" style="opacity:0.58;"><div class="atit" style="color:' + c + ';display:flex;align-items:center;justify-content:space-between;gap:6px;"><span>' + (isH ? '🔴' : '🟠') + ' ' + (a.title || ('Alert — ' + (a.zone || ''))) + '</span><span class="n2-badge-slot">' + _statusBadge('resolved') + '</span></div><div class="abody">' + (a.body || '') + '</div><div class="ameta"><span>📍 ' + (a.zone || '') + '</span><span>Signal: <b>' + (a.dominant_signal || '—') + '</b></span><span>CLPS: <span class="clpsv" style="color:' + c + '">' + cl.toFixed(3) + '</span></span></div><div class="clpsbar" style="width:' + Math.min(100, cl * 100) + '%;background:' + c + '"></div></div>'; }).join(''); }
+      if (_resolvedAl.length > 0) { var _rb = document.getElementById('resolvedBody'); if (_rb) _rb.innerHTML = _resolvedAl.map(function (a) { var isH = (a.level === 'HIGH' || a.level === 'high'), c = isH ? '#D32F2F' : '#E65100', cl = parseFloat(a.clps || 0), db = a.db_alert_id || 0; return '<div class="acard ' + (isH ? 'high' : 'moderate') + '" data-alert-id="' + db + '" data-status="resolved" style="opacity:0.58;"><div class="atit" style="color:' + c + ';display:flex;align-items:center;justify-content:space-between;gap:6px;"><span>' + (isH ? '🔴' : '🟠') + ' ' + (a.title || ('Alert — ' + (a.zone || ''))) + '</span><span class="n2-badge-slot">' + _statusBadge('resolved') + '</span></div><div class="abody">' + (a.body || '') + '</div><div class="ameta"><span>📍 ' + (a.zone || '') + '</span><span>Signal: <b>' + (a.dominant_signal || '—') + '</b></span><span>CLPS: <span class="clpsv" style="color:' + c + '">' + cl.toFixed(3) + '</span></span></div><div class="clpsbar" style="width:' + Math.min(100, cl * 100) + '%;background:' + c + '"></div>' + (a.resolved_at ? '<div class="ameta"><span>✅ Resolved ' + new Date(a.resolved_at).toLocaleString() + '</span></div>' : '') + '</div>'; }).join(''); }
 
       // ── Map alert markers (non-baseline) — use _activeAl, not al ───
       if (scen !== 'baseline') {
@@ -2265,328 +2259,531 @@
         if (btn) { btn.disabled = false; btn.textContent = '⬇ Alert Log'; }
       }
     }
-</script>
+  </script>
 
-<!-- ═══════════════════════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════════════════════
      COMPLAINT MANAGEMENT — Engineer Dashboard
      Polls /complaints every 15 seconds automatically.
      Badge polls /complaints/count every 30 seconds.
 ═══════════════════════════════════════════════════════════ -->
-<style>
-/* ── FAB Button ── */
-.eng-complaints-fab {
-  position: fixed; bottom: 180px; right: 16px; z-index: 600;
-  display: flex; flex-direction: column; align-items: center;
-  background: var(--blue); color: #fff; border: none;
-  border-radius: 28px; padding: 10px 14px; cursor: pointer;
-  box-shadow: 0 4px 16px rgba(13,95,168,.4); font-family: 'IBM Plex Sans',sans-serif;
-  font-size: 11px; font-weight: 600; letter-spacing:.04em;
-  gap: 4px; transition: background .15s, transform .1s;
-  writing-mode: horizontal-tb;
-}
-.eng-complaints-fab:hover { background: #0a4d8a; transform: scale(1.04); }
-.eng-complaints-fab .fab-icon { font-size: 20px; line-height: 1; }
-.eng-complaints-badge {
-  position: absolute; top: -6px; right: -6px;
-  background: #D32F2F; color: #fff; border-radius: 50%;
-  min-width: 20px; height: 20px; font-size: 11px; font-weight: 700;
-  display: none; align-items: center; justify-content: center;
-  border: 2px solid #fff; padding: 0 3px;
-}
+  <style>
+    /* ── FAB Button ── */
+    .eng-complaints-fab {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      padding: 6px 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(13, 95, 168, .4);
+      font-family: 'IBM Plex Sans', sans-serif;
+      transition: background .15s, transform .1s;
+    }
 
-/* ── Slide-out Panel ── */
-.eng-complaints-panel {
-  position: fixed; top: 52px; right: -380px; bottom: 168px;
-  width: 370px; background: var(--surface);
-  border-left: 1px solid var(--border);
-  box-shadow: -4px 0 20px rgba(0,0,0,.12);
-  z-index: 700; display: flex; flex-direction: column;
-  transition: right .28s cubic-bezier(.4,0,.2,1);
-}
-.eng-complaints-panel.open { right: 0; }
+    .eng-complaints-fab:hover {
+      background: #0a4d8a;
+      transform: scale(1.04);
+    }
 
-.ecp-header {
-  padding: 12px 16px; background: var(--blue); color: #fff;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0;
-}
-.ecp-header-title { font-size: 13px; font-weight: 600; letter-spacing:.04em; }
-.ecp-header-controls { display: flex; align-items: center; gap: 8px; }
-.ecp-zone-filter {
-  font-size: 11px; padding: 3px 8px; border-radius: 4px;
-  border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.12);
-  color: #fff; font-family: 'IBM Plex Sans',sans-serif; cursor: pointer;
-}
-.ecp-zone-filter option { background: #1A2332; color: #fff; }
-.ecp-close {
-  background: none; border: none; color: rgba(255,255,255,.8);
-  font-size: 18px; cursor: pointer; padding: 2px 4px; line-height: 1;
-}
-.ecp-close:hover { color: #fff; }
+    .eng-complaints-fab .fab-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
 
-.ecp-tabs {
-  display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  background: #FAFBFC;
-}
-.ecp-tab {
-  flex: 1; padding: 8px; font-size: 11px; font-weight: 600;
-  text-align: center; cursor: pointer; text-transform: uppercase;
-  letter-spacing:.06em; color: var(--text3); border: none;
-  background: none; border-bottom: 2px solid transparent;
-  font-family: 'IBM Plex Sans',sans-serif; transition: all .15s;
-}
-.ecp-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .eng-complaints-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #D32F2F;
+      color: #fff;
+      border-radius: 50%;
+      min-width: 20px;
+      height: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      padding: 0 3px;
+    }
 
-.ecp-body { flex: 1; overflow-y: auto; padding: 10px; }
-.ecp-body::-webkit-scrollbar { width: 4px; }
-.ecp-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    /* ── Slide-out Panel ── */
+    .eng-complaints-panel {
+      position: fixed;
+      top: 52px;
+      right: -380px;
+      bottom: 168px;
+      width: 370px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, .12);
+      z-index: 700;
+      display: flex;
+      flex-direction: column;
+      transition: right .28s cubic-bezier(.4, 0, .2, 1);
+    }
 
-/* ── Complaint Cards ── */
-.ecp-card {
-  background: var(--surface); border-radius: 8px;
-  border-left: 3px solid var(--border);
-  box-shadow: 0 1px 4px rgba(0,0,0,.07);
-  padding: 12px 14px; margin-bottom: 10px;
-  transition: box-shadow .15s;
-}
-.ecp-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.11); }
-.ecp-card.status-open         { border-left-color: #D32F2F; }
-.ecp-card.status-acknowledged { border-left-color: #1976D2; }
-.ecp-card.status-resolved     { border-left-color: #2E7D32; opacity: .75; }
+    .eng-complaints-panel.open {
+      right: 0;
+    }
 
-.ecp-card-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 5px;
-}
-.ecp-card-type  { font-size: 12px; font-weight: 600; color: var(--text); }
-.ecp-status-pill {
-  font-size: 10px; font-weight: 700; padding: 2px 8px;
-  border-radius: 10px; letter-spacing:.04em;
-}
-.pill-open         { background: #FFEBEE; color: #D32F2F; }
-.pill-acknowledged { background: #EBF3FB; color: #1565C0; }
-.pill-resolved     { background: #E8F5E9; color: #2E7D32; }
+    .ecp-header {
+      padding: 12px 16px;
+      background: var(--blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
 
-.ecp-card-zone { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
-.ecp-card-desc {
-  font-size: 11px; color: var(--text2); line-height: 1.5;
-  max-height: 44px; overflow: hidden; margin-bottom: 8px;
-}
-.ecp-card-time {
-  font-family: 'IBM Plex Mono',monospace; font-size: 10px;
-  color: var(--text3); margin-bottom: 8px;
-}
-.ecp-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .ecp-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
 
-.ecp-btn {
-  padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 600;
-  cursor: pointer; font-family: 'IBM Plex Sans',sans-serif;
-  border: 1px solid; transition: opacity .15s;
-}
-.ecp-btn:disabled { opacity: .5; cursor: not-allowed; }
-.ecp-btn-ack  { background: #EBF3FB; color: #1565C0; border-color: #BBDEFB; }
-.ecp-btn-ack:hover:not(:disabled) { background: #BBDEFB; }
-.ecp-btn-res  { background: #E8F5E9; color: #2E7D32; border-color: #C8E6C9; }
-.ecp-btn-res:hover:not(:disabled) { background: #C8E6C9; }
-.ecp-btn-print { background: #F0F4F8; color: var(--text2); border-color: var(--border); }
-.ecp-btn-print:hover { background: #DDE3EA; }
+    .ecp-header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-/* ── Audit Log ── */
-.ecp-audit-row {
-  padding: 8px 10px; border-bottom: 1px solid var(--border);
-  font-size: 11px; display: flex; gap: 8px; align-items: flex-start;
-}
-.ecp-audit-row:last-child { border-bottom: none; }
-.ecp-audit-zone { font-weight: 600; color: var(--blue); min-width: 54px; }
-.ecp-audit-type { flex: 1; color: var(--text2); }
-.ecp-audit-time {
-  font-family: 'IBM Plex Mono',monospace; font-size: 10px;
-  color: var(--text3); white-space: nowrap;
-}
+    .ecp-zone-filter {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, .3);
+      background: rgba(255, 255, 255, .12);
+      color: #fff;
+      font-family: 'IBM Plex Sans', sans-serif;
+      cursor: pointer;
+    }
 
-/* ── Empty / loading states ── */
-.ecp-state { text-align: center; padding: 28px 16px; color: var(--text3); font-size: 12px; }
-</style>
+    .ecp-zone-filter option {
+      background: #1A2332;
+      color: #fff;
+    }
 
-<!-- FAB Button -->
-<button class="eng-complaints-fab" onclick="toggleComplaintsPanel()" title="Citizen Complaints">
-  <span class="eng-complaints-badge" id="eng-complaints-badge"></span>
-  <span class="fab-icon">📋</span>
-  <span>Complaints</span>
-</button>
+    .ecp-close {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, .8);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px 4px;
+      line-height: 1;
+    }
 
-<!-- Slide-out Panel -->
-<div class="eng-complaints-panel" id="eng-complaints-panel">
-  <div class="ecp-header">
-    <span class="ecp-header-title">CITIZEN COMPLAINTS</span>
-    <div class="ecp-header-controls">
-      <select class="ecp-zone-filter" id="ecp-zone-filter" onchange="ecpApplyFilter()">
-        <option value="">All Zones</option>
-        <option value="zone_1">Zone 1</option>
-        <option value="zone_2">Zone 2</option>
-        <option value="zone_3">Zone 3</option>
-        <option value="zone_4">Zone 4</option>
-        <option value="zone_5">Zone 5</option>
-        <option value="zone_6">Zone 6</option>
-        <option value="zone_7">Zone 7</option>
-        <option value="zone_8">Zone 8</option>
-      </select>
-      <button class="ecp-close" onclick="toggleComplaintsPanel()">✕</button>
+    .ecp-close:hover {
+      color: #fff;
+    }
+
+    .ecp-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: #FAFBFC;
+    }
+
+    .ecp-tab {
+      flex: 1;
+      padding: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text3);
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: 'IBM Plex Sans', sans-serif;
+      transition: all .15s;
+    }
+
+    .ecp-tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+
+    .ecp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .ecp-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .ecp-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    /* ── Complaint Cards ── */
+    .ecp-card {
+      background: var(--surface);
+      border-radius: 8px;
+      border-left: 3px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .07);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      transition: box-shadow .15s;
+    }
+
+    .ecp-card:hover {
+      box-shadow: 0 3px 10px rgba(0, 0, 0, .11);
+    }
+
+    .ecp-card.status-open {
+      border-left-color: #D32F2F;
+    }
+
+    .ecp-card.status-acknowledged {
+      border-left-color: #1976D2;
+    }
+
+    .ecp-card.status-resolved {
+      border-left-color: #2E7D32;
+      opacity: .75;
+    }
+
+    .ecp-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .ecp-card-type {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ecp-status-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: .04em;
+    }
+
+    .pill-open {
+      background: #FFEBEE;
+      color: #D32F2F;
+    }
+
+    .pill-acknowledged {
+      background: #EBF3FB;
+      color: #1565C0;
+    }
+
+    .pill-resolved {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+
+    .ecp-card-zone {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+
+    .ecp-card-desc {
+      font-size: 11px;
+      color: var(--text2);
+      line-height: 1.5;
+      max-height: 44px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .ecp-card-time {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+
+    .ecp-card-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .ecp-btn {
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'IBM Plex Sans', sans-serif;
+      border: 1px solid;
+      transition: opacity .15s;
+    }
+
+    .ecp-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .ecp-btn-ack {
+      background: #EBF3FB;
+      color: #1565C0;
+      border-color: #BBDEFB;
+    }
+
+    .ecp-btn-ack:hover:not(:disabled) {
+      background: #BBDEFB;
+    }
+
+    .ecp-btn-res {
+      background: #E8F5E9;
+      color: #2E7D32;
+      border-color: #C8E6C9;
+    }
+
+    .ecp-btn-res:hover:not(:disabled) {
+      background: #C8E6C9;
+    }
+
+    .ecp-btn-print {
+      background: #F0F4F8;
+      color: var(--text2);
+      border-color: var(--border);
+    }
+
+    .ecp-btn-print:hover {
+      background: #DDE3EA;
+    }
+
+    /* ── Audit Log ── */
+    .ecp-audit-row {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .ecp-audit-row:last-child {
+      border-bottom: none;
+    }
+
+    .ecp-audit-zone {
+      font-weight: 600;
+      color: var(--blue);
+      min-width: 54px;
+    }
+
+    .ecp-audit-type {
+      flex: 1;
+      color: var(--text2);
+    }
+
+    .ecp-audit-time {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    /* ── Empty / loading states ── */
+    .ecp-state {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+  </style>
+
+
+
+  <!-- Slide-out Panel -->
+  <div class="eng-complaints-panel" id="eng-complaints-panel">
+    <div class="ecp-header">
+      <span class="ecp-header-title">CITIZEN COMPLAINTS</span>
+      <div class="ecp-header-controls">
+        <select class="ecp-zone-filter" id="ecp-zone-filter" onchange="ecpApplyFilter()">
+          <option value="">All Zones</option>
+          <option value="zone_1">Zone 1</option>
+          <option value="zone_2">Zone 2</option>
+          <option value="zone_3">Zone 3</option>
+          <option value="zone_4">Zone 4</option>
+          <option value="zone_5">Zone 5</option>
+          <option value="zone_6">Zone 6</option>
+          <option value="zone_7">Zone 7</option>
+          <option value="zone_8">Zone 8</option>
+        </select>
+        <button class="ecp-close" onclick="toggleComplaintsPanel()">✕</button>
+      </div>
+    </div>
+
+    <div class="ecp-tabs">
+      <button class="ecp-tab active" id="ecp-tab-active" onclick="ecpSwitchTab('active')">
+        Active
+      </button>
+      <button class="ecp-tab" id="ecp-tab-audit" onclick="ecpSwitchTab('audit')">
+        Resolved Log
+      </button>
+    </div>
+
+    <div class="ecp-body" id="ecp-body">
+      <div class="ecp-state">Loading complaints...</div>
     </div>
   </div>
 
-  <div class="ecp-tabs">
-    <button class="ecp-tab active" id="ecp-tab-active" onclick="ecpSwitchTab('active')">
-      Active
-    </button>
-    <button class="ecp-tab" id="ecp-tab-audit" onclick="ecpSwitchTab('audit')">
-      Resolved Log
-    </button>
-  </div>
+  <script>
+    /* ══════════════════════════════════════════════════════════
+       ENGINEER COMPLAINT MANAGEMENT — Complete JS Block
+       Uses: BACK (already defined in this file), TOKEN (already defined)
+       Polls every 15 seconds while the panel is open.
+       Badge polls every 30 seconds always.
+       ══════════════════════════════════════════════════════════ */
 
-  <div class="ecp-body" id="ecp-body">
-    <div class="ecp-state">Loading complaints...</div>
-  </div>
-</div>
+    (function () {
+      // ── State ──────────────────────────────────────────────
+      let ecpIsOpen = false;
+      let ecpCurrentTab = 'active';
+      let ecpAllComplaints = [];
+      let ecpAuditComplaints = [];
+      let ecpPollTimer = null;
+      let ecpBadgeTimer = null;
 
-<script>
-/* ══════════════════════════════════════════════════════════
-   ENGINEER COMPLAINT MANAGEMENT — Complete JS Block
-   Uses: BACK (already defined in this file), TOKEN (already defined)
-   Polls every 15 seconds while the panel is open.
-   Badge polls every 30 seconds always.
-   ══════════════════════════════════════════════════════════ */
+      // ── Helpers ────────────────────────────────────────────
+      function ecpAuthFetch(url, opts) {
+        const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN };
+        return fetch(BACK + url, Object.assign({ headers }, opts || {}));
+      }
 
-(function() {
-  // ── State ──────────────────────────────────────────────
-  let ecpIsOpen          = false;
-  let ecpCurrentTab      = 'active';
-  let ecpAllComplaints   = [];
-  let ecpAuditComplaints = [];
-  let ecpPollTimer       = null;
-  let ecpBadgeTimer      = null;
+      function ecpFmt(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.getDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] +
+          ' ' + String(d.getHours()).padStart(2, '0') + ':' +
+          String(d.getMinutes()).padStart(2, '0');
+      }
 
-  // ── Helpers ────────────────────────────────────────────
-  function ecpAuthFetch(url, opts) {
-    const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN };
-    return fetch(BACK + url, Object.assign({ headers }, opts || {}));
-  }
+      const TYPE_LABELS = {
+        no_water: 'No Water', low_pressure: 'Low Pressure',
+        dirty_water: 'Dirty Water', pipe_leak: 'Pipe Leak',
+        billing: 'Billing', tanker_request: 'Tanker Request',
+      };
 
-  function ecpFmt(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    return d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()] +
-      ' ' + String(d.getHours()).padStart(2,'0') + ':' +
-      String(d.getMinutes()).padStart(2,'0');
-  }
+      // ── Panel toggle ───────────────────────────────────────
+      window.toggleComplaintsPanel = function () {
+        ecpIsOpen = !ecpIsOpen;
+        const panel = document.getElementById('eng-complaints-panel');
+        if (ecpIsOpen) {
+          panel.classList.add('open');
+          ecpLoadActive();
+          ecpStartPolling();
+        } else {
+          panel.classList.remove('open');
+          ecpStopPolling();
+        }
+      };
 
-  const TYPE_LABELS = {
-    no_water:      'No Water',    low_pressure:   'Low Pressure',
-    dirty_water:   'Dirty Water', pipe_leak:       'Pipe Leak',
-    billing:       'Billing',     tanker_request: 'Tanker Request',
-  };
+      window.ecpSwitchTab = function (tab) {
+        ecpCurrentTab = tab;
+        document.getElementById('ecp-tab-active').classList.toggle('active', tab === 'active');
+        document.getElementById('ecp-tab-audit').classList.toggle('active', tab === 'audit');
+        if (tab === 'active') ecpLoadActive();
+        else ecpLoadAudit();
+      };
 
-  // ── Panel toggle ───────────────────────────────────────
-  window.toggleComplaintsPanel = function() {
-    ecpIsOpen = !ecpIsOpen;
-    const panel = document.getElementById('eng-complaints-panel');
-    if (ecpIsOpen) {
-      panel.classList.add('open');
-      ecpLoadActive();
-      ecpStartPolling();
-    } else {
-      panel.classList.remove('open');
-      ecpStopPolling();
-    }
-  };
+      window.ecpApplyFilter = function () {
+        if (ecpCurrentTab === 'active') ecpRenderActive();
+        else ecpRenderAudit();
+      };
 
-  window.ecpSwitchTab = function(tab) {
-    ecpCurrentTab = tab;
-    document.getElementById('ecp-tab-active').classList.toggle('active', tab === 'active');
-    document.getElementById('ecp-tab-audit').classList.toggle('active', tab === 'audit');
-    if (tab === 'active') ecpLoadActive();
-    else ecpLoadAudit();
-  };
+      // ── Load data ──────────────────────────────────────────
+      async function ecpLoadActive() {
+        try {
+          const res = await ecpAuthFetch('/complaints');
+          if (!res.ok) { ecpShowState('Unable to load complaints (HTTP ' + res.status + ')'); return; }
+          const data = await res.json();
+          ecpAllComplaints = Array.isArray(data) ? data : (data.complaints || []);
+          ecpRenderActive();
+        } catch (e) {
+          ecpShowState('Connection error. Check the server is running.');
+        }
+      }
 
-  window.ecpApplyFilter = function() {
-    if (ecpCurrentTab === 'active') ecpRenderActive();
-    else ecpRenderAudit();
-  };
+      async function ecpLoadAudit() {
+        try {
+          const res = await ecpAuthFetch('/complaints/audit');
+          if (!res.ok) { ecpShowState('Unable to load audit log.'); return; }
+          const data = await res.json();
+          ecpAuditComplaints = data.complaints || [];
+          ecpRenderAudit();
+        } catch (e) {
+          ecpShowState('Connection error loading audit log.');
+        }
+      }
 
-  // ── Load data ──────────────────────────────────────────
-  async function ecpLoadActive() {
-    try {
-      const res = await ecpAuthFetch('/complaints');
-      if (!res.ok) { ecpShowState('Unable to load complaints (HTTP ' + res.status + ')'); return; }
-      const data = await res.json();
-      ecpAllComplaints = Array.isArray(data) ? data : (data.complaints || []);
-      ecpRenderActive();
-    } catch(e) {
-      ecpShowState('Connection error. Check the server is running.');
-    }
-  }
+      function ecpShowState(msg) {
+        document.getElementById('ecp-body').innerHTML =
+          '<div class="ecp-state">' + msg + '</div>';
+      }
 
-  async function ecpLoadAudit() {
-    try {
-      const res = await ecpAuthFetch('/complaints/audit');
-      if (!res.ok) { ecpShowState('Unable to load audit log.'); return; }
-      const data = await res.json();
-      ecpAuditComplaints = data.complaints || [];
-      ecpRenderAudit();
-    } catch(e) {
-      ecpShowState('Connection error loading audit log.');
-    }
-  }
+      // ── Render active complaints ───────────────────────────
+      function ecpRenderActive() {
+        const zoneFilter = document.getElementById('ecp-zone-filter').value;
+        let list = ecpAllComplaints;
+        if (zoneFilter) list = list.filter(c => c.zone_id === zoneFilter);
 
-  function ecpShowState(msg) {
-    document.getElementById('ecp-body').innerHTML =
-      '<div class="ecp-state">' + msg + '</div>';
-  }
+        if (!list.length) {
+          ecpShowState(zoneFilter ? 'No complaints for this zone.' : 'No active complaints. ✓');
+          return;
+        }
 
-  // ── Render active complaints ───────────────────────────
-  function ecpRenderActive() {
-    const zoneFilter = document.getElementById('ecp-zone-filter').value;
-    let list = ecpAllComplaints;
-    if (zoneFilter) list = list.filter(c => c.zone_id === zoneFilter);
+        const body = document.getElementById('ecp-body');
+        body.innerHTML = list.map(c => {
+          const statusClass = c.status === 'not_resolved' ? 'status-not-resolved' : 'status-' + c.status;
+          const pillClass = c.status === 'not_resolved' ? 'pill-disputed' : 'pill-' + c.status;
+          const statusLabel = c.status === 'acknowledged' ? 'ACKNOWLEDGED'
+            : c.status === 'resolved' ? 'RESOLVED'
+              : c.status === 'not_resolved' ? '⚠ DISPUTED'
+                : 'NEW';
+          const typeLabel = TYPE_LABELS[c.problem_type] || c.problem_type || '—';
 
-    if (!list.length) {
-      ecpShowState(zoneFilter ? 'No complaints for this zone.' : 'No active complaints. ✓');
-      return;
-    }
-
-    const body = document.getElementById('ecp-body');
-    body.innerHTML = list.map(c => {
-      const statusClass = c.status === 'not_resolved' ? 'status-not-resolved' : 'status-' + c.status;
-      const pillClass   = c.status === 'not_resolved' ? 'pill-disputed' : 'pill-' + c.status;
-      const statusLabel = c.status === 'acknowledged'  ? 'ACKNOWLEDGED'
-                        : c.status === 'resolved'      ? 'RESOLVED'
-                        : c.status === 'not_resolved'  ? '⚠ DISPUTED'
-                        : 'NEW';
-      const typeLabel   = TYPE_LABELS[c.problem_type] || c.problem_type || '—';
-
-      const ackBtn = (c.status === 'open')
-        ? `<button class="ecp-btn ecp-btn-ack" onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g,'&quot;')})">✓ Acknowledge</button>`
-        : '';
-      const reAckBtn = (c.status === 'not_resolved')
-        ? `<button class="ecp-btn ecp-btn-ack" onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g,'&quot;')})" style="background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;">↺ Re-Acknowledge</button>`
-        : '';
-      const resBtn = (c.status === 'acknowledged')
-        ? `<span style="font-size:10px;color:#1565C0;font-style:italic;
+          const ackBtn = (c.status === 'open')
+            ? `<button class="ecp-btn ecp-btn-ack" onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g, '&quot;')})">✓ Acknowledge</button>`
+            : '';
+          const reAckBtn = (c.status === 'not_resolved')
+            ? `<button class="ecp-btn ecp-btn-ack" onclick="ecpAcknowledge('${c.complaint_id}', this, ${JSON.stringify(c).replace(/"/g, '&quot;')})" style="background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2;">↺ Re-Acknowledge</button>`
+            : '';
+          const resBtn = (c.status === 'acknowledged')
+            ? `<span style="font-size:10px;color:#1565C0;font-style:italic;
                         padding:4px 0;display:inline-block;">
              ⏳ Awaiting citizen verification to resolve
            </span>`
-        : '';
-      const printBtn = `<button class="ecp-btn ecp-btn-print" onclick="ecpPrintReport(${JSON.stringify(c).replace(/"/g,'&quot;')})">⎙ Print</button>`;
+            : '';
+          const printBtn = `<button class="ecp-btn ecp-btn-print" onclick="ecpPrintReport(${JSON.stringify(c).replace(/"/g, '&quot;')})">⎙ Print</button>`;
 
-      const by = c.acknowledged_by ? `<span style="color:var(--blue);font-size:10px">· acked by ${c.acknowledged_by}</span>` : '';
+          const by = c.acknowledged_by ? `<span style="color:var(--blue);font-size:10px">· acked by ${c.acknowledged_by}</span>` : '';
 
-      // Pill style for disputed
-      const pillStyle = c.status === 'not_resolved' ? 'background:#FFEBEE;color:#B71C1C;border:1px solid #FFCDD2;' : '';
-      // Card border for disputed
-      const cardStyle = c.status === 'not_resolved' ? 'border-left-color:#D32F2F;background:#FFFCFC;' : '';
+          // Pill style for disputed
+          const pillStyle = c.status === 'not_resolved' ? 'background:#FFEBEE;color:#B71C1C;border:1px solid #FFCDD2;' : '';
+          // Card border for disputed
+          const cardStyle = c.status === 'not_resolved' ? 'border-left-color:#D32F2F;background:#FFFCFC;' : '';
 
-      return `<div class="ecp-card ${statusClass}" id="ecp-card-${c.complaint_id}" style="${cardStyle}">
+          return `<div class="ecp-card ${statusClass}" id="ecp-card-${c.complaint_id}" style="${cardStyle}">
         <div class="ecp-card-top">
           <span class="ecp-card-type">${typeLabel}</span>
           <span class="ecp-status-pill ${pillClass}" style="${pillStyle}">${statusLabel}</span>
@@ -2596,99 +2793,99 @@
         <div class="ecp-card-time">Submitted: ${ecpFmt(c.created_at)}</div>
         <div class="ecp-card-actions">${ackBtn}${reAckBtn}${resBtn}${printBtn}</div>
       </div>`;
-    }).join('');
-  }
+        }).join('');
+      }
 
-  // ── Render audit log ───────────────────────────────────
-  function ecpRenderAudit() {
-    const zoneFilter = document.getElementById('ecp-zone-filter').value;
-    let list = ecpAuditComplaints;
-    if (zoneFilter) list = list.filter(c => c.zone_id === zoneFilter);
+      // ── Render audit log ───────────────────────────────────
+      function ecpRenderAudit() {
+        const zoneFilter = document.getElementById('ecp-zone-filter').value;
+        let list = ecpAuditComplaints;
+        if (zoneFilter) list = list.filter(c => c.zone_id === zoneFilter);
 
-    if (!list.length) {
-      ecpShowState(zoneFilter ? 'No resolved complaints for this zone.' : 'No resolved complaints yet.');
-      return;
-    }
+        if (!list.length) {
+          ecpShowState(zoneFilter ? 'No resolved complaints for this zone.' : 'No resolved complaints yet.');
+          return;
+        }
 
-    const body = document.getElementById('ecp-body');
-    body.innerHTML = '<div style="padding:4px 0">' + list.map(c => {
-      const typeLabel = TYPE_LABELS[c.problem_type] || c.problem_type || '—';
-      return `<div class="ecp-audit-row">
+        const body = document.getElementById('ecp-body');
+        body.innerHTML = '<div style="padding:4px 0">' + list.map(c => {
+          const typeLabel = TYPE_LABELS[c.problem_type] || c.problem_type || '—';
+          return `<div class="ecp-audit-row">
         <span class="ecp-audit-zone">${c.zone_name || c.zone_id}</span>
         <span class="ecp-audit-type">🟢 ${typeLabel}</span>
         <span class="ecp-audit-time">${ecpFmt(c.resolved_at || c.updated_at)}</span>
       </div>`;
-    }).join('') + '</div>';
-  }
+        }).join('') + '</div>';
+      }
 
-  // ── Actions ────────────────────────────────────────────
-  window.ecpAcknowledge = async function(id, btn, c_obj) {
-    btn.disabled = true; btn.textContent = '...';
-    try {
-      const res = await ecpAuthFetch('/complaints/' + id + '/acknowledge', { method: 'POST', body: '{}' });
-      const d = await res.json();
-      if (d.success) {
-        // Update card in-place without full re-render
-        const card = document.getElementById('ecp-card-' + id);
-        if (card) {
-          card.classList.remove('status-open'); card.classList.add('status-acknowledged');
-          card.querySelector('.ecp-status-pill').className = 'ecp-status-pill pill-acknowledged';
-          card.querySelector('.ecp-status-pill').textContent = 'ACKNOWLEDGED';
-          card.querySelector('.ecp-card-actions').innerHTML =
-            `<span style="font-size:10px;color:#1565C0;font-style:italic;
+      // ── Actions ────────────────────────────────────────────
+      window.ecpAcknowledge = async function (id, btn, c_obj) {
+        btn.disabled = true; btn.textContent = '...';
+        try {
+          const res = await ecpAuthFetch('/complaints/' + id + '/acknowledge', { method: 'POST', body: '{}' });
+          const d = await res.json();
+          if (d.success) {
+            // Update card in-place without full re-render
+            const card = document.getElementById('ecp-card-' + id);
+            if (card) {
+              card.classList.remove('status-open'); card.classList.add('status-acknowledged');
+              card.querySelector('.ecp-status-pill').className = 'ecp-status-pill pill-acknowledged';
+              card.querySelector('.ecp-status-pill').textContent = 'ACKNOWLEDGED';
+              card.querySelector('.ecp-card-actions').innerHTML =
+                `<span style="font-size:10px;color:#1565C0;font-style:italic;
                           padding:4px 0;display:inline-block;">
                ⏳ Awaiting citizen verification to resolve
              </span>
              <button class="ecp-btn ecp-btn-print"
-                     onclick="ecpPrintReport(${JSON.stringify(c_obj).replace(/"/g,'&quot;')})">
+                     onclick="ecpPrintReport(${JSON.stringify(c_obj).replace(/"/g, '&quot;')})">
                ⎙ Print
              </button>`;
-        }
-        ecpUpdateBadge();
-      } else {
-        btn.disabled = false; btn.textContent = '✓ Acknowledge';
-      }
-    } catch(e) { btn.disabled = false; btn.textContent = '✓ Acknowledge'; }
-  };
+            }
+            ecpUpdateBadge();
+          } else {
+            btn.disabled = false; btn.textContent = '✓ Acknowledge';
+          }
+        } catch (e) { btn.disabled = false; btn.textContent = '✓ Acknowledge'; }
+      };
 
 
 
-  window.ecpReload = function() { ecpLoadActive(); };
+      window.ecpReload = function () { ecpLoadActive(); };
 
-  // ── Print report ───────────────────────────────────────
-  window.ecpPrintReport = async function(c) {
-    // ── Fetch full detail (includes photo_b64) ───────────────────────────
-    let full = c;
-    try {
-        const res = await fetch(BACK + '/complaints/' + c.complaint_id, {
+      // ── Print report ───────────────────────────────────────
+      window.ecpPrintReport = async function (c) {
+        // ── Fetch full detail (includes photo_b64) ───────────────────────────
+        let full = c;
+        try {
+          const res = await fetch(BACK + '/complaints/' + c.complaint_id, {
             headers: { 'Authorization': 'Bearer ' + TOKEN }
-        });
-        if (res.ok) full = await res.json();
-    } catch(e) { /* use the card data as fallback */ }
+          });
+          if (res.ok) full = await res.json();
+        } catch (e) { /* use the card data as fallback */ }
 
-    const TYPE_LABELS_PRINT = {
-        no_water:       'No Water Supply',
-        low_pressure:   'Low Water Pressure',
-        dirty_water:    'Contaminated / Dirty Water',
-        pipe_leak:      'Visible Pipe Leak',
-        billing:        'Billing Dispute',
-        tanker_request: 'Emergency Tanker Request',
-    };
+        const TYPE_LABELS_PRINT = {
+          no_water: 'No Water Supply',
+          low_pressure: 'Low Water Pressure',
+          dirty_water: 'Contaminated / Dirty Water',
+          pipe_leak: 'Visible Pipe Leak',
+          billing: 'Billing Dispute',
+          tanker_request: 'Emergency Tanker Request',
+        };
 
-    const typeLabel = TYPE_LABELS_PRINT[full.problem_type] || full.problem_type || '—';
-    const statusColor = {
-        open:         '#D32F2F',
-        acknowledged: '#1565C0',
-        resolved:     '#2E7D32',
-    }[full.status] || '#8A96A4';
+        const typeLabel = TYPE_LABELS_PRINT[full.problem_type] || full.problem_type || '—';
+        const statusColor = {
+          open: '#D32F2F',
+          acknowledged: '#1565C0',
+          resolved: '#2E7D32',
+        }[full.status] || '#8A96A4';
 
-    const fmtDt = iso => iso ? new Date(iso).toLocaleString('en-IN', {
-        day:'2-digit', month:'short', year:'numeric',
-        hour:'2-digit', minute:'2-digit'
-    }) : '—';
+        const fmtDt = iso => iso ? new Date(iso).toLocaleString('en-IN', {
+          day: '2-digit', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        }) : '—';
 
-    const photoBlock = full.photo_b64
-        ? `<div class="section-title">PHOTOGRAPHIC EVIDENCE</div>
+        const photoBlock = full.photo_b64
+          ? `<div class="section-title">PHOTOGRAPHIC EVIDENCE</div>
            <div class="photo-wrap">
              <img src="data:image/jpeg;base64,${full.photo_b64}"
                   alt="Citizen submitted photo" class="evidence-photo">
@@ -2696,11 +2893,11 @@
                Photo submitted by citizen at time of complaint
              </div>
            </div>`
-        : `<div class="section-title">PHOTOGRAPHIC EVIDENCE</div>
+          : `<div class="section-title">PHOTOGRAPHIC EVIDENCE</div>
            <div class="no-photo">No photo was submitted with this complaint.</div>`;
 
-    const win = window.open('', '_blank', 'width=760,height=900');
-    win.document.write(`<!DOCTYPE html>
+        const win = window.open('', '_blank', 'width=760,height=900');
+        win.document.write(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -2865,11 +3062,10 @@
     </div>
     <div class="detail-cell full">
       <div class="detail-key">Citizen's Description</div>
-      <div class="detail-val">${
-        full.description
-          ? full.description
-          : '<span style="color:#8A96A4;font-style:italic">No description provided</span>'
-      }</div>
+      <div class="detail-val">${full.description
+            ? full.description
+            : '<span style="color:#8A96A4;font-style:italic">No description provided</span>'
+          }</div>
     </div>
   </div>
 
@@ -2886,15 +3082,13 @@
     </div>
     <div class="detail-cell">
       <div class="detail-key">Resolution Confirmed By</div>
-      <div class="detail-val">${
-        full.status === 'resolved' ? 'Citizen (self-verified)' : '—'
-      }</div>
+      <div class="detail-val">${full.status === 'resolved' ? 'Citizen (self-verified)' : '—'
+          }</div>
     </div>
     <div class="detail-cell">
       <div class="detail-key">Resolution Date</div>
-      <div class="detail-val">${
-        full.status === 'resolved' ? fmtDt(full.updated_at) : '—'
-      }</div>
+      <div class="detail-val">${full.status === 'resolved' ? fmtDt(full.updated_at) : '—'
+          }</div>
     </div>
   </div>
 
@@ -2923,42 +3117,42 @@
   <script>window.onload = function(){ window.print(); }<\/script>
 </body>
 </html>`);
-    win.document.close();
-  };
+        win.document.close();
+      };
 
-  // ── Badge counter ──────────────────────────────────────
-  async function ecpUpdateBadge() {
-    try {
-      const res = await ecpAuthFetch('/complaints/count');
-      if (!res.ok) return;
-      const { count } = await res.json();
-      const badge = document.getElementById('eng-complaints-badge');
-      if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'inline-flex' : 'none';
+      // ── Badge counter ──────────────────────────────────────
+      async function ecpUpdateBadge() {
+        try {
+          const res = await ecpAuthFetch('/complaints/count');
+          if (!res.ok) return;
+          const { count } = await res.json();
+          const badge = document.getElementById('eng-complaints-badge');
+          if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-flex' : 'none';
+          }
+        } catch (e) { }
       }
-    } catch(e) {}
-  }
 
-  // ── Polling ────────────────────────────────────────────
-  function ecpStartPolling() {
-    ecpStopPolling();
-    ecpPollTimer = setInterval(() => {
-      if (ecpCurrentTab === 'active') ecpLoadActive();
-      else ecpLoadAudit();
-    }, 15000);
-  }
+      // ── Polling ────────────────────────────────────────────
+      function ecpStartPolling() {
+        ecpStopPolling();
+        ecpPollTimer = setInterval(() => {
+          if (ecpCurrentTab === 'active') ecpLoadActive();
+          else ecpLoadAudit();
+        }, 15000);
+      }
 
-  function ecpStopPolling() {
-    if (ecpPollTimer) { clearInterval(ecpPollTimer); ecpPollTimer = null; }
-  }
+      function ecpStopPolling() {
+        if (ecpPollTimer) { clearInterval(ecpPollTimer); ecpPollTimer = null; }
+      }
 
-  // ── Initialise: badge poll starts immediately on page load ─
-  ecpUpdateBadge();
-  ecpBadgeTimer = setInterval(ecpUpdateBadge, 30000);
+      // ── Initialise: badge poll starts immediately on page load ─
+      ecpUpdateBadge();
+      ecpBadgeTimer = setInterval(ecpUpdateBadge, 30000);
 
-})(); // end IIFE
-</script>
+    })(); // end IIFE
+  </script>
 </body>
 
 </html>

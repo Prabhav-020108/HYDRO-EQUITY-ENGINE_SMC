@@ -223,16 +223,6 @@
                         style="font-size: 13px; font-style: italic; color: var(--orange); font-weight: 500;"></div>
                 </div>
 
-                <div
-                    style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                    <div
-                        style="font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">
-                        Supply Hours</div>
-                    <div style="font-size: 14px; color: var(--text); margin-bottom: 8px;">🌅 Morning: 6:00 AM – 8:00 AM
-                    </div>
-                    <div style="font-size: 14px; color: var(--text);">🌆 Evening: 5:00 PM – 8:00 PM</div>
-                </div>
-
                 <div style="text-align: center;">
                     <div style="font-size: 11px; color: var(--text3); margin-bottom: 4px;">Updates every 60 seconds
                     </div>
@@ -313,94 +303,133 @@
                 </div>
                 <div
                     style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                    <div style="font-size: 14px; font-weight: 500;">Supply hours: 6–8 AM and 5–8 PM daily</div>
-                </div>
-                <div
-                    style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                     <div style="font-size: 14px; font-weight: 500;">Complaints are tracked — check My Reports tab for
                         updates.</div>
                 </div>
             </div>
         </div>
 
-<!-- Screen 5: Profile -->
-<div id="screen-profile" class="screen">
-  <div style="padding-bottom:80px;">
-    <div style="background:linear-gradient(135deg,#0D5FA8,#1976D2);padding:28px 20px 24px;color:#fff;">
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
-        <div style="position:relative;">
-          <div id="profile-avatar-circle" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;cursor:pointer;" onclick="document.getElementById('profile-avatar-input').click()">
-            <span id="profile-avatar-emoji">👤</span>
-            <img id="profile-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
-          </div>
-          <input type="file" id="profile-avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
-          <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;" onclick="document.getElementById('profile-avatar-input').click()">✏️</div>
+        <!-- Screen 5: Profile -->
+        <div id="screen-profile" class="screen">
+            <div style="padding-bottom:80px;">
+                <div style="background:linear-gradient(135deg,#0D5FA8,#1976D2);padding:28px 20px 24px;color:#fff;">
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                        <div style="position:relative;">
+                            <div id="profile-avatar-circle"
+                                style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;cursor:pointer;"
+                                onclick="document.getElementById('profile-avatar-input').click()">
+                                <span id="profile-avatar-emoji">👤</span>
+                                <img id="profile-avatar-img" src="" alt=""
+                                    style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                            </div>
+                            <input type="file" id="profile-avatar-input" accept="image/*" style="display:none"
+                                onchange="handleAvatarUpload(this)">
+                            <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;"
+                                onclick="document.getElementById('profile-avatar-input').click()">✏️</div>
+                        </div>
+                        <div style="flex:1;">
+                            <div id="profile-display-name" style="font-size:18px;font-weight:700;margin-bottom:2px;">
+                                Solapur Resident</div>
+                            <div id="profile-zone-tag" style="font-size:12px;opacity:.8;margin-bottom:4px;">—</div>
+                            <div
+                                style="display:inline-block;background:rgba(255,255,255,.18);border-radius:10px;padding:2px 10px;font-size:11px;">
+                                Dhara Member</div>
+                        </div>
+                    </div>
+                    <input id="profile-name-input" type="text" placeholder="Tap to set your name"
+                        oninput="saveProfileField('name', this.value)"
+                        style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:14px;font-family:'IBM Plex Sans',sans-serif;margin-bottom:10px;outline:none;"
+                        onfocus="this.style.background='rgba(255,255,255,.25)'"
+                        onblur="this.style.background='rgba(255,255,255,.15)'">
+                    <input id="profile-phone-input" type="tel" placeholder="📱 Mobile number"
+                        oninput="saveProfileField('phone', this.value)"
+                        style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:14px;font-family:'IBM Plex Sans',sans-serif;outline:none;"
+                        onfocus="this.style.background='rgba(255,255,255,.25)'"
+                        onblur="this.style.background='rgba(255,255,255,.15)'">
+                </div>
+                <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);">
+                    <div style="flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border);">
+                        <div id="stat-total"
+                            style="font-size:22px;font-weight:700;color:var(--blue);font-family:'IBM Plex Mono',monospace;">
+                            0</div>
+                        <div
+                            style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">
+                            Total</div>
+                    </div>
+                    <div style="flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border);">
+                        <div id="stat-resolved"
+                            style="font-size:22px;font-weight:700;color:var(--green);font-family:'IBM Plex Mono',monospace;">
+                            0</div>
+                        <div
+                            style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">
+                            Resolved</div>
+                    </div>
+                    <div style="flex:1;padding:14px 8px;text-align:center;">
+                        <div id="stat-open"
+                            style="font-size:22px;font-weight:700;color:var(--orange);font-family:'IBM Plex Mono',monospace;">
+                            0</div>
+                        <div
+                            style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">
+                            Active</div>
+                    </div>
+                </div>
+                <div style="padding:16px 20px 0;">
+                    <div
+                        style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px;">
+                        My Details</div>
+                    <div
+                        style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+                        <div
+                            style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+                            <span style="font-size:18px;margin-right:14px;">🏠</span>
+                            <div>
+                                <div style="font-size:11px;color:var(--text3);">Service Zone</div>
+                                <div id="profile-detail-zone" style="font-size:14px;font-weight:600;color:var(--text);">
+                                    —</div>
+                            </div>
+                        </div>
+                        <div
+                            style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+                            <span style="font-size:18px;margin-right:14px;">📞</span>
+                            <div>
+                                <div style="font-size:11px;color:var(--text3);">SMC Helpline</div>
+                                <div style="font-size:14px;font-weight:600;color:var(--blue);">0217-2728888</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;padding:14px 16px;">
+                            <span style="font-size:18px;margin-right:14px;">🆔</span>
+                            <div>
+                                <div style="font-size:11px;color:var(--text3);">Member Since</div>
+                                <div id="profile-since" style="font-size:14px;font-weight:600;color:var(--text);">—
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding:20px 20px 0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <div
+                            style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);">
+                            Complaint History</div>
+                        <div id="profile-history-count" style="font-size:11px;color:var(--text3);">0 entries</div>
+                    </div>
+                    <div id="profile-history-list">
+                        <div style="text-align:center;padding:32px 16px;color:var(--text3);">
+                            <div style="font-size:28px;margin-bottom:8px;">📂</div>
+                            <div style="font-size:13px;">Resolved &amp; closed complaints will appear here</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div style="flex:1;">
-          <div id="profile-display-name" style="font-size:18px;font-weight:700;margin-bottom:2px;">Solapur Resident</div>
-          <div id="profile-zone-tag" style="font-size:12px;opacity:.8;margin-bottom:4px;">—</div>
-          <div style="display:inline-block;background:rgba(255,255,255,.18);border-radius:10px;padding:2px 10px;font-size:11px;">Dhara Member</div>
-        </div>
-      </div>
-      <input id="profile-name-input" type="text" placeholder="Tap to set your name" oninput="saveProfileField('name', this.value)" style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:14px;font-family:'IBM Plex Sans',sans-serif;margin-bottom:10px;outline:none;" onfocus="this.style.background='rgba(255,255,255,.25)'" onblur="this.style.background='rgba(255,255,255,.15)'">
-      <input id="profile-phone-input" type="tel" placeholder="📱 Mobile number" oninput="saveProfileField('phone', this.value)" style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:14px;font-family:'IBM Plex Sans',sans-serif;outline:none;" onfocus="this.style.background='rgba(255,255,255,.25)'" onblur="this.style.background='rgba(255,255,255,.15)'">
-    </div>
-    <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);">
-      <div style="flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border);">
-        <div id="stat-total" style="font-size:22px;font-weight:700;color:var(--blue);font-family:'IBM Plex Mono',monospace;">0</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Total</div>
-      </div>
-      <div style="flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border);">
-        <div id="stat-resolved" style="font-size:22px;font-weight:700;color:var(--green);font-family:'IBM Plex Mono',monospace;">0</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Resolved</div>
-      </div>
-      <div style="flex:1;padding:14px 8px;text-align:center;">
-        <div id="stat-open" style="font-size:22px;font-weight:700;color:var(--orange);font-family:'IBM Plex Mono',monospace;">0</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Active</div>
-      </div>
-    </div>
-    <div style="padding:16px 20px 0;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px;">My Details</div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);">
-        <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
-          <span style="font-size:18px;margin-right:14px;">🏠</span>
-          <div><div style="font-size:11px;color:var(--text3);">Service Zone</div><div id="profile-detail-zone" style="font-size:14px;font-weight:600;color:var(--text);">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
-          <span style="font-size:18px;margin-right:14px;">💧</span>
-          <div><div style="font-size:11px;color:var(--text3);">Supply Hours</div><div style="font-size:14px;font-weight:600;color:var(--text);">6–8 AM &amp; 5–8 PM daily</div></div>
-        </div>
-        <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
-          <span style="font-size:18px;margin-right:14px;">📞</span>
-          <div><div style="font-size:11px;color:var(--text3);">SMC Helpline</div><div style="font-size:14px;font-weight:600;color:var(--blue);">0217-2728888</div></div>
-        </div>
-        <div style="display:flex;align-items:center;padding:14px 16px;">
-          <span style="font-size:18px;margin-right:14px;">🆔</span>
-          <div><div style="font-size:11px;color:var(--text3);">Member Since</div><div id="profile-since" style="font-size:14px;font-weight:600;color:var(--text);">—</div></div>
-        </div>
-      </div>
-    </div>
-    <div style="padding:20px 20px 0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);">Complaint History</div>
-        <div id="profile-history-count" style="font-size:11px;color:var(--text3);">0 entries</div>
-      </div>
-      <div id="profile-history-list">
-        <div style="text-align:center;padding:32px 16px;color:var(--text3);">
-          <div style="font-size:28px;margin-bottom:8px;">📂</div>
-          <div style="font-size:13px;">Resolved &amp; closed complaints will appear here</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
         <nav id="bottom-nav">
             <button onclick="showScreen('screen-status'); loadZoneStatus();">
                 <span class="icon">🏠</span>
                 <span class="label">Home</span>
             </button>
-            <button onclick="showScreen('screen-report'); document.getElementById('report-zone-label').textContent = sessionStorage.getItem('citizen_zone_name') || '';">
+            <button
+                onclick="showScreen('screen-report'); document.getElementById('report-zone-label').textContent = sessionStorage.getItem('citizen_zone_name') || '';">
                 <span class="icon">📋</span>
                 <span class="label">Report</span>
             </button>
@@ -451,9 +480,9 @@
         async function gpsSuccess(position) {
             try {
                 const res = await fetch(API_BASE + '/citizen/locate', {
-                    method:  'POST',
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({
+                    body: JSON.stringify({
                         lat: position.coords.latitude,
                         lon: position.coords.longitude
                     })
@@ -462,13 +491,13 @@
                 // ── Outside Solapur ──────────────────────────────────────────────
                 if (res.status === 422) {
                     const errData = await res.json().catch(() => ({}));
-                    const errMsg  = (errData.detail && errData.detail.message)
+                    const errMsg = (errData.detail && errData.detail.message)
                         ? errData.detail.message
                         : 'Your location is outside the Solapur water supply area.';
 
                     // Show GPS error panel with message
-                    document.getElementById('gps-spinner').style.display  = 'none';
-                    document.getElementById('gps-error').style.display    = 'block';
+                    document.getElementById('gps-spinner').style.display = 'none';
+                    document.getElementById('gps-error').style.display = 'block';
 
                     // Replace the default error text with a precise message
                     const errorContainer = document.getElementById('gps-error');
@@ -505,17 +534,17 @@
                 if (!res.ok) { gpsError(new Error('HTTP ' + res.status)); return; }
 
                 const data = await res.json();
-                sessionStorage.setItem('citizen_zone_id',   data.zone_id);
-                sessionStorage.setItem('citizen_zone_name',  data.zone_name || data.zone_id);
+                sessionStorage.setItem('citizen_zone_id', data.zone_id);
+                sessionStorage.setItem('citizen_zone_name', data.zone_name || data.zone_id);
 
                 document.getElementById('gps-spinner').style.display = 'none';
-                document.getElementById('gps-result').style.display  = 'block';
+                document.getElementById('gps-result').style.display = 'block';
                 document.getElementById('detected-zone-name').textContent =
                     data.zone_name || data.zone_id;
                 document.getElementById('detected-method').textContent =
                     'Detected via GPS · ' + (data.detection_method || 'location');
 
-            } catch(e) {
+            } catch (e) {
                 gpsError(e);
             }
         }
@@ -803,10 +832,9 @@
 
                 return `
                 <div class="complaint-card" id="complaint-card-${c.complaint_id}"
-                     style="border-left:3px solid ${
-                         c.status==='resolved'     ? '#2E7D32' :
-                         c.status==='acknowledged' ? '#1976D2' :
-                         c.status==='not_resolved' ? '#D32F2F' : '#8A96A4'}">
+                     style="border-left:3px solid ${c.status === 'resolved' ? '#2E7D32' :
+                        c.status === 'acknowledged' ? '#1976D2' :
+                            c.status === 'not_resolved' ? '#D32F2F' : '#8A96A4'}">
                     <div class="cc-top">
                         <span class="cc-type">${TYPE_LABELS[c.problem_type] || c.problem_type}</span>
                         <span class="cc-badge" id="badge-${c.complaint_id}" style="${_badgeStyle(c.status)}">${c.status}</span>
@@ -885,7 +913,7 @@
 
             try {
                 const res = await fetch(API_BASE + '/citizen/complaint/' + complaintId + '/not-resolved', {
-                    method:  'POST',
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                 });
 
@@ -911,7 +939,7 @@
                     if (fixBtn) fixBtn.disabled = false;
                     showToast(data.error || 'Unable to update. Please try again.', 'red');
                 }
-            } catch(e) {
+            } catch (e) {
                 if (btn) { btn.disabled = false; btn.textContent = '✕ Not Fixed'; }
                 if (fixBtn) fixBtn.disabled = false;
                 showToast('Network error. Please try again.', 'red');
@@ -923,9 +951,9 @@
             const stored = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
             if (!stored.length) return;
 
-            const now    = Date.now();
+            const now = Date.now();
             const MS_24H = 24 * 60 * 60 * 1000;
-            let   localChange = false;
+            let localChange = false;
 
             const updated = stored.map(c => {
                 if (c.status === 'open') {
@@ -944,14 +972,14 @@
 
             try {
                 await fetch(API_BASE + '/citizen/complaints/expire-old', { method: 'POST' });
-            } catch(e) { /* silent */ }
+            } catch (e) { /* silent */ }
         }
 
         /* ══════════════════════════════════════════════════════════════
            CITIZEN PROFILE — localStorage-backed profile + history log
            ══════════════════════════════════════════════════════════════ */
 
-        const HISTORY_STATUSES   = ['resolved', 'expired'];
+        const HISTORY_STATUSES = ['resolved', 'expired'];
         const COMPLAINT_TYPE_MAP = {
             no_water: 'No Water Supply', low_pressure: 'Low Pressure',
             dirty_water: 'Dirty / Contaminated Water', pipe_leak: 'Pipe Leak',
@@ -968,13 +996,13 @@
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const dataUrl = e.target.result;
                 saveProfileField('avatar', dataUrl);
-                const img   = document.getElementById('profile-avatar-img');
+                const img = document.getElementById('profile-avatar-img');
                 const emoji = document.getElementById('profile-avatar-emoji');
                 if (img && emoji) {
-                    img.src           = dataUrl;
+                    img.src = dataUrl;
                     img.style.display = 'block';
                     emoji.style.display = 'none';
                 }
@@ -983,28 +1011,28 @@
         }
 
         function loadProfile() {
-            const profile    = JSON.parse(localStorage.getItem('dhara_profile') || '{}');
+            const profile = JSON.parse(localStorage.getItem('dhara_profile') || '{}');
             const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
-            const zoneName   = sessionStorage.getItem('citizen_zone_name') || '—';
+            const zoneName = sessionStorage.getItem('citizen_zone_name') || '—';
 
-            const nameInput  = document.getElementById('profile-name-input');
+            const nameInput = document.getElementById('profile-name-input');
             const phoneInput = document.getElementById('profile-phone-input');
-            if (nameInput  && profile.name)  nameInput.value  = profile.name;
+            if (nameInput && profile.name) nameInput.value = profile.name;
             if (phoneInput && profile.phone) phoneInput.value = profile.phone;
 
             const displayName = document.getElementById('profile-display-name');
             if (displayName) displayName.textContent = profile.name || 'Solapur Resident';
 
-            const zoneTag    = document.getElementById('profile-zone-tag');
+            const zoneTag = document.getElementById('profile-zone-tag');
             const detailZone = document.getElementById('profile-detail-zone');
-            if (zoneTag)    zoneTag.textContent    = zoneName;
+            if (zoneTag) zoneTag.textContent = zoneName;
             if (detailZone) detailZone.textContent = zoneName;
 
             if (profile.avatar) {
-                const img   = document.getElementById('profile-avatar-img');
+                const img = document.getElementById('profile-avatar-img');
                 const emoji = document.getElementById('profile-avatar-emoji');
                 if (img && emoji) {
-                    img.src           = profile.avatar;
+                    img.src = profile.avatar;
                     img.style.display = 'block';
                     emoji.style.display = 'none';
                 }
@@ -1012,21 +1040,21 @@
 
             const sinceEl = document.getElementById('profile-since');
             if (sinceEl) {
-                const sorted = [...complaints].sort((a,b) =>
+                const sorted = [...complaints].sort((a, b) =>
                     new Date(a.submitted_at) - new Date(b.submitted_at));
                 if (sorted[0]) {
                     sinceEl.textContent = new Date(sorted[0].submitted_at)
-                        .toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+                        .toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
                 } else {
                     sinceEl.textContent = new Date().toLocaleDateString('en-IN',
-                        {day:'2-digit',month:'short',year:'numeric'});
+                        { day: '2-digit', month: 'short', year: 'numeric' });
                 }
             }
 
-            const total    = complaints.length;
+            const total = complaints.length;
             const resolved = complaints.filter(c => c.status === 'resolved').length;
-            const active   = complaints.filter(c =>
-                !['resolved','expired'].includes(c.status)).length;
+            const active = complaints.filter(c =>
+                !['resolved', 'expired'].includes(c.status)).length;
 
             const s1 = document.getElementById('stat-total');
             const s2 = document.getElementById('stat-resolved');
@@ -1037,7 +1065,7 @@
 
             const historyItems = complaints
                 .filter(c => HISTORY_STATUSES.includes(c.status))
-                .sort((a,b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+                .sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
 
             const countEl = document.getElementById('profile-history-count');
             if (countEl) countEl.textContent = historyItems.length + ' entr' +
@@ -1056,15 +1084,15 @@
             }
 
             historyList.innerHTML = historyItems.map(c => {
-                const typeLabel  = COMPLAINT_TYPE_MAP[c.problem_type] || c.problem_type || '—';
+                const typeLabel = COMPLAINT_TYPE_MAP[c.problem_type] || c.problem_type || '—';
                 const isResolved = c.status === 'resolved';
-                const icon       = isResolved ? '✅' : '⏱';
+                const icon = isResolved ? '✅' : '⏱';
                 const statusText = isResolved ? 'Resolved' : 'Closed — Not Acknowledged';
-                const statusBg   = isResolved ? '#E8F5E9' : '#F0F4F8';
-                const statusFg   = isResolved ? '#2E7D32' : '#8A96A4';
+                const statusBg = isResolved ? '#E8F5E9' : '#F0F4F8';
+                const statusFg = isResolved ? '#2E7D32' : '#8A96A4';
 
                 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('en-IN',
-                    {day:'2-digit', month:'short', year:'numeric'}) : '—';
+                    { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
                 return `
                 <div style="background:var(--surface);border:1px solid var(--border);

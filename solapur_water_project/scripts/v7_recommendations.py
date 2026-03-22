@@ -3502,8 +3502,7 @@ def trigger_d_citizen(zones, conn):
             supply_status = 'Normal'
             advisory = (
                 f"Water supply in {nm} is operating at near-normal levels. "
-                f"Some households may experience slightly reduced pressure during peak hours. "
-                f"Supply window: 6:00 AM – 8:00 AM and 5:00 PM – 7:00 PM."
+                f"Some households may experience slightly reduced pressure during peak hours."
             )
             guidance = (
                 f"If pressure seems lower than usual, wait for the next supply cycle. "
@@ -3513,8 +3512,7 @@ def trigger_d_citizen(zones, conn):
         elif status == 'over':
             supply_status = 'Normal'
             advisory = (
-                f"Water supply in {nm} is operating normally. "
-                f"Supply window: 6:00 AM – 8:00 AM and 5:00 PM – 7:00 PM."
+                f"Water supply in {nm} is operating normally."
             )
             guidance = (
                 f"If you notice unusually high water flow or pipe vibration, "
@@ -3525,7 +3523,6 @@ def trigger_d_citizen(zones, conn):
             supply_status = 'Normal'
             advisory = (
                 f"Water supply in {nm} is operating normally (HEI = {hei:.2f}). "
-                f"Supply window: 6:00 AM – 8:00 AM and 5:00 PM – 7:00 PM. "
                 f"Ensure your overhead tank is filled during supply hours."
             )
             guidance = (
