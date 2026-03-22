@@ -8,5 +8,5 @@ const API_BASE = (
     window.location.hostname === ''
 )
     ? 'http://localhost:8000'
-    : 'https://YOUR-ACTUAL-BACKEND-NAME.onrender.com';  // ← update this
+    : 'https://hydro-equity-engine-smc.onrender.com';  // ← update this
 ```
