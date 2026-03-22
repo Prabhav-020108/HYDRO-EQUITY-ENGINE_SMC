@@ -1,7 +1,6 @@
 // frontend/config.js
-// Auto-detects environment: localhost → dev server, anything else → Render production.
-// Must be the FIRST <script> tag in every dashboard HTML file.
-// No imports, no exports — plain browser JavaScript.
+// Auto-detects environment.
+// IMPORTANT: Replace 'dhara-api.onrender.com' with your actual Render backend URL.
 
 const API_BASE = (
     window.location.hostname === 'localhost' ||
@@ -9,4 +8,5 @@ const API_BASE = (
     window.location.hostname === ''
 )
     ? 'http://localhost:8000'
-    : 'https://dhara-api.onrender.com';
+    : 'https://YOUR-ACTUAL-BACKEND-NAME.onrender.com';  // ← update this
+```
