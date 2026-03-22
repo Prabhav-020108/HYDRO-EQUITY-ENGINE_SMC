@@ -33,6 +33,16 @@ except Exception as e:
     print(f"  ⚠  User seeding failed (non-fatal): {e}")
     # Non-fatal: users may already exist
 
+# Step 2b: Seed citizens (ON CONFLICT DO UPDATE — idempotent)
+print("\n[2b/3] Running seed_citizens.py...")
+try:
+    from scripts.seed_citizens import seed as seed_citizens
+    seed_citizens()
+    print("  ✅ Citizens seeded")
+except Exception as e:
+    print(f"  ⚠  Citizen seeding failed (non-fatal): {e}")
+    # Non-fatal: citizens may already exist
+
 # Step 3: Check if alerts table is empty — if yes, run initial migrate
 print("\n[3/3] Checking if initial data migration is needed...")
 try:
