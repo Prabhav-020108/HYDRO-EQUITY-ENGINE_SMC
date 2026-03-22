@@ -1,7 +1,37 @@
+# Environment — NEVER commit
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# EPANET temp files
 temp.bin
 temp.inp
 temp.rpt
-__pycache__/
-*.pyc
-.venv/
+*.bin
+*.rpt
 
+# Backup files
+*.bak
+*_BACKUP.*
+*_old.*
+
+# Dev/test artifacts
+output.txt
+traceback.txt
+alert_log_test.csv
+test_db.py
+test_login.py
+
+# OS
+.DS_Store
+Thumbs.db
