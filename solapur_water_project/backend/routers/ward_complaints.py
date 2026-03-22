@@ -1,10 +1,15 @@
+import io
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 from backend.auth import get_current_user
 from backend.database import engine
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
 
-router = APIRouter(prefix="/ward/complaints", tags=["Ward Officer — Complaints"])
+router = APIRouter(prefix="/ward", tags=["Ward Officer — Complaints"])
 
 def _require_ward_officer(current_user: dict) -> dict:
     role = current_user.get("role", "")
@@ -15,7 +20,7 @@ def _require_ward_officer(current_user: dict) -> dict:
 class ComplaintStatusUpdate(BaseModel):
     status: str
 
-@router.get("")
+@router.get("/complaints")
 def get_ward_complaints(current_user: dict = Depends(get_current_user)):
     _require_ward_officer(current_user)
     zone_id = current_user.get("zone_id")
@@ -47,7 +52,7 @@ def get_ward_complaints(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/{complaint_id}/status")
+@router.post("/complaints/{complaint_id}/status")
 def update_complaint_status(complaint_id: str, body: ComplaintStatusUpdate, current_user: dict = Depends(get_current_user)):
     _require_ward_officer(current_user)
     if body.status not in ["acknowledged", "resolved"]:
@@ -86,7 +91,7 @@ def update_complaint_status(complaint_id: str, body: ComplaintStatusUpdate, curr
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/field-history")
+@router.get("/complaints/field-history")
 def get_ward_field_history(current_user: dict = Depends(get_current_user)):
     _require_ward_officer(current_user)
     zone_id = current_user.get("zone_id")
@@ -117,6 +122,67 @@ def get_ward_field_history(current_user: dict = Depends(get_current_user)):
                 "resolved_by": str(r[6]) if r[6] else None
             })
         return history
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/field-work-log/pdf")
+def get_field_work_log_pdf(current_user: dict = Depends(get_current_user)):
+    _require_ward_officer(current_user)
+    zone_id = current_user.get("zone_id")
+    
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("""
+                    SELECT alert_id, dominant_signal, resolved_by, resolved_at
+                    FROM alerts 
+                    WHERE zone_id = :zone_id 
+                    AND resolved_by IS NOT NULL
+                    ORDER BY resolved_at DESC NULLS LAST
+                """),
+                {"zone_id": zone_id}
+            ).fetchall()
+            
+        data = [["Alert ID", "Dominant Signal", "Resolved By", "Resolved At"]]
+        for r in rows:
+            data.append([
+                str(r[0]),
+                str(r[1] or ""),
+                str(r[2] or "Unknown"),
+                str(r[3].strftime("%Y-%m-%d %H:%M") if r[3] else "—")
+            ])
+            
+        buf = io.BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=letter)
+        
+        # Simple table style
+        t = Table(data)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#0D5FA8")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('BACKGROUND', (0,1), (-1,-1), colors.HexColor("#F0F4F8")),
+            ('TEXTCOLOR', (0,1), (-1,-1), colors.black),
+            ('ALIGN', (0,1), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('GRID', (0,0), (-1,-1), 1, colors.HexColor("#DDE3EA"))
+        ]))
+        
+        doc.build([t])
+        
+        buf.seek(0)
+        return StreamingResponse(
+            buf, 
+            media_type="application/pdf", 
+            headers={"Content-Disposition": "attachment; filename=field_work_log.pdf"}
+        )
+        
     except HTTPException:
         raise
     except Exception as e:

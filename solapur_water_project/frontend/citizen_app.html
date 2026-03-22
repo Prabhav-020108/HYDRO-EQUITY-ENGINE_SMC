@@ -65,7 +65,7 @@
             height: 56px;
             background: var(--surface);
             border-top: 1px solid var(--border);
-            display: flex;
+            display: none;
             justify-content: space-around;
             align-items: center;
         }
@@ -79,7 +79,7 @@
             justify-content: center;
             color: var(--text3);
             cursor: pointer;
-            width: 25%;
+            width: 16.66%;
             height: 100%;
             padding: 0;
         }
@@ -154,7 +154,26 @@
 
 <body>
     <div class="app">
-        <div id="screen-detect" class="screen active">
+        <div id="screen-login" class="screen active">
+            <div style="max-width: 360px; margin: 40px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="color: var(--blue); font-weight: 600; font-size: 16px; margin-bottom: 24px; letter-spacing: 0.05em;">DHARA · Solapur Water</div>
+                
+                <div style="text-align: left; margin-bottom: 16px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Phone Number</label>
+                    <input type="tel" id="login-phone" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text); box-sizing: border-box;">
+                </div>
+                
+                <div style="text-align: left; margin-bottom: 24px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Password</label>
+                    <input type="password" id="login-password" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text); box-sizing: border-box;">
+                </div>
+                
+                <div id="login-error" style="display: none; color: var(--red); font-size: 13px; font-weight: 500; margin-bottom: 16px; padding: 10px; background: #FFEBEE; border-radius: 6px;"></div>
+                
+                <button onclick="doLogin()" style="width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">Log In</button>
+            </div>
+        </div>
+        <div id="screen-detect" class="screen">
             <div
                 style="max-width: 360px; margin: 40px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div
@@ -200,16 +219,18 @@
         <div id="screen-status" class="screen">
             <div style="padding: 24px 20px;">
                 <div
-                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; position: relative;">
                     <div>
                         <div id="status-zone-name"
                             style="font-size: 24px; font-weight: bold; color: var(--blue); margin-bottom: 4px;">Zone
                             Name</div>
                         <div style="font-size: 14px; color: var(--text2);">Water Supply Status</div>
                     </div>
-                    <div id="status-badge"
-                        style="padding: 6px 12px; border-radius: 16px; font-weight: 600; font-size: 13px; background: #E8F5E9; color: #2E7D32;">
-                        Normal</div>
+                    <div style="text-align: right;">
+                        <div id="status-badge"
+                            style="padding: 6px 12px; border-radius: 16px; font-weight: 600; font-size: 13px; background: #E8F5E9; color: #2E7D32; display: inline-block;">
+                            Normal</div>
+                    </div>
                 </div>
 
                 <div id="status-advisory"
@@ -237,7 +258,7 @@
                 <div id="report-zone-label" style="font-size: 14px; color: var(--text3); margin-bottom: 24px;">—</div>
 
                 <div
-                    style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                    style="background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden;">
                     <div style="margin-bottom: 16px;">
                         <label
                             style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Problem
@@ -268,7 +289,7 @@
                             style="display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Additional
                             details (optional)</label>
                         <textarea id="complaint-desc" maxlength="200" rows="3"
-                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text); resize: none;"></textarea>
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #FAFBFC; color: var(--text); resize: none; box-sizing: border-box;"></textarea>
                         <div id="char-counter"
                             style="font-size: 11px; color: var(--text3); text-align: right; margin-top: 4px;">0/200
                             characters</div>
@@ -445,6 +466,10 @@
                 <span class="icon">👤</span>
                 <span class="label">Profile</span>
             </button>
+            <button onclick="doLogout()">
+                <span class="icon">🚪</span>
+                <span class="label">Sign Out</span>
+            </button>
         </nav>
     </div>
 
@@ -473,8 +498,53 @@
             });
         }
 
+        async function doLogin() {
+            const phone = document.getElementById('login-phone').value;
+            const password = document.getElementById('login-password').value;
+            const errEl = document.getElementById('login-error');
+            errEl.style.display = 'none';
+
+            if (!phone || !password) {
+                errEl.textContent = 'Please enter phone and password.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch(API_BASE + '/citizen/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, password })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.detail || 'Login failed');
+                }
+
+                const data = await res.json();
+                sessionStorage.setItem('citizen_token', data.access_token);
+                sessionStorage.setItem('citizen_name', data.name);
+                sessionStorage.setItem('citizen_phone', data.phone);
+                sessionStorage.setItem('citizen_zone_id', data.zone_id);
+                sessionStorage.setItem('citizen_zone_name', data.zone_name);
+                sessionStorage.setItem('citizen_logged_in', 'true');
+
+                showScreen('screen-detect');
+                navigator.geolocation.getCurrentPosition(gpsSuccess, gpsError, { timeout: 10000 });
+            } catch (e) {
+                errEl.textContent = e.message;
+                errEl.style.display = 'block';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            navigator.geolocation.getCurrentPosition(gpsSuccess, gpsError, { timeout: 10000 });
+            if (sessionStorage.getItem('citizen_logged_in') === 'true') {
+                showScreen('screen-detect');
+                navigator.geolocation.getCurrentPosition(gpsSuccess, gpsError, { timeout: 10000 });
+            } else {
+                showScreen('screen-login');
+            }
         });
 
         async function gpsSuccess(position) {
@@ -552,6 +622,11 @@
         function gpsError(err) {
             document.getElementById('gps-spinner').style.display = 'none';
             document.getElementById('gps-error').style.display = 'block';
+            const zid = sessionStorage.getItem('citizen_zone_id');
+            if (zid) {
+                const sel = document.getElementById('zone-select');
+                if (sel) sel.value = zid;
+            }
         }
 
         function useManualZone() {
@@ -569,8 +644,19 @@
 
             document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
             document.querySelector('#bottom-nav button:first-child').classList.add('active');
+            document.getElementById('bottom-nav').style.display = 'flex';
 
             loadZoneStatus();
+        }
+
+        function doLogout() {
+            sessionStorage.clear();
+            document.getElementById('bottom-nav').style.display = 'none';
+            if (_statusInterval) clearInterval(_statusInterval);
+            if (typeof _complaintsInterval !== 'undefined' && _complaintsInterval) {
+                clearInterval(_complaintsInterval);
+            }
+            showScreen('screen-login');
         }
 
         let _statusInterval = null;
@@ -1013,15 +1099,20 @@
         function loadProfile() {
             const profile = JSON.parse(localStorage.getItem('dhara_profile') || '{}');
             const complaints = JSON.parse(localStorage.getItem('dhara_complaints') || '[]');
+            const citizenName = sessionStorage.getItem('citizen_name');
+            const citizenPhone = sessionStorage.getItem('citizen_phone');
             const zoneName = sessionStorage.getItem('citizen_zone_name') || '—';
+
+            const finalName = citizenName || profile.name || '';
+            const finalPhone = citizenPhone || profile.phone || '';
 
             const nameInput = document.getElementById('profile-name-input');
             const phoneInput = document.getElementById('profile-phone-input');
-            if (nameInput && profile.name) nameInput.value = profile.name;
-            if (phoneInput && profile.phone) phoneInput.value = profile.phone;
+            if (nameInput) nameInput.value = finalName;
+            if (phoneInput) phoneInput.value = finalPhone;
 
             const displayName = document.getElementById('profile-display-name');
-            if (displayName) displayName.textContent = profile.name || 'Solapur Resident';
+            if (displayName) displayName.textContent = finalName || 'Solapur Resident';
 
             const zoneTag = document.getElementById('profile-zone-tag');
             const detailZone = document.getElementById('profile-detail-zone');

@@ -239,6 +239,54 @@
       font-weight: 500
     }
 
+    .sgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px
+    }
+
+    .sbtn {
+      padding: 8px 6px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      cursor: pointer;
+      text-align: center;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text2);
+      transition: all .15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px
+    }
+
+    .sbtn:hover {
+      border-color: var(--blue2);
+      color: var(--blue);
+      background: var(--bluel)
+    }
+
+    .sbtn.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--bluel);
+      font-weight: 600
+    }
+
+    .sbtn .ico {
+      font-size: 15px
+    }
+
+    #sci {
+      font-size: 11px;
+      color: var(--blue);
+      padding: 6px 14px 0;
+      font-style: italic
+    }
+
     .mesr {
       background: #1565C0;
       color: white;
@@ -548,6 +596,19 @@
       </div>
 
       <div class="psec">
+        <div class="ptit">Scenario Engine</div>
+        <div class="pbody">
+          <div class="sgrid">
+            <button class="sbtn active" onclick="setScen('baseline',this)"><span class="ico">📡</span>Anomaly (CLPS)</button>
+            <button class="sbtn" onclick="setScen('leak',this)"><span class="ico">💧</span>Leak Event</button>
+            <button class="sbtn" onclick="setScen('valve',this)"><span class="ico">🔒</span>Valve Close</button>
+            <button class="sbtn" onclick="setScen('surge',this)"><span class="ico">📈</span>Demand Surge</button>
+          </div>
+          <div id="sci">Running: Anomaly detection (CLPS signals)</div>
+        </div>
+      </div>
+
+      <div class="psec">
         <div class="ptit">Citizen Complaints
           <span id="ccnt"
             style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFEBEE;color:#D32F2F;padding:2px 8px;border-radius:10px">0</span>
@@ -587,7 +648,10 @@
         <div id="recbody" style="overflow-y:auto;flex:1;padding-bottom:8px"></div>
       </div>
       <div class="psec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
-        <div class="ptit">Field Work Log</div>
+        <div class="ptit">
+          <span>Field Work Log</span>
+          <button onclick="downloadFieldLogPDF()" style="background:none;border:none;cursor:pointer;color:var(--blue);font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;" title="Download PDF">↓</button>
+        </div>
         <div id="fwbody" style="overflow-y:auto;flex:1;padding-bottom:8px"></div>
       </div>
     </div>
@@ -607,6 +671,23 @@
 
     const BACK = API_BASE;
     const MC = [17.68, 75.908];
+    let scen = 'baseline';
+
+    function setScen(s, btn) {
+      if (scen === s) return;
+      scen = s;
+      document.querySelectorAll('.sbtn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const msgs = {
+        'baseline': 'Running: Anomaly detection (CLPS signals)',
+        'leak': 'Running: Major pipe leak simulation',
+        'valve': 'Running: Strategic valve closure',
+        'surge': 'Running: Demand Surge'
+      };
+      const sci = document.getElementById('sci');
+      if (sci) sci.textContent = msgs[s] || '';
+      loadAlerts();
+    }
 
     // Zone grid: 3-row x 3-col minus NW corner = 8 zones
     // Covers full Solapur pipeline network  radius=1800m, mathematically zero-gap
@@ -768,7 +849,7 @@
       const isBackgroundRefresh = document.getElementById('albody').innerHTML.trim() !== '';
 
       lLG.clearLayers();
-      const data = await api.get('/alerts/active?scenario=baseline');
+      const data = await api.get(`/alerts/active?scenario=${scen}`);
 
       if (!data || data.error) {
         if (!isBackgroundRefresh) {
@@ -879,6 +960,28 @@
       const d = new Date(iso);
       const mn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return `${String(d.getDate()).padStart(2, '0')} ${mn[d.getMonth()]} ${String(d.getFullYear()).slice(2)}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    async function downloadFieldLogPDF() {
+      try {
+        const r = await fetch(BACK + '/ward/field-work-log/pdf', {
+          headers: { 'Authorization': 'Bearer ' + TOKEN }
+        });
+        if (r.status === 401) { sessionStorage.clear(); window.location.href = 'login.html'; }
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const blob = await r.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'field_work_log.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        console.warn('PDF download failed:', e);
+        alert('Failed to download PDF.');
+      }
     }
 
     async function loadFieldHistory() {

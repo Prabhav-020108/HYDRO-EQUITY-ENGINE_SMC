@@ -728,6 +728,7 @@ from backend.routers.ward_complaints import router as ward_complaints_router
 from backend.routers.admin          import router as admin_router
 from backend.routers.complaints     import router as complaints_router
 from backend.routers.heatmap        import router as heatmap_router
+from backend.routers.citizen_auth   import router as citizen_auth_router
 
 logger = logging.getLogger(__name__)
 
@@ -817,6 +818,7 @@ app.include_router(ward_complaints_router)
 app.include_router(complaints_router)
 app.include_router(admin_router)
 app.include_router(heatmap_router)           # /heatmap/*
+app.include_router(citizen_auth_router)
 
 
 # ── Health check (PUBLIC — no auth required) ──────────────────────

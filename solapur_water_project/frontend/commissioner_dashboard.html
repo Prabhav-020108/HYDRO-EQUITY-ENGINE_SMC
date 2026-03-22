@@ -246,6 +246,54 @@
       font-weight: 500
     }
 
+    .sgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px
+    }
+
+    .sbtn {
+      padding: 8px 6px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      cursor: pointer;
+      text-align: center;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text2);
+      transition: all .15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px
+    }
+
+    .sbtn:hover {
+      border-color: var(--blue2);
+      color: var(--blue);
+      background: var(--bluel)
+    }
+
+    .sbtn.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--bluel);
+      font-weight: 600
+    }
+
+    .sbtn .ico {
+      font-size: 15px
+    }
+
+    #sci {
+      font-size: 11px;
+      color: var(--blue);
+      padding: 6px 14px 0;
+      font-style: italic
+    }
+
     .mesr {
       background: #1565C0;
       color: white;
@@ -774,9 +822,23 @@
   <div id="lay">
     <!-- Left: Zone equity list -->
     <div class="panel" id="lp">
-      <div class="ptit">Zone Equity Rankings (HEI)</div>
-      <div id="znl" style="flex:1;overflow-y:auto">
-        <div style="padding:16px 14px;color:var(--text3);font-size:11px">Loading...</div>
+      <div class="psec">
+        <div class="ptit">Zone Equity Rankings (HEI)</div>
+        <div id="znl" style="flex:1;overflow-y:auto;max-height:280px">
+          <div style="padding:16px 14px;color:var(--text3);font-size:11px">Loading...</div>
+        </div>
+      </div>
+      <div class="psec">
+        <div class="ptit">Scenario Engine</div>
+        <div class="pbody">
+          <div class="sgrid">
+            <button class="sbtn active" onclick="setScen('baseline',this)"><span class="ico">📡</span>Anomaly (CLPS)</button>
+            <button class="sbtn" onclick="setScen('leak',this)"><span class="ico">💧</span>Leak Event</button>
+            <button class="sbtn" onclick="setScen('valve',this)"><span class="ico">🔒</span>Valve Close</button>
+            <button class="sbtn" onclick="setScen('surge',this)"><span class="ico">📈</span>Demand Surge</button>
+          </div>
+          <div id="sci">Running: Anomaly detection (CLPS signals)</div>
+        </div>
       </div>
     </div>
 
@@ -906,6 +968,23 @@
     const BACK = API_BASE;
     const MC = [17.68, 75.908];
     let _nrwValue = '18%';
+    let scen = 'baseline';
+
+    function setScen(s, btn) {
+      if (scen === s) return;
+      scen = s;
+      document.querySelectorAll('.sbtn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const msgs = {
+        'baseline': 'Running: Anomaly detection (CLPS signals)',
+        'leak': 'Running: Major pipe leak simulation',
+        'valve': 'Running: Strategic valve closure',
+        'surge': 'Running: Demand Surge'
+      };
+      const sci = document.getElementById('sci');
+      if (sci) sci.textContent = msgs[s] || '';
+      loadAlerts();
+    }
 
     const ZONES = [
       { id: 'z1', apiId: 'zone_1', nm: 'Zone 1', lat: 17.7038, lon: 75.9065 },
@@ -1069,7 +1148,7 @@
     // The backend (alerts.py) now merges real DB status into every alert
     // returned by Branch B, so a.status reflects the actual lifecycle state.
     async function loadAlerts() {
-      const data = await api.get('/alerts/active?scenario=baseline');
+      const data = await api.get(`/alerts/active?scenario=${scen}`);
       if (!data || data.error) {
         document.getElementById('albody').innerHTML = '<div style="padding:10px;text-align:center;color:#D32F2F;font-weight:500;">Alert data unavailable — run V5 first.</div>';
         return;

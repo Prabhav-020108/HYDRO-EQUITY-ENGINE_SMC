@@ -134,6 +134,19 @@ TABLES = [
         )
     """),
 
+    ("citizens", """
+        CREATE TABLE IF NOT EXISTS citizens (
+            citizen_id      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            phone           TEXT UNIQUE NOT NULL,
+            hashed_password TEXT NOT NULL,
+            name            TEXT NOT NULL,
+            zone_id         TEXT NOT NULL,
+            zone_name       TEXT NOT NULL,
+            is_active       BOOLEAN DEFAULT TRUE,
+            created_at      TIMESTAMP DEFAULT NOW()
+        )
+    """),
+
     # ── Users table (Phase 4a) ─────────────────────────────────────
     ("users", """
         CREATE TABLE IF NOT EXISTS users (
