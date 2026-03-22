@@ -727,6 +727,7 @@ from backend.routers.mobile         import router as mobile_router
 from backend.routers.ward_complaints import router as ward_complaints_router
 from backend.routers.admin          import router as admin_router
 from backend.routers.complaints     import router as complaints_router
+from backend.routers.heatmap        import router as heatmap_router
 
 logger = logging.getLogger(__name__)
 
@@ -815,6 +816,7 @@ app.include_router(mobile_router)         # /mobile/*
 app.include_router(ward_complaints_router)
 app.include_router(complaints_router)
 app.include_router(admin_router)
+app.include_router(heatmap_router)           # /heatmap/*
 
 
 # ── Health check (PUBLIC — no auth required) ──────────────────────
@@ -869,6 +871,8 @@ class ComplaintRequest(BaseModel):
     description:  Optional[str] = None
     contact:      Optional[str] = None
     photo_b64:    Optional[str] = None
+    lat:          Optional[float] = None
+    lon:          Optional[float] = None
 
 @app.post("/citizen/complaint", tags=["Public"])
 def submit_complaint(req: ComplaintRequest):
@@ -880,8 +884,8 @@ def submit_complaint(req: ComplaintRequest):
         with engine.connect() as conn:
             row = conn.execute(text("""
                 INSERT INTO citizen_complaints
-                    (zone_id, problem_type, landmark, description, contact, photo_b64)
-                VALUES (:z, :pt, :lm, :desc, :con, :photo)
+                    (zone_id, problem_type, landmark, description, contact, photo_b64, lat, lon)
+                VALUES (:z, :pt, :lm, :desc, :con, :photo, :lat, :lon)
                 RETURNING complaint_id
             """), {
                 "z":     zone_id,
@@ -890,6 +894,8 @@ def submit_complaint(req: ComplaintRequest):
                 "desc":  req.description or "",
                 "con":   req.contact or "",
                 "photo": req.photo_b64,
+                "lat":   req.lat,
+                "lon":   req.lon,
             }).fetchone()
             conn.commit()
             new_id = row[0] if row else None

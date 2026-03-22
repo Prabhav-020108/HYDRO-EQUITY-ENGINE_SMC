@@ -321,6 +321,14 @@ NEW_COLUMNS = [
         "citizen_complaints.expiry_notified",
         "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS expiry_notified BOOLEAN DEFAULT FALSE"
     ),
+    (
+        "citizen_complaints.lat",
+        "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS lat FLOAT"
+    ),
+    (
+        "citizen_complaints.lon",
+        "ALTER TABLE citizen_complaints ADD COLUMN IF NOT EXISTS lon FLOAT"
+    ),
 ]
 
 
@@ -351,6 +359,21 @@ POST_MIGRATIONS = [
           END IF;
         END$$;
         UPDATE citizen_complaints SET status = status;
+        """
+    ),
+    (
+        "citizen_complaints: back-fill lat/lon from zone_polygons centroids",
+        """
+        UPDATE citizen_complaints cc
+        SET    lat = zp.centroid_lat + (
+                   (HASHTEXT(cc.complaint_id::text) % 1000) / 1000.0 * 0.008 - 0.004
+               ),
+               lon = zp.centroid_lon + (
+                   (HASHTEXT(cc.complaint_id::text || 'x') % 1000) / 1000.0 * 0.008 - 0.004
+               )
+        FROM   zone_polygons zp
+        WHERE  cc.zone_id = zp.zone_id
+          AND  cc.lat     IS NULL;
         """
     ),
 ]

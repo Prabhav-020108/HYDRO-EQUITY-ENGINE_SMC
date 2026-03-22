@@ -9,8 +9,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -776,6 +776,42 @@
 
     <!-- Map -->
     <div id="mapd">
+<div id="heatmap-toggle-wrap"
+     style="position:absolute;top:10px;right:10px;z-index:500;
+            display:flex;flex-direction:column;gap:6px;">
+    <button id="heatmap-toggle-btn"
+            onclick="toggleHeatmap()"
+            style="padding:7px 14px;background:#fff;border:1px solid #DDE3EA;
+                   border-radius:6px;font-family:'IBM Plex Sans',sans-serif;
+                   font-size:12px;font-weight:600;color:#1A2332;cursor:pointer;
+                   box-shadow:0 2px 8px rgba(0,0,0,.10);display:flex;
+                   align-items:center;gap:6px;white-space:nowrap;">
+        🔥 <span id="heatmap-toggle-label">Show Heatmap</span>
+    </button>
+    <div id="heatmap-legend"
+         style="display:none;background:#fff;border:1px solid #DDE3EA;
+                border-radius:6px;padding:8px 12px;
+                box-shadow:0 2px 8px rgba(0,0,0,.10);
+                font-size:10px;font-family:'IBM Plex Sans',sans-serif;">
+        <div style="font-weight:700;color:#1A2332;margin-bottom:6px;
+                    text-transform:uppercase;letter-spacing:.06em;">
+            Complaint Density
+        </div>
+        <div style="width:100%;height:8px;border-radius:4px;
+                    background:linear-gradient(to right,
+                    #3182BD,#41AB5D,#FEB24C,#F03B20,#BD0026);
+                    margin-bottom:3px;"></div>
+        <div style="display:flex;justify-content:space-between;
+                    color:#8A96A4;font-size:9px;margin-bottom:8px;">
+            <span>Low</span><span>High</span>
+        </div>
+        <div id="heatmap-red-zones"
+             style="color:#D32F2F;font-size:10px;font-weight:600;min-height:14px;"></div>
+        <div style="color:#8A96A4;font-size:9px;margin-top:4px;">
+            Last 24 hours · refreshes every 30s
+        </div>
+    </div>
+</div>
       <div id="mapc"></div>
     </div>
 
@@ -1293,7 +1329,179 @@
     // M4: Added loadStatusCounts() to the 60-second refresh cycle
     setInterval(() => { loadStatusCounts(); }, 30000);
     setInterval(() => { loadEquity(); loadAlerts(); renderRecommendations(); }, 60000);
+
+/* ================================================================
+   COMMISSIONER HEATMAP — Citizen Complaint Density Layer
+   Scoped IIFE — zero global pollution. Refreshes every 30 seconds.
+   ================================================================ */
+(function() {
+    let _heatLayer   = null;
+    let _heatVisible = false;
+    let _heatTimer   = null;
+    let _summaryData = [];
+
+    const HEAT_GRADIENT = {
+        0.0:  '#3182BD',
+        0.25: '#41AB5D',
+        0.5:  '#FEB24C',
+        0.75: '#F03B20',
+        1.0:  '#BD0026',
+    };
+
+    window.toggleHeatmap = function() {
+        _heatVisible = !_heatVisible;
+        const btn    = document.getElementById('heatmap-toggle-btn');
+        const label  = document.getElementById('heatmap-toggle-label');
+        const legend = document.getElementById('heatmap-legend');
+
+        if (_heatVisible) {
+            label.textContent       = 'Hide Heatmap';
+            btn.style.background    = '#EBF3FB';
+            btn.style.borderColor   = '#0D5FA8';
+            btn.style.color         = '#0D5FA8';
+            legend.style.display    = 'block';
+            _loadHeatmap();
+            _heatTimer = setInterval(_loadHeatmap, 30000);
+        } else {
+            label.textContent       = 'Show Heatmap';
+            btn.style.background    = '#fff';
+            btn.style.borderColor   = '#DDE3EA';
+            btn.style.color         = '#1A2332';
+            legend.style.display    = 'none';
+            if (_heatLayer) { map.removeLayer(_heatLayer); _heatLayer = null; }
+            if (_heatTimer) { clearInterval(_heatTimer); _heatTimer = null; }
+        }
+    };
+
+    async function _loadHeatmap() {
+        if (!_heatVisible) return;
+        try {
+            const [ptsRes, sumRes] = await Promise.all([
+                fetch(BACK + '/heatmap/citizen-alerts',
+                      { headers: { 'Authorization': 'Bearer ' + TOKEN } }),
+                fetch(BACK + '/heatmap/zone-summary',
+                      { headers: { 'Authorization': 'Bearer ' + TOKEN } }),
+            ]);
+            if (!ptsRes || !ptsRes.ok) return;
+            const ptsData = await ptsRes.json().catch(() => ({}));
+            const sumData = sumRes && sumRes.ok
+                ? await sumRes.json().catch(() => ({})) : {};
+
+            _summaryData = sumData.zones || [];
+            const heatData = (ptsData.points || []).map(p => [p.lat, p.lon, p.intensity]);
+
+            if (_heatLayer) map.removeLayer(_heatLayer);
+            _heatLayer = L.heatLayer(heatData, {
+                radius: 28, blur: 22, maxZoom: 17,
+                minOpacity: 0.35, gradient: HEAT_GRADIENT,
+            }).addTo(map);
+
+            _heatLayer.on('click', _onHeatClick);
+
+            const redZones = (sumData.red_zones || [])
+                .map(z => 'Zone ' + z.replace('zone_', '')).join(', ');
+            const rdEl = document.getElementById('heatmap-red-zones');
+            if (rdEl) rdEl.textContent = redZones
+                ? '🔴 Red Zones: ' + redZones : '✅ No red zones currently';
+        } catch(e) { /* silent fail — heatmap is non-critical */ }
+    }
+
+    function _onHeatClick(e) {
+        if (!_summaryData.length) return;
+        const COORDS = {
+            zone_1:[17.7038,75.9065], zone_2:[17.7038,75.9430],
+            zone_3:[17.6690,75.8700], zone_4:[17.6690,75.9065],
+            zone_5:[17.6690,75.9430], zone_6:[17.6342,75.8700],
+            zone_7:[17.6342,75.9065], zone_8:[17.6342,75.9430],
+        };
+        let nearest = null, minDist = Infinity;
+        for (const [zid, [zlat, zlon]] of Object.entries(COORDS)) {
+            const d = Math.hypot(e.latlng.lat - zlat, e.latlng.lng - zlon);
+            if (d < minDist) { minDist = d; nearest = zid; }
+        }
+        if (!nearest) return;
+        const zData = _summaryData.find(z => z.zone_id === nearest) || {
+            zone_id: nearest,
+            zone_name: 'Zone ' + nearest.replace('zone_', ''),
+            total: 0, is_red_zone: false, breakdown: {}
+        };
+        _showModal(zData);
+    }
+
+    function _showModal(zData) {
+        const ICONS  = { no_water:'🚱', low_pressure:'📉', dirty_water:'⚠️',
+                         pipe_leak:'💧', billing:'📄', tanker_request:'🚚' };
+        const LABELS = { no_water:'No Water Supply', low_pressure:'Low Pressure',
+                         dirty_water:'Contaminated Water', pipe_leak:'Pipe Leak',
+                         billing:'Billing Issue', tanker_request:'Tanker Request' };
+
+        document.getElementById('modal-zone-title').textContent =
+            zData.zone_name + ' — Last 24 Hours';
+
+        const badge = document.getElementById('modal-red-badge');
+        if (badge) badge.style.display = zData.is_red_zone ? 'inline-block' : 'none';
+
+        const bd = zData.breakdown || {};
+        const rows = Object.entries(bd)
+            .filter(([,v]) => v > 0)
+            .sort(([,a],[,b]) => b - a)
+            .map(([key, val]) => {
+                const pct = zData.total > 0 ? Math.round(val / zData.total * 100) : 0;
+                return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span style="font-size:16px;">${ICONS[key]||'❗'}</span>
+                    <div style="flex:1;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+                            <span style="font-size:12px;font-weight:500;color:#1A2332;">
+                                ${LABELS[key]||key}</span>
+                            <span style="font-size:12px;font-weight:700;color:#D32F2F;">${val}</span>
+                        </div>
+                        <div style="background:#EEF2F6;border-radius:4px;height:4px;">
+                            <div style="background:#D32F2F;border-radius:4px;height:4px;
+                                        width:${pct}%;"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+        document.getElementById('modal-breakdown').innerHTML =
+            rows || '<div style="color:#8A96A4;font-size:12px;">No active complaints.</div>';
+        document.getElementById('modal-total').innerHTML =
+            `<strong>${zData.total}</strong> active citizen complaint${zData.total!==1?'s':''} in ${zData.zone_name}.`;
+        document.getElementById('heatmap-modal').style.display = 'flex';
+    }
+
+    const modal = document.getElementById('heatmap-modal');
+    if (modal) modal.addEventListener('click', e => { if (e.target===modal) modal.style.display='none'; });
+})();
   </script>
+<div id="heatmap-modal"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+            z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:24px;
+                max-width:380px;width:90%;
+                box-shadow:0 8px 32px rgba(0,0,0,.2);
+                font-family:'IBM Plex Sans',sans-serif;">
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;margin-bottom:16px;">
+            <div id="modal-zone-title"
+                 style="font-size:15px;font-weight:700;color:#0D5FA8;"></div>
+            <button onclick="document.getElementById('heatmap-modal').style.display='none'"
+                    style="background:none;border:none;font-size:20px;
+                           cursor:pointer;color:#8A96A4;line-height:1;">✕</button>
+        </div>
+        <div id="modal-red-badge"
+             style="display:none;background:#FFEBEE;color:#D32F2F;
+                    font-size:11px;font-weight:700;padding:4px 12px;
+                    border-radius:10px;margin-bottom:12px;">
+            🔴 RED ZONE — High Priority
+        </div>
+        <div id="modal-breakdown"></div>
+        <div id="modal-total"
+             style="margin-top:12px;padding-top:12px;
+                    border-top:1px solid #EEF2F6;
+                    font-size:12px;color:#4A5568;"></div>
+    </div>
+</div>
 </body>
 
 </html>

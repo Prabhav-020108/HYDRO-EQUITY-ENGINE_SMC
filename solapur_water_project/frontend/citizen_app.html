@@ -656,6 +656,17 @@
             const body = { zone_id: zoneId, problem_type: type, description: desc };
             if (photoBase64) body.photo_b64 = photoBase64;
 
+            // Attempt to capture live GPS (10s timeout) — fails silently if denied
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+                });
+                body.lat = pos.coords.latitude;
+                body.lon = pos.coords.longitude;
+            } catch (e) {
+                console.warn('[GPS] Could not capture live coords for complaint', e);
+            }
+
             try {
                 console.log('[Submit] Posting to:', API_BASE + '/citizen/complaint');
                 const res = await fetch(API_BASE + '/citizen/complaint', {
